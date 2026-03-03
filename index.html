@@ -1,0 +1,170 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <title>Five Nights at Freddy's</title>
+    <link rel="stylesheet" href="src/css/styles.css">
+    <link rel="stylesheet" href="src/css/office.css">
+    <!-- Three.js r152 — served locally (CDN path for r163 doesn't exist) -->
+    <script src="src/js/three.min.js"></script>
+</head>
+<body>
+    <!-- Audio Assets — drop matching files into src/assets/ to enable sound -->
+    <audio id="doorAudio">
+        <source src="src/assets/door.mp3" type="audio/mpeg">
+        <source src="src/assets/door.ogg" type="audio/ogg">
+    </audio>
+    <audio id="jumpScareAudio">
+        <source src="src/assets/jumpscare.mp3" type="audio/mpeg">
+        <source src="src/assets/jumpscare.ogg" type="audio/ogg">
+    </audio>
+    <audio id="powerOutAudio">
+        <source src="src/assets/powerout.mp3" type="audio/mpeg">
+        <source src="src/assets/powerout.ogg" type="audio/ogg">
+    </audio>
+    <audio id="successAudio">
+        <source src="src/assets/success.mp3" type="audio/mpeg">
+        <source src="src/assets/success.ogg" type="audio/ogg">
+    </audio>
+
+    <div id="startScreen">
+        <h1 id="title">FIVE NIGHTS<br>AT FREDDY'S</h1>
+        <p id="screenName"> &bull; Night Selection</p>
+        <div class="nightSelector">
+            <button class="nightBtn" onclick="window.startGame && window.startGame(1)">Night 1</button>
+            <button class="nightBtn" onclick="window.startGame && window.startGame(2)">Night 2</button>
+            <button class="nightBtn" onclick="window.startGame && window.startGame(3)">Night 3</button>
+            <button class="nightBtn" onclick="window.startGame && window.startGame(4)">Night 4</button>
+            <button class="nightBtn" onclick="window.startGame && window.startGame(5)">Night 5</button>
+            <button class="nightBtn" onclick="window.startGame && window.startGame(6)">Night 6</button>
+        </div>
+    </div>
+
+    <div id="gameContainer">
+        <!-- Monitor Area with Controls and Time Display -->
+        <div id="monitorArea">
+            <!-- Time Display Top-Right -->
+            <div id="timeDisplay">12:00 AM</div>
+
+            <!-- Center Camera Monitor -->
+            <div id="monitorStand">
+                <canvas id="cameraCanvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Control Panels - Always Visible -->
+        <div id="controlPanelArea">
+            <!-- Left Control Panel -->
+            <div id="leftPanel">
+                <button class="controlBtn door" id="btnDL" onclick="window.toggleDoor && window.toggleDoor('left')">
+                    <div class="btnLabel">DOOR</div>
+                    <div class="btnStatus" id="dlStatus">OPEN</div>
+                </button>
+                <button class="controlBtn light" id="btnLL" onclick="window.toggleLight && window.toggleLight('left')">
+                    <div class="btnLabel">LIGHT</div>
+                    <div class="btnStatus" id="llStatus">ON</div>
+                </button>
+            </div>
+
+            <!-- Right Control Panel -->
+            <div id="rightPanel">
+                <button class="controlBtn door" id="btnDR" onclick="window.toggleDoor && window.toggleDoor('right')">
+                    <div class="btnLabel">DOOR</div>
+                    <div class="btnStatus" id="drStatus">OPEN</div>
+                </button>
+                <button class="controlBtn light" id="btnLR" onclick="window.toggleLight && window.toggleLight('right')">
+                    <div class="btnLabel">LIGHT</div>
+                    <div class="btnStatus" id="lrStatus">ON</div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Office view — outside #gameContainer so position:fixed is in the root stacking context -->
+    <div id="officeArea">
+        <!-- Three.js renders here; office3d.js populates this div -->
+        <div id="officeScene"></div>
+
+        <!-- Door buttons (left) -->
+        <button class="office-btn office-btn-door-left" onclick="window.toggleDoor && window.toggleDoor('left')">DOOR</button>
+        <button class="office-btn office-btn-light-left" onclick="window.toggleLight && window.toggleLight('left')">LIGHT</button>
+
+        <!-- Door buttons (right) -->
+        <button class="office-btn office-btn-door-right" onclick="window.toggleDoor && window.toggleDoor('right')">DOOR</button>
+        <button class="office-btn office-btn-light-right" onclick="window.toggleLight && window.toggleLight('right')">LIGHT</button>
+
+        <!-- Vignette overlay -->
+        <div class="office-vignette"></div>
+    </div>
+
+    <!-- Camera Toggle Button - Bottom Center (FNAF1 style) -->
+    <button id="cameraToggleBtn">
+        <span class="cameraBtnIcon">
+            <svg width="60" height="16" viewBox="0 0 60 16">
+                <polyline points="10,6 30,12 50,6" stroke="#aaa" stroke-width="3" fill="none" />
+                <polyline points="10,12 30,16 50,12" stroke="#aaa" stroke-width="3" fill="none" />
+            </svg>
+        </span>
+    </button>
+
+    <!-- Hidden Camera Grid - Shows on button click -->
+    <div id="cameraGrid">
+        <button class="camBtn" data-cam="stage">1A</button>
+        <button class="camBtn" data-cam="stage_left">2A</button>
+        <button class="camBtn" data-cam="stage_right">2B</button>
+        <button class="camBtn" data-cam="dining">1B</button>
+        <button class="camBtn" data-cam="kitchen">4B</button>
+        <button class="camBtn" data-cam="backstage">5</button>
+        <button class="camBtn" data-cam="pirate">1C</button>
+        <button class="camBtn" data-cam="hallW">2A</button>
+        <button class="camBtn" data-cam="hallE">3</button>
+        <button class="camBtn" data-cam="hallW_corner">4A</button>
+        <button class="camBtn" data-cam="hallE_corner">4B</button>
+    </div>
+
+    <!-- Power & Usage Display - Bottom Left Fixed -->
+    <div id="powerArea">
+        <div id="powerDisplay">100%</div>
+        <div class="usageContainer">
+            <div class="usageBar" id="barLights">
+                <div class="usageLabel">L</div>
+                <div class="usageBarBg"><div class="usageBarFill" id="usageLights"></div></div>
+            </div>
+            <div class="usageBar" id="barDoors">
+                <div class="usageLabel">D</div>
+                <div class="usageBarBg"><div class="usageBarFill" id="usageDoors"></div></div>
+            </div>
+            <div class="usageBar" id="barCamera">
+                <div class="usageLabel">C</div>
+                <div class="usageBarBg"><div class="usageBarFill" id="usageCamera"></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div id="gameOverScreen">
+        <div id="jumpScare"></div>
+        <div id="gameOverContent">
+            <h1>GAME OVER</h1>
+            <button class="retryBtn" onclick="window.returnToStart && window.returnToStart()">MAIN MENU</button>
+            <button class="retryBtn" onclick="window.startGame && window.startGame(window.gameState?.currentNight || 1)">RETRY</button>
+        </div>
+    </div>
+
+    <!-- Night Complete Screen -->
+    <div id="nightCompleteScreen">
+        <div id="nightCompleteContent">
+            <h1>6:00 AM</h1>
+            <div id="nightCompleteMessage">YOU SURVIVED THE NIGHT.</div>
+            <button class="nextBtn" onclick="window.nextNight && window.nextNight()">CONTINUE</button>
+            <button class="nextBtn" onclick="window.returnToStart && window.returnToStart()">MAIN MENU</button>
+        </div>
+    </div>
+
+    <script src="src/js/office3d.js?v=20260302"></script>
+    <script src="src/js/game.js?v=20260302"></script>
+
+</body>
+</html>

@@ -1,0 +1,749 @@
+/* ============ GLOBAL STYLES ============ */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(to bottom, #8B7355 0%, #6B5344 50%, #4a4a4a 100%);
+    font-family: Arial, sans-serif;
+    overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    background-attachment: fixed;
+}
+
+/* ============ START SCREEN ============ */
+#startScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a0a00 0%, #0a0a0a 50%, #1a0a1a 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#startScreen::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.15) 0px,
+        rgba(0, 0, 0, 0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    opacity: 0.1;
+    pointer-events: none;
+    animation: scanlines 8s linear infinite;
+}
+
+@keyframes scanlines {
+    0% {
+        transform: translateY(0);
+    }
+
+    100% {
+        transform: translateY(2px);
+    }
+}
+
+#startScreen.hidden {
+    display: none;
+}
+
+#title {
+    font-size: 72px;
+    color: #ff0000;
+    text-shadow: 0 0 40px #ff0000, 0 0 80px #aa0000, 0 0 120px #550000;
+    font-weight: bold;
+    letter-spacing: 8px;
+    margin-bottom: 20px;
+    animation: glow 3s ease-in-out infinite;
+    position: relative;
+    z-index: 1;
+    font-family: 'Arial Black', sans-serif;
+}
+
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 0 0 40px #ff0000, 0 0 80px #aa0000;
+        transform: scale(1);
+    }
+
+    50% {
+        text-shadow: 0 0 80px #ff3333, 0 0 160px #ff0000;
+        transform: scale(1.02);
+    }
+}
+
+#screenName {
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 60px;
+    position: relative;
+    z-index: 1;
+}
+
+.nightSelector {
+    display: grid;
+    grid-template-columns: repeat(3, 150px);
+    gap: 25px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
+}
+
+.nightBtn {
+    padding: 20px;
+    background: linear-gradient(180deg, #2a0a0a 0%, #1a0000 100%);
+    border: 3px solid #776666;
+    color: #cccccc;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    border-radius: 2px;
+    letter-spacing: 2px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 4px 8px rgba(0, 0, 0, 0.8);
+}
+
+.nightBtn:hover {
+    border-color: #888;
+    background: linear-gradient(135deg, #3a1010 0%, #2a0000 100%);
+    box-shadow: 0 0 30px rgba(100, 0, 0, 0.6);
+}
+
+.nightBtn.locked {
+    opacity: 0.4;
+    cursor: not-allowed;
+    border-color: #444;
+    background: linear-gradient(135deg, #1a0000 0%, #0a0000 100%);
+}
+
+.nightBtn.locked:hover {
+    border-color: #444;
+    background: linear-gradient(135deg, #1a0000 0%, #0a0000 100%);
+    box-shadow: none;
+}
+
+/* ============ GAME CONTAINER ============ */
+#gameContainer {
+    width: 100%;
+    height: 100%;
+    display: none;
+    flex-direction: column;
+    background: transparent;
+    position: relative;
+    z-index: 50;
+}
+
+#gameContainer.show {
+    display: flex;
+}
+
+/* Monitor Area - fills screen when camera is up */
+#monitorArea {
+    flex: 1;
+    display: none;
+    background: linear-gradient(135deg, #8B7355 0%, #6B5344 100%);
+    padding: 20px;
+    gap: 15px;
+    border-bottom: 4px solid #555;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    position: relative;
+    align-items: center;
+    justify-content: center;
+}
+
+#monitorArea.visible {
+    display: flex;
+}
+
+/* Control Panel Area - Always Visible */
+#controlPanelArea {
+    flex: 0.35;
+    display: flex;
+    background: linear-gradient(135deg, #8B7355 0%, #6B5344 100%);
+    padding: 20px;
+    gap: 15px;
+    border-bottom: 4px solid #555;
+    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
+    position: relative;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+}
+
+/* Monitor Stand - Center */
+#monitorStand {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: 8px solid #1a1a1a;
+    border-radius: 2px;
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05),
+        0 10px 30px rgba(0, 0, 0, 0.8),
+        0 0 50px rgba(0, 150, 200, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 8px;
+}
+
+#monitorStand::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.08) 0px,
+        rgba(0, 0, 0, 0.08) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    border-radius: 2px;
+    animation: scanlines 8s linear infinite;
+    z-index: 3;
+}
+
+#cameraCanvas {
+    width: 100%;
+    height: 100%;
+    background: #111;
+    display: block;
+    border: 1px solid #000;
+    position: relative;
+    z-index: 1;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Control Panels */
+#leftPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+#rightPanel {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Control Buttons */
+.controlBtn {
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 3px solid #555;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: bold;
+    font-size: 9px;
+    color: #aaa;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5),
+        inset 0 1px 2px rgba(255, 255, 255, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.controlBtn:hover {
+    border-color: #777;
+    color: #ccc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6),
+        inset 0 1px 2px rgba(255, 255, 255, 0.15);
+}
+
+.controlBtn.active {
+    background: linear-gradient(145deg, #004d00 0%, #003300 100%);
+    color: #00ff00;
+    border-color: #00ff00;
+    box-shadow: 0 0 25px rgba(0, 255, 0, 0.4),
+        inset 0 0 10px rgba(0, 255, 0, 0.1),
+        0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.controlBtn.pressed {
+    background: #a00 !important;
+    color: #fff !important;
+    border-color: #a00 !important;
+    box-shadow: 0 0 16px #a00a, 0 4px 10px rgba(0,0,0,0.5);
+}
+
+.controlBtn.light.active {
+    background: linear-gradient(145deg, #664400 0%, #442200 100%);
+    color: #ffdd00;
+    border-color: #ffdd00;
+    box-shadow: 0 0 25px rgba(255, 200, 0, 0.4),
+        inset 0 0 10px rgba(255, 200, 0, 0.1),
+        0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+.btnLabel {
+    font-size: 8px;
+    margin-bottom: 2px;
+    letter-spacing: 0.5px;
+}
+
+.btnStatus {
+    font-size: 8px;
+    opacity: 0.8;
+    font-weight: bold;
+}
+
+/* Office Area - fills available space above camera button */
+#officeArea {
+    flex: 1;
+    background: transparent;
+    border-top: none;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden;
+    margin-bottom: 54px; /* leave space for camera toggle button */
+}
+
+#officeCanvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+}
+
+/* ============ TIME & POWER DISPLAY ============ */
+#timeDisplay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 8px rgba(0, 150, 0, 0.3);
+    letter-spacing: 2px;
+    z-index: 100;
+    background: rgba(10, 10, 10, 0.95);
+    padding: 12px 18px;
+    border: 4px solid #222;
+    border-radius: 2px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95),
+        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    text-align: center;
+}
+
+#powerArea {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(10, 10, 10, 0.95);
+    border: 4px solid #222;
+    padding: 8px 12px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 110;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95);
+    font-family: 'Courier New', monospace;
+}
+
+#powerDisplay {
+    font-size: 18px;
+    color: #ffffff;
+    font-weight: bold;
+    letter-spacing: 1px;
+    text-align: left;
+    text-shadow: 0 0 8px rgba(0, 150, 0, 0.4);
+}
+
+#powerBar {
+    width: 140px;
+    height: 22px;
+    background: #000;
+    border: 2px solid #333;
+    border-radius: 1px;
+    overflow: hidden;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+}
+
+#powerBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, #00AA00 0%, #FFAA00 50%, #FF0000 100%);
+    width: 100%;
+    transition: width 0.1s linear;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.usageContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.usageBar {
+    display: none;
+    align-items: center;
+    gap: 4px;
+}
+
+.usageBar.active {
+    display: flex;
+}
+
+.usageLabel {
+    font-size: 10px;
+    color: #666;
+    font-weight: bold;
+    width: 12px;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+.usageBarBg {
+    width: 80px;
+    height: 6px;
+    background: #000;
+    border: 1px solid #333;
+    border-radius: 1px;
+    overflow: hidden;
+    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.9);
+}
+
+.usageBarFill {
+    height: 100%;
+    background: linear-gradient(90deg, #00AA00 0%, #FFAA00 50%, #FF0000 100%);
+    width: 100%;
+    transition: width 0.1s linear;
+    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+}
+
+/* ============ CAMERA CONTROLS ============ */
+#cameraToggleBtn {
+    position: fixed;
+    left: 160px;
+    right: 0;
+    bottom: 0;
+    width: calc(100vw - 160px);
+    height: 54px;
+    background: #222 linear-gradient(90deg, #222 0%, #333 100%);
+    border: 2px solid #888;
+    border-radius: 8px 0 0 0;
+    box-shadow: 0 2px 12px #000a, 0 0 0 2px #111 inset;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    cursor: pointer;
+    padding: 0;
+}
+
+#cameraToggleBtn:active {
+    background: #333;
+    border-color: #aaa;
+}
+
+.cameraBtnIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+#cameraToggleBtn svg {
+    display: block;
+    width: 320px;
+    height: 40px;
+    max-width: 90vw;
+    max-height: 80%;
+}
+
+#cameraToggleBtn:hover {
+    opacity: 1;
+    border-color: #888;
+    color: #000;
+    transform: scaleY(1.03);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.cameraBtnText {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-weight: 800;
+    color: #000;
+    letter-spacing: 4px;
+}
+
+#cameraToggleBtn.active {
+    background: linear-gradient(180deg, #003300 0%, #001a00 100%);
+    color: #00ff00;
+    border-color: #00ff00;
+    opacity: 1;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.6),
+        inset 0 1px 0 rgba(0, 255, 0, 0.3),
+        0 6px 20px rgba(0, 0, 0, 0.9);
+}
+
+#cameraGrid {
+    position: fixed;
+    bottom: 95px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    grid-template-columns: repeat(11, 55px);
+    gap: 6px;
+    background: #0a0a0a;
+    padding: 15px;
+    border: 4px solid #222;
+    border-radius: 2px;
+    z-index: 90;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.95),
+        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+#cameraGrid.show {
+    display: grid !important;
+}
+
+.camBtn {
+    width: 55px;
+    height: 45px;
+    background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%);
+    border: 2px solid #333;
+    color: #666;
+    font-size: 11px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    border-radius: 1px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: 'Courier New', monospace;
+}
+
+.camBtn:hover {
+    border-color: #00ff00;
+    color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+    background: linear-gradient(145deg, #001a00 0%, #000a00 100%);
+}
+
+.camBtn.active {
+    background: linear-gradient(145deg, #003300 0%, #001a00 100%);
+    color: #00ff00;
+    border-color: #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5),
+        inset 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+/* ============ CONTROL PANEL ============ */
+#controlPanel {
+    display: none;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+    padding: 15px 0;
+    background: rgba(0, 0, 0, 0.7);
+    border-top: 3px solid #444;
+}
+
+#controlPanel.show {
+    display: flex;
+}
+
+.controlGroup {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+#nightDisplay {
+    font-size: 11px;
+    color: #ffff00;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    text-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+}
+
+#statusText {
+    font-size: 9px;
+    color: #aaa;
+    letter-spacing: 0.5px;
+}
+
+/* Remove conflicting cameraGridContainer styles - using #cameraGrid instead */
+/* .cameraGridContainer {
+    display: none;
+}
+
+.cameraGridContainer.show {
+    display: flex;
+    flex-direction: column;
+} */
+
+/* ============ GAME OVER SCREEN ============ */
+#gameOverScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #1a0000 0%, #000 100%);
+    display: none;
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#gameOverScreen.show {
+    display: flex;
+}
+
+#jumpScare {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: #f00;
+    display: none;
+    z-index: 1999;
+    animation: scare 0.1s 8;
+}
+
+#jumpScare.show {
+    display: block;
+}
+
+@keyframes scare {
+    0%, 100% {
+        background: #f00;
+        opacity: 1;
+    }
+
+    50% {
+        background: #fff;
+        opacity: 0.8;
+    }
+}
+
+#gameOverContent {
+    text-align: center;
+    z-index: 2001;
+}
+
+#gameOverContent h1 {
+    font-size: 80px;
+    color: #ff3333;
+    text-shadow: 0 0 50px #ff0000;
+    margin-bottom: 20px;
+}
+
+#gameOverMessage {
+    font-size: 20px;
+    color: #fff;
+    margin: 20px 0;
+    text-transform: uppercase;
+}
+
+.retryBtn {
+    padding: 12px 30px;
+    margin: 10px;
+    background: linear-gradient(135deg, #330000 0%, #1a0000 100%);
+    border: 2px solid #ff3333;
+    color: #ff3333;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+    border-radius: 3px;
+}
+
+.retryBtn:hover {
+    border-color: #ff3333;
+    box-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
+}
+
+/* ============ NIGHT COMPLETE SCREEN ============ */
+#nightCompleteScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, #001a00 0%, #000 100%);
+    display: none;
+    z-index: 2000;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+#nightCompleteScreen.show {
+    display: flex;
+}
+
+#nightCompleteContent h1 {
+    font-size: 72px;
+    color: #00ff00;
+    text-shadow: 0 0 50px #00ff00;
+    margin-bottom: 20px;
+}
+
+#nightCompleteMessage {
+    font-size: 22px;
+    color: #fff;
+    margin: 20px 0;
+    text-transform: uppercase;
+}
+
+.nextBtn {
+    padding: 12px 30px;
+    margin: 10px;
+    background: linear-gradient(135deg, #003300 0%, #001500 100%);
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.3s;
+    border-radius: 3px;
+}
+
+.nextBtn:hover {
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+}
+
+/* ============ AUDIO ============ */
+audio {
+    display: none;
+}

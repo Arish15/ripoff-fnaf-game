@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <rect width="100%" height="100%" fill="#2f2f2f" />
+  <rect x="0" y="0" width="280" height="600" fill="#4a4a4a" />
+  <!-- metal panels -->
+  <g stroke="#666" stroke-width="3">
+    <rect x="20" y="30" width="240" height="120" fill="#555" />
+    <rect x="20" y="170" width="240" height="120" fill="#555" />
+    <rect x="20" y="310" width="240" height="120" fill="#555" />
+    <rect x="20" y="450" width="240" height="120" fill="#555" />
+  </g>
+  <!-- window -->
+  <rect x="60" y="160" width="160" height="120" fill="#070707" stroke="#888" stroke-width="6" />
+  <!-- handle -->
+  <circle cx="250" cy="300" r="10" fill="#ffea00" />
+</svg>

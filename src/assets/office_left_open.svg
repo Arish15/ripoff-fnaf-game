@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600">
+  <defs>
+    <linearGradient id="g1" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#1a1a2e" />
+      <stop offset="1" stop-color="#050507" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="#0a0a0a" />
+  <rect x="0" y="0" width="280" height="600" fill="url(#g1)" />
+  <!-- simple perspective lines -->
+  <g stroke="#222" stroke-width="4" opacity="0.6">
+    <path d="M60 0 L160 600" />
+    <path d="M220 0 L140 600" />
+  </g>
+  <!-- faint ceiling line -->
+  <rect x="0" y="220" width="280" height="6" fill="#111" />
+  <!-- soft spotlight if light on (will be tinted by game overlay) -->
+  <radialGradient id="spot" cx="0.3" cy="0.3">
+    <stop offset="0" stop-color="#ffffff" stop-opacity="0.06" />
+    <stop offset="1" stop-color="#000000" stop-opacity="0" />
+  </radialGradient>
+  <rect x="0" y="0" width="280" height="600" fill="url(#spot)" />
+</svg>
