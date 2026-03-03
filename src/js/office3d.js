@@ -18,6 +18,11 @@
     var scene, camera, renderer, animId;
     var doorLeftPanel, doorRightPanel;
     var hallLightLeft, hallLightRight;
+    var hallDarknessLeft, hallDarknessRight;
+    var hallAnimLeftGroup, hallAnimRightGroup;
+    var hallAnimLeftMat,  hallAnimRightMat;
+    var hallLeftLightOn  = false, hallRightLightOn  = false;
+    var hallLeftPresent  = false, hallRightPresent  = false;
     var fanPivot;
 
     var mouseNorm   = 0.5;
@@ -33,6 +38,8 @@
         setDoorRight:  setDoorRight,
         setLightLeft:  setLightLeft,
         setLightRight: setLightRight,
+        setHallLeft:   setHallLeft,
+        setHallRight:  setHallRight,
         setMouse:      setMouse,
         show:          show,
         hide:          hide,
@@ -67,6 +74,8 @@
         buildMaterials();
         buildRoom();
         buildLighting();
+        buildHallDarkness();
+        buildHallAnimatronics();
 
         window.addEventListener('resize', onResize);
         animate();
@@ -235,13 +244,65 @@
         scene.add(sideL);
 
         // Hall lights — toggled by the light buttons; illuminate blind-spot corridors
-        hallLightLeft  = new THREE.PointLight(0xffee88, 0, 14);
-        hallLightLeft.position.set(-13, 5, 2);
+        hallLightLeft  = new THREE.PointLight(0xffee88, 0, 22);
+        hallLightLeft.position.set(-15, 6, 1);
         scene.add(hallLightLeft);
 
-        hallLightRight = new THREE.PointLight(0xffee88, 0, 14);
-        hallLightRight.position.set(13, 5, 2);
+        hallLightRight = new THREE.PointLight(0xffee88, 0, 22);
+        hallLightRight.position.set(15, 6, 1);
         scene.add(hallLightRight);
+    }
+
+    function buildHallDarkness() {
+        // MeshBasicMaterial ignores all lighting — always renders as solid black.
+        // These planes sit just inside each corridor entrance and block any ambient
+        // light bleed when the hall light is off.
+        var darkMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
+        var RH = 11;
+        var planeGeo = new THREE.PlaneGeometry(20, RH);
+
+        hallDarknessLeft = new THREE.Mesh(planeGeo, darkMat);
+        hallDarknessLeft.rotation.y = Math.PI / 2;   // face toward +X (toward office)
+        hallDarknessLeft.position.set(-11.6, RH / 2, 0);
+        scene.add(hallDarknessLeft);
+
+        hallDarknessRight = new THREE.Mesh(planeGeo, darkMat);
+        hallDarknessRight.rotation.y = -Math.PI / 2; // face toward -X (toward office)
+        hallDarknessRight.position.set(11.6, RH / 2, 0);
+        scene.add(hallDarknessRight);
+    }
+
+    function buildHallAnimatronics() {
+        function makeGroup(mat) {
+            var g = new THREE.Group();
+            // Body
+            var body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 4.2, 1.8), mat);
+            body.position.set(0, 2.1, 0);
+            g.add(body);
+            // Head
+            var head = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), mat);
+            head.position.set(0, 5.1, 0);
+            g.add(head);
+            // White glowing eyes
+            var eyeMat = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: new THREE.Color(0xffffff), emissiveIntensity: 1.0 });
+            var eyeGeo = new THREE.BoxGeometry(0.28, 0.22, 0.12);
+            var eL = new THREE.Mesh(eyeGeo, eyeMat);
+            eL.position.set(-0.38, 5.2, 0.92);
+            g.add(eL);
+            var eR = new THREE.Mesh(eyeGeo, eyeMat);
+            eR.position.set( 0.38, 5.2, 0.92);
+            g.add(eR);
+            g.visible = false;
+            return g;
+        }
+        hallAnimLeftMat  = new THREE.MeshLambertMaterial({ color: 0x888888 });
+        hallAnimRightMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+        hallAnimLeftGroup  = makeGroup(hallAnimLeftMat);
+        hallAnimLeftGroup.position.set(-14, 0, 0);
+        scene.add(hallAnimLeftGroup);
+        hallAnimRightGroup = makeGroup(hallAnimRightMat);
+        hallAnimRightGroup.position.set(14, 0, 0);
+        scene.add(hallAnimRightGroup);
     }
 
     function animate() {
@@ -272,10 +333,30 @@
         if (doorRightPanel) doorRightPanel.material = closed ? MAT_DOOR_CLOSED : MAT_DOOR_OPEN;
     }
     function setLightLeft(on) {
-        if (hallLightLeft)  hallLightLeft.intensity  = on ? 3.5 : 0;
+        hallLeftLightOn = on;
+        if (hallLightLeft)    hallLightLeft.intensity   = on ? 18 : 0;
+        if (hallDarknessLeft) hallDarknessLeft.visible  = !on;
+        updateHallVis('left');
     }
     function setLightRight(on) {
-        if (hallLightRight) hallLightRight.intensity = on ? 3.5 : 0;
+        hallRightLightOn = on;
+        if (hallLightRight)    hallLightRight.intensity  = on ? 18 : 0;
+        if (hallDarknessRight) hallDarknessRight.visible = !on;
+        updateHallVis('right');
+    }
+    function setHallLeft(colorCss) {
+        hallLeftPresent = colorCss != null;
+        if (hallAnimLeftMat && colorCss != null) hallAnimLeftMat.color.setStyle(colorCss);
+        updateHallVis('left');
+    }
+    function setHallRight(colorCss) {
+        hallRightPresent = colorCss != null;
+        if (hallAnimRightMat && colorCss != null) hallAnimRightMat.color.setStyle(colorCss);
+        updateHallVis('right');
+    }
+    function updateHallVis(side) {
+        if (side === 'left'  && hallAnimLeftGroup)  hallAnimLeftGroup.visible  = hallLeftLightOn  && hallLeftPresent;
+        if (side === 'right' && hallAnimRightGroup) hallAnimRightGroup.visible = hallRightLightOn && hallRightPresent;
     }
     function setMouse(normX) { mouseNorm = normX; }
 

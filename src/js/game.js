@@ -23,8 +23,8 @@ var game = {
 };
 
 var NIGHT_AI = {
-    1: { freddy: 2,  bonnie: 0,  chica: 1,  foxy: 1  },
-    2: { freddy: 3,  bonnie: 2,  chica: 2,  foxy: 2  },
+    1: { freddy: 0,  bonnie: 0,  chica: 1,  foxy: 1  },
+    2: { freddy: 0,  bonnie: 2,  chica: 2,  foxy: 2  },
     3: { freddy: 6,  bonnie: 4,  chica: 4,  foxy: 3  },
     4: { freddy: 10, bonnie: 7,  chica: 6,  foxy: 5  },
     5: { freddy: 15, bonnie: 12, chica: 10, foxy: 7  },
@@ -630,11 +630,24 @@ function tickGame() {
         lastAiTick = game.time;
         tickAnimatronics(ai);
         checkCollisions();
+        updateHallAnimatronics();
     }
 
     updateHUD();
 
     if (game.hour >= 6 || game.time >= 540) endNight();
+}
+
+function updateHallAnimatronics() {
+    if (!window.office3d) return;
+    var leftAnim = null, rightAnim = null;
+    Object.values(animatronics).forEach(function(a) {
+        var pos = a.path[a.pos];
+        if (pos === 'hallW_corner') leftAnim = a;
+        if (pos === 'hallE_corner') rightAnim = a;
+    });
+    window.office3d.setHallLeft(leftAnim   ? leftAnim.color   : null);
+    window.office3d.setHallRight(rightAnim ? rightAnim.color  : null);
 }
 
 function tickAnimatronics(ai) {
@@ -655,15 +668,26 @@ function tickAnimatronics(ai) {
                 else game.power = Math.max(0, game.power - 12);
             }
         } else {
-            // FNAF1 rule: roll 0-19; advance if roll < ai_level
-            if (Math.floor(Math.random() * 20) < a.ai && a.pos < a.path.length - 1) {
-                var next = a.path[a.pos + 1];
-                if (next === 'office') {
-                    if (key === 'bonnie' && game.doorLeft)  return;
-                    if (key === 'freddy' && game.doorRight) return;
-                    if (key === 'chica'  && game.doorRight) return;
+            var atCorner = (a.path[a.pos] === 'hallW_corner' || a.path[a.pos] === 'hallE_corner');
+            if (atCorner) {
+                // At the door: always attempt to enter. Door blocks them but they don't retreat.
+                var doorBlocks = (key === 'bonnie' && game.doorLeft) ||
+                                 ((key === 'freddy' || key === 'chica') && game.doorRight);
+                if (!doorBlocks && a.pos < a.path.length - 1) {
+                    a.pos++; // → 'office', triggers game over in checkCollisions
                 }
-                a.pos++;
+                // door closed: stay at corner, do nothing
+            } else {
+                // FNAF1 rule: roll 0-19; advance if roll < ai_level
+                if (Math.floor(Math.random() * 20) < a.ai && a.pos < a.path.length - 1) {
+                    var next = a.path[a.pos + 1];
+                    if (next === 'office') {
+                        if (key === 'bonnie' && game.doorLeft)  return;
+                        if (key === 'freddy' && game.doorRight) return;
+                        if (key === 'chica'  && game.doorRight) return;
+                    }
+                    a.pos++;
+                }
             }
         }
     });
@@ -1461,6 +1485,8 @@ function startGame(night) {
             window.office3d.setDoorRight(false);
             window.office3d.setLightLeft(false);
             window.office3d.setLightRight(false);
+            window.office3d.setHallLeft(null);
+            window.office3d.setHallRight(null);
         }, 50);
     }
 
