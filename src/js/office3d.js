@@ -257,18 +257,18 @@
         // MeshBasicMaterial ignores all lighting — always renders as solid black.
         // These planes sit just inside each corridor entrance and block any ambient
         // light bleed when the hall light is off.
+        // NOTE: RH=11, HD=9 — hardcoded because buildRoom() vars are not in scope.
         var darkMat = new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.DoubleSide });
-        var RH = 11;
-        var planeGeo = new THREE.PlaneGeometry(20, RH);
+        var planeGeo = new THREE.PlaneGeometry(18, 11); // 18 deep (Z), 11 tall (Y)
 
         hallDarknessLeft = new THREE.Mesh(planeGeo, darkMat);
         hallDarknessLeft.rotation.y = Math.PI / 2;   // face toward +X (toward office)
-        hallDarknessLeft.position.set(-11.6, RH / 2, 0);
+        hallDarknessLeft.position.set(-11.6, 5.5, 0);
         scene.add(hallDarknessLeft);
 
         hallDarknessRight = new THREE.Mesh(planeGeo, darkMat);
         hallDarknessRight.rotation.y = -Math.PI / 2; // face toward -X (toward office)
-        hallDarknessRight.position.set(11.6, RH / 2, 0);
+        hallDarknessRight.position.set(11.6, 5.5, 0);
         scene.add(hallDarknessRight);
     }
 
