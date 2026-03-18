@@ -19,12 +19,12 @@ var game = {
 };
 
 var NIGHT_AI = {
-    1: { freddy: 0,  bonnie: 0,  chica: 1,  foxy: 1  },
-    2: { freddy: 0,  bonnie: 2,  chica: 2,  foxy: 2  },
-    3: { freddy: 6,  bonnie: 4,  chica: 4,  foxy: 3  },
-    4: { freddy: 10, bonnie: 7,  chica: 6,  foxy: 5  },
-    5: { freddy: 15, bonnie: 12, chica: 10, foxy: 7  },
-    6: { freddy: 20, bonnie: 18, chica: 15, foxy: 10 }
+    1: { freddy: 0,  bonnie: 2,  chica: 1,  foxy: 1  },
+    2: { freddy: 0,  bonnie: 3,  chica: 2,  foxy: 2  },
+    3: { freddy: 6,  bonnie: 5,  chica: 4,  foxy: 3  },
+    4: { freddy: 10, bonnie: 8,  chica: 6,  foxy: 5  },
+    5: { freddy: 15, bonnie: 13, chica: 10, foxy: 7  },
+    6: { freddy: 16, bonnie: 17, chica: 16, foxy: 10 }
 };
 
 var animatronics = {

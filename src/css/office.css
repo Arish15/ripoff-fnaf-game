@@ -12,7 +12,7 @@
   z-index: 60;        /* above #gameContainer (z-50), below HUD (90+) */
   overflow: hidden;
   background: #000;
-  cursor: crosshair;
+  cursor: default;
   display: none;      /* hidden until startGame() shows it */
 }
 

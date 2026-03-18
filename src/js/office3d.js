@@ -18,15 +18,24 @@
     var scene, camera, renderer, animId;
     var doorLeftPanel, doorRightPanel;
     var hallLightLeft, hallLightRight;
-    var hallCurtainLeft, hallCurtainRight;
+    var hallApertureLeft, hallApertureRight;
     var hallMeshesLeft  = [], hallMeshesRight = [];
+    var hallDecorLeft   = [], hallDecorRight  = [];
     var hallAnimLeftGroup, hallAnimRightGroup;
     var hallAnimLeftMat,  hallAnimRightMat;
     var hallLeftLightOn  = false, hallRightLightOn  = false;
     var hallLeftPresent  = false, hallRightPresent  = false;
-    var MAT_HALL_DARK, MAT_HALL_LIT;
-    var MAT_CURTAIN;
+    var MAT_HALL_DARK, MAT_HALL_WALL, MAT_HALL_FLOOR, MAT_HALL_CEIL;
     var fanPivot;
+
+    // Door spring-physics animation state (0 = open, 1 = closed)
+    var doorAnimLeft  = { pos: 0.0, vel: 0.0, target: 0.0 };
+    var doorAnimRight = { pos: 0.0, vel: 0.0, target: 0.0 };
+    var DOOR_SPRING_K  = 0.075;  // spring stiffness
+    var DOOR_DAMPING   = 0.26;   // fraction of velocity removed each frame (<1 = slight bounce)
+    var DOOR_THRESHOLD = 0.0007; // snap distance
+    var DOOR_OPEN_Y    = 12.0;   // Y when fully retracted (above ceiling)
+    var DOOR_CLOSED_Y  = 4.0;    // Y when fully lowered into frame
 
     var mouseNorm   = 0.5;
     var currentRotY = 0;
@@ -77,7 +86,8 @@
         buildMaterials();
         buildRoom();
         buildLighting();
-        buildHallCurtains();
+        buildApertureCovers();
+        buildHallDecor();
         buildHallAnimatronics();
 
         window.addEventListener('resize', onResize);
@@ -88,12 +98,213 @@
         console.log('[office3d] test render done — canvas size: ' + renderer.domElement.width + 'x' + renderer.domElement.height);
     }
 
+    // =========================================================
+    // DOOR TEXTURE — procedural canvas-based steel blast door
+    // =========================================================
+    function createDoorTexture() {
+        var W = 256, H = 512;
+
+        // ---- Colour / diffuse map ----
+        var dc = document.createElement('canvas');
+        dc.width = W; dc.height = H;
+        var c = dc.getContext('2d');
+
+        // ---- Bump map (grey = neutral, white = raised, black = recessed) ----
+        var bn = document.createElement('canvas');
+        bn.width = W; bn.height = H;
+        var b = bn.getContext('2d');
+        b.fillStyle = '#808080';
+        b.fillRect(0, 0, W, H);
+
+        // -- Base coat: dark gunmetal with subtle noise grain --
+        c.fillStyle = '#3c3c3c';
+        c.fillRect(0, 0, W, H);
+        for (var gx = 0; gx < W; gx += 2) {
+            for (var gy = 0; gy < H; gy += 2) {
+                var n = (Math.sin(gx * 13.7 + gy * 5.3) * Math.cos(gx * 3.1 - gy * 9.7) + 1) * 0.5;
+                var d = Math.floor(50 + n * 18);
+                c.fillStyle = 'rgb(' + d + ',' + d + ',' + d + ')';
+                c.fillRect(gx, gy, 2, 2);
+            }
+        }
+
+        // Layout constants
+        var HAZARD_H = 48;          // caution stripe height at bottom
+        var BORDER   = 9;           // outer frame thickness
+        var RIDGE_H  = 11;          // height of separator ridges between panels
+        var PANEL_N  = 4;           // number of recessed panels
+        var usableH  = H - HAZARD_H;
+        var innerH   = usableH - BORDER * 2;
+        var panelH   = (innerH - (PANEL_N - 1) * RIDGE_H) / PANEL_N;
+
+        // -- Raised outer border frame --
+        c.fillStyle = '#242424';
+        c.fillRect(0, 0, W, BORDER);
+        c.fillRect(0, usableH - BORDER, W, BORDER);
+        c.fillRect(0, 0, BORDER, usableH);
+        c.fillRect(W - BORDER, 0, BORDER, usableH);
+        // Top-left highlight on frame edge
+        c.fillStyle = '#4e4e4e';
+        c.fillRect(BORDER, BORDER, W - BORDER * 2, 1);
+        c.fillRect(BORDER, BORDER, 1, usableH - BORDER * 2);
+        // Bump: frame protrudes
+        b.fillStyle = '#d4d4d4';
+        b.fillRect(0, 0, W, BORDER);
+        b.fillRect(0, usableH - BORDER, W, BORDER);
+        b.fillRect(0, 0, BORDER, usableH);
+        b.fillRect(W - BORDER, 0, BORDER, usableH);
+
+        // -- Recessed panels + inter-panel ridges --
+        for (var p = 0; p < PANEL_N; p++) {
+            var pTop = BORDER + p * (panelH + RIDGE_H);
+            var pw   = W - BORDER * 2;
+            var pm   = 8; // margin inside panel
+            // Panel inset shadow
+            c.fillStyle = 'rgba(0,0,0,0.20)';
+            c.fillRect(BORDER + pm, pTop + pm, pw - pm * 2, panelH - pm * 2);
+            // Bevel top & left (bright edge)
+            c.fillStyle = 'rgba(255,255,255,0.11)';
+            c.fillRect(BORDER + pm, pTop + pm, pw - pm * 2, 2);
+            c.fillRect(BORDER + pm, pTop + pm, 2, panelH - pm * 2);
+            // Bevel bottom & right (dark edge)
+            c.fillStyle = 'rgba(0,0,0,0.18)';
+            c.fillRect(BORDER + pm, pTop + panelH - pm - 2, pw - pm * 2, 2);
+            c.fillRect(BORDER + pw - pm - 2, pTop + pm, 2, panelH - pm * 2);
+            // Bump: inset
+            b.fillStyle = '#5c5c5c';
+            b.fillRect(BORDER + pm, pTop + pm, pw - pm * 2, panelH - pm * 2);
+            b.fillStyle = '#a4a4a4';
+            b.fillRect(BORDER + pm, pTop + pm, pw - pm * 2, 2);
+            b.fillRect(BORDER + pm, pTop + pm, 2, panelH - pm * 2);
+
+            // Ridge below panel (omit after last panel)
+            if (p < PANEL_N - 1) {
+                var rY = pTop + panelH;
+                // Ridge body
+                c.fillStyle = '#303030';
+                c.fillRect(BORDER, rY, pw, RIDGE_H);
+                // Top specular highlight
+                c.fillStyle = '#525252';
+                c.fillRect(BORDER, rY, pw, 2);
+                // Centre groove
+                c.fillStyle = '#1c1c1c';
+                c.fillRect(BORDER, rY + Math.floor(RIDGE_H / 2) - 1, pw, 2);
+                // Bump: ridge
+                b.fillStyle = '#c4c4c4';
+                b.fillRect(BORDER, rY, pw, RIDGE_H);
+                b.fillStyle = '#e8e8e8';
+                b.fillRect(BORDER, rY, pw, 2);
+                b.fillStyle = '#3c3c3c';
+                b.fillRect(BORDER, rY + Math.floor(RIDGE_H / 2) - 1, pw, 2);
+            }
+        }
+
+        // -- Rivets (4 columns x rows at panel joints + top + bottom) --
+        var rivetX = [BORDER + 7, Math.floor(W / 2) - 14, Math.floor(W / 2) + 8, W - BORDER - 11];
+        var rivetY = [BORDER + 7]; // top row
+        for (var ri = 0; ri < PANEL_N - 1; ri++) {
+            rivetY.push(BORDER + (ri + 1) * (panelH + RIDGE_H) - Math.floor(RIDGE_H / 2));
+        }
+        rivetY.push(usableH - BORDER - 7); // bottom row
+
+        rivetX.forEach(function(rx) {
+            rivetY.forEach(function(ry) {
+                var r = 5;
+                // Drop shadow
+                c.fillStyle = 'rgba(0,0,0,0.58)';
+                c.beginPath(); c.arc(rx + 1, ry + 1, r + 1, 0, Math.PI * 2); c.fill();
+                // Body radial gradient (top-left lit)
+                var gr = c.createRadialGradient(rx - 1.5, ry - 2, 0.5, rx, ry, r);
+                gr.addColorStop(0, '#747474');
+                gr.addColorStop(0.5, '#484848');
+                gr.addColorStop(1,   '#222222');
+                c.fillStyle = gr; c.beginPath(); c.arc(rx, ry, r, 0, Math.PI * 2); c.fill();
+                // Specular glint
+                var hi = c.createRadialGradient(rx - 2, ry - 2.5, 0, rx - 1, ry - 1, r * 0.65);
+                hi.addColorStop(0, 'rgba(255,255,255,0.58)');
+                hi.addColorStop(1, 'rgba(255,255,255,0)');
+                c.fillStyle = hi; c.beginPath(); c.arc(rx, ry, r, 0, Math.PI * 2); c.fill();
+                // Bump
+                var br = b.createRadialGradient(rx, ry, 0, rx, ry, r + 2);
+                br.addColorStop(0,   '#ffffff');
+                br.addColorStop(0.4, '#d4d4d4');
+                br.addColorStop(1,   '#686868');
+                b.fillStyle = br; b.beginPath(); b.arc(rx, ry, r + 2, 0, Math.PI * 2); b.fill();
+            });
+        });
+
+        // -- Scratch / scuff marks (wear and tear) --
+        c.save();
+        c.globalAlpha = 0.16;
+        [
+            [36, 58, 70, 84, 1.5],  [172, 103, 209, 120, 1],
+            [58, 294, 94, 338, 1],  [148, 198, 174, 228, 1.5],
+            [200, 392, 231, 414, 1],[115, 150, 138, 178, 1]
+        ].forEach(function(s) {
+            c.strokeStyle = '#909090'; c.lineWidth = s[4];
+            c.beginPath(); c.moveTo(s[0], s[1]); c.lineTo(s[2], s[3]); c.stroke();
+        });
+        c.restore();
+
+        // -- Hazard stripe: yellow/black diagonals at bottom --
+        var hY = H - HAZARD_H;
+        c.save();
+        c.beginPath(); c.rect(0, hY, W, HAZARD_H); c.clip();
+        c.fillStyle = '#111111';
+        c.fillRect(0, hY, W, HAZARD_H);
+        var bW = 26;
+        for (var sx = -(HAZARD_H + bW); sx < W + HAZARD_H + bW; sx += bW * 2) {
+            c.fillStyle = '#c8a400';
+            c.beginPath();
+            c.moveTo(sx,              hY);
+            c.lineTo(sx + bW,         hY);
+            c.lineTo(sx + bW + HAZARD_H, hY + HAZARD_H);
+            c.lineTo(sx + HAZARD_H,   hY + HAZARD_H);
+            c.closePath(); c.fill();
+        }
+        // Top border of stripe
+        c.fillStyle = '#1a1a1a';
+        c.fillRect(0, hY, W, 3);
+        c.restore();
+        // Bump: stripe is flat
+        b.fillStyle = '#808080';
+        b.fillRect(0, hY, W, HAZARD_H);
+
+        // -- Side-edge vignette darkening --
+        var vL = c.createLinearGradient(0, 0, BORDER * 2.5, 0);
+        vL.addColorStop(0, 'rgba(0,0,0,0.30)'); vL.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = vL; c.fillRect(0, 0, BORDER * 2.5, H);
+        var vR = c.createLinearGradient(W, 0, W - BORDER * 2.5, 0);
+        vR.addColorStop(0, 'rgba(0,0,0,0.30)'); vR.addColorStop(1, 'rgba(0,0,0,0)');
+        c.fillStyle = vR; c.fillRect(W - BORDER * 2.5, 0, BORDER * 2.5, H);
+
+        return { map: dc, bumpMap: bn };
+    }
+
     function buildMaterials() {
-        MAT_DOOR_OPEN   = new THREE.MeshLambertMaterial({ color: 0x2a1e10 });
-        MAT_DOOR_CLOSED = new THREE.MeshLambertMaterial({ color: 0x707070 });
-        MAT_HALL_DARK   = new THREE.MeshBasicMaterial({ color: 0x000000 });
-        MAT_HALL_LIT    = new THREE.MeshLambertMaterial({ color: 0x6a4820 });
-        MAT_CURTAIN     = new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false });
+        var doorTex = createDoorTexture();
+        var diffMap = new THREE.CanvasTexture(doorTex.map);
+        var bumpMap = new THREE.CanvasTexture(doorTex.bumpMap);
+        diffMap.wrapS = diffMap.wrapT = THREE.ClampToEdgeWrapping;
+        bumpMap.wrapS = bumpMap.wrapT = THREE.ClampToEdgeWrapping;
+
+        // Shared material used for the door panel mesh at all times.
+        // Visibility + Y position drive the open/closed appearance.
+        var doorMat = new THREE.MeshStandardMaterial({
+            map:           diffMap,
+            bumpMap:       bumpMap,
+            bumpScale:     0.55,
+            roughness:     0.62,
+            metalness:     0.52,
+            envMapIntensity: 0.0
+        });
+        MAT_DOOR_OPEN   = doorMat;
+        MAT_DOOR_CLOSED = doorMat;
+        // Corridor materials — all MeshBasicMaterial so they show correctly regardless of lighting
+        MAT_HALL_DARK  = new THREE.MeshBasicMaterial({ color: 0x000000 });  // pure black when off
+        MAT_HALL_WALL  = new THREE.MeshBasicMaterial({ color: 0xffe8c0 });  // bright warm fluorescent lit wall
+        MAT_HALL_FLOOR = new THREE.MeshBasicMaterial({ color: 0x504030 });  // medium dark concrete floor
+        MAT_HALL_CEIL  = new THREE.MeshBasicMaterial({ color: 0xf8f0e0 });  // near-white lit ceiling
     }
 
     function mat(hex, emissive, emHex) {
@@ -163,17 +374,29 @@
             box(scene, 0.5, 0.4, dW + 0.4,  x+s, dH,     0, mDoorFrame);
         });
 
-        doorLeftPanel  = box(scene, 0.5, dH, dW - 0.2, -HW, dH/2, 0, MAT_DOOR_OPEN);
-        doorRightPanel = box(scene, 0.5, dH, dW - 0.2,  HW, dH/2, 0, MAT_DOOR_OPEN);
+        // Door panels — initialised above the frame (DOOR_OPEN_Y) and hidden.
+        // Spring physics in animate() slides them down/up.
+        doorLeftPanel  = box(scene, 0.5, dH, dW - 0.2, -HW, DOOR_OPEN_Y, 0, MAT_DOOR_CLOSED);
+        doorRightPanel = box(scene, 0.5, dH, dW - 0.2,  HW, DOOR_OPEN_Y, 0, MAT_DOOR_CLOSED);
+        doorLeftPanel.visible  = false;
+        doorRightPanel.visible = false;
+
+        // Door-slot housing — dark box above each door frame that visually
+        // conceals the door panel as it retracts upward into the wall.
+        var mDoorSlot = mat(0x28180a);
+        box(scene, 0.75, RH - dH + 0.6, dW + 0.3, -HW, dH + (RH - dH) / 2, 0, mDoorSlot);
+        box(scene, 0.75, RH - dH + 0.6, dW + 0.3,  HW, dH + (RH - dH) / 2, 0, mDoorSlot);
 
         [-1, 1].forEach(function(s) {
             var cx = s * (HW + 4);
-            var m0 = box(scene, 8, 0.3, RD,   cx,  0,          0,   MAT_HALL_DARK);
-            var m1 = box(scene, 8, 0.3, RD,   cx,  RH,         0,   MAT_HALL_DARK);
-            var m2 = box(scene, 8, RH,  0.4,  cx,  RH/2,     -HD,   MAT_HALL_DARK);
-            var m3 = box(scene, 0.3, RH, RD,  s*(HW+8), RH/2,  0,   MAT_HALL_DARK);
-            if (s < 0) { hallMeshesLeft  = [m0, m1, m2, m3]; }
-            else       { hallMeshesRight = [m0, m1, m2, m3]; }
+            // corridor geometry — always uses lit materials; aperture cover handles darkness
+            var m0 = box(scene, 8, 0.3, RD,          cx,       0,      0,    MAT_HALL_FLOOR); // floor
+            var m1 = box(scene, 8, 0.3, RD,          cx,       RH,     0,    MAT_HALL_CEIL);  // ceiling
+            var m2 = box(scene, 8, RH,  0.4,         cx,       RH/2,  -HD,   MAT_HALL_WALL);  // back wall
+            var m3 = box(scene, 0.3, RH, RD,  s*(HW+8),       RH/2,   0,    MAT_HALL_WALL);  // outer wall
+            var m4 = box(scene, 8, RH, 0.4,          cx,       RH/2,   HD,   MAT_HALL_WALL);  // front wall
+            if (s < 0) { hallMeshesLeft  = [m0, m1, m2, m3, m4]; }
+            else       { hallMeshesRight = [m0, m1, m2, m3, m4]; }
         });
 
         box(scene, RW, 0.25, 0.3,  0, RH - 0.1, -HD + 0.3, mTrim);
@@ -251,34 +474,89 @@
         sideL.position.set(-18, 8, 4); // from -X → hits right door inner face
         scene.add(sideL);
 
-        // Hall lights — toggled by the light buttons; illuminate blind-spot corridors
-        hallLightLeft  = new THREE.PointLight(0xffee88, 0, 22);
-        hallLightLeft.position.set(-15, 6, 1);
+        // Hall lights — positioned at door-aperture height (y=4) just past the room wall
+        // so the light shines through the door gap outward and illuminates the visible corridor
+        hallLightLeft  = new THREE.PointLight(0xfff0d0, 0, 30);
+        hallLightLeft.position.set(-12, 4, 0);
         scene.add(hallLightLeft);
 
-        hallLightRight = new THREE.PointLight(0xffee88, 0, 22);
-        hallLightRight.position.set(15, 6, 1);
+        hallLightRight = new THREE.PointLight(0xfff0d0, 0, 30);
+        hallLightRight.position.set(12, 4, 0);
         scene.add(hallLightRight);
     }
 
-    function buildHallCurtains() {
-        // dW=4 (door width), dH=8 (door height). Curtain fills the exact door aperture.
-        // depthTest:false + high renderOrder -> always paints on top of corridor geometry.
-        // Faces toward +X (right, toward camera) for left door;
-        // faces toward -X (left, toward camera) for right door.
-        var geo = new THREE.PlaneGeometry(4.2, 8.2);
+    function buildApertureCovers() {
+        // Black plane at each door aperture (corridor side).
+        // Visible = dark corridor; Hidden = lit corridor visible through the door gap.
+        var dW = 4, dH = 8, HW = 11;
+        var geo     = new THREE.PlaneGeometry(dW + 0.4, dH + 0.4);
+        var darkMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
-        hallCurtainLeft = new THREE.Mesh(geo, MAT_CURTAIN);
-        hallCurtainLeft.rotation.y = Math.PI / 2;  // face +X (toward inside of room / camera)
-        hallCurtainLeft.position.set(-10.6, 4.0, 0); // just inside room edge, centered on aperture
-        hallCurtainLeft.renderOrder = 999;
-        scene.add(hallCurtainLeft);
+        hallApertureLeft = new THREE.Mesh(geo, darkMat);
+        hallApertureLeft.rotation.y = Math.PI / 2;   // normal points +X — visible from room interior looking left
+        hallApertureLeft.position.set(-(HW + 0.1), dH / 2, 0);
+        scene.add(hallApertureLeft);
 
-        hallCurtainRight = new THREE.Mesh(geo, MAT_CURTAIN);
-        hallCurtainRight.rotation.y = -Math.PI / 2; // face -X
-        hallCurtainRight.position.set(10.6, 4.0, 0);
-        hallCurtainRight.renderOrder = 999;
-        scene.add(hallCurtainRight);
+        hallApertureRight = new THREE.Mesh(geo, darkMat);
+        hallApertureRight.rotation.y = -Math.PI / 2; // normal points -X — visible from room interior looking right
+        hallApertureRight.position.set(HW + 0.1, dH / 2, 0);
+        scene.add(hallApertureRight);
+    }
+
+    function buildHallDecor() {
+        // FNAF1-style corridor decorations. All start hidden; revealed by hall light button.
+        // corridor centers: cx = ±15, outer wall at X=±19, spans Z: -9 to +9
+        var mPoster   = new THREE.MeshLambertMaterial({ color: 0xa04030 }); // red poster
+        var mText     = new THREE.MeshLambertMaterial({ color: 0xf0d060, emissive: new THREE.Color(0x302000) });
+        var mConduit  = new THREE.MeshLambertMaterial({ color: 0x505050 }); // grey pipe
+        var mSign     = new THREE.MeshLambertMaterial({ color: 0xe8c020 }); // yellow wet-floor sign
+        var mSignText = new THREE.MeshLambertMaterial({ color: 0x1a1a1a });
+        var mLight    = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: new THREE.Color(0xffffff), emissiveIntensity: 1.0 }); // glowing strip light
+
+        function makeDecor(sx) {
+            var decor = [];
+            var cx = sx * 15;
+            var outerX = sx * 19;
+
+            // Fluorescent tube along ceiling
+            var tubeGeo = new THREE.BoxGeometry(6, 0.2, 0.5);
+            var tube = new THREE.Mesh(tubeGeo, mLight);
+            tube.position.set(cx, 10.6, 0);
+            scene.add(tube); decor.push(tube);
+
+            // Wire conduit along top of outer wall
+            var conduit = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.22, 16), mConduit);
+            conduit.position.set(outerX + sx * -0.2, 9.5, 0);
+            scene.add(conduit); decor.push(conduit);
+
+            // Freddy poster on outer wall
+            var poster = new THREE.Mesh(new THREE.BoxGeometry(0.15, 4.0, 2.8), mPoster);
+            poster.position.set(outerX + sx * -0.1, 6.0, -2);
+            scene.add(poster); decor.push(poster);
+            // poster text bar
+            var ptext = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.5, 2.6), mText);
+            ptext.position.set(outerX + sx * -0.12, 7.6, -2);
+            scene.add(ptext); decor.push(ptext);
+
+            // "WET FLOOR" triangular warning sign on floor
+            var signBase = new THREE.Mesh(new THREE.BoxGeometry(0.12, 1.5, 0.7), mSign);
+            signBase.position.set(cx + sx * -1, 0.75, 1.5);
+            scene.add(signBase); decor.push(signBase);
+            var signTextMesh = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.25, 0.55), mSignText);
+            signTextMesh.position.set(cx + sx * -1, 0.9, 1.5);
+            scene.add(signTextMesh); decor.push(signTextMesh);
+
+            // Stripe / hazard band on corridor wall (door-side)
+            var stripe = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.6, 16), new THREE.MeshLambertMaterial({ color: 0x2a2a2a }));
+            stripe.position.set(cx + sx * 3.9, 8.0, 0);
+            scene.add(stripe); decor.push(stripe);
+
+            decor.forEach(function(m) { m.visible = false; });
+            return decor;
+        }
+
+        hallDecorLeft  = makeDecor(-1);
+        hallDecorRight = makeDecor( 1);
     }
 
     function buildHallAnimatronics() {
@@ -314,6 +592,31 @@
         scene.add(hallAnimRightGroup);
     }
 
+    // Spring-physics step for a single door panel.
+    // anim: { pos, vel, target }  |  panel: THREE.Mesh
+    function tickDoorAnim(anim, panel) {
+        if (!panel) return;
+        var diff = anim.target - anim.pos;
+        var moving = Math.abs(diff) > DOOR_THRESHOLD || Math.abs(anim.vel) > DOOR_THRESHOLD;
+        if (moving) {
+            anim.vel += diff * DOOR_SPRING_K;
+            anim.vel *= (1.0 - DOOR_DAMPING);
+            anim.pos += anim.vel;
+            // Allow a tiny overshoot for physical bounce feel
+            if (anim.pos < -0.04) { anim.pos = -0.04; anim.vel *= -0.3; }
+            if (anim.pos >  1.04) { anim.pos =  1.04; anim.vel *= -0.3; }
+        } else {
+            anim.pos = anim.target;
+            anim.vel = 0.0;
+        }
+        // pos=1 → closed (DOOR_CLOSED_Y), pos=0 → open (DOOR_OPEN_Y)
+        panel.position.y = DOOR_CLOSED_Y + (1.0 - anim.pos) * (DOOR_OPEN_Y - DOOR_CLOSED_Y);
+        // Hide once fully retracted while opening
+        if (anim.target < 0.5 && anim.pos < 0.08) {
+            panel.visible = false;
+        }
+    }
+
     function animate() {
         animId = requestAnimationFrame(animate);
 
@@ -330,29 +633,51 @@
         camera.rotation.x = 0;
         camera.rotation.z = 0;
 
+        // Animate both doors with spring physics
+        tickDoorAnim(doorAnimLeft,  doorLeftPanel);
+        tickDoorAnim(doorAnimRight, doorRightPanel);
+
         if (fanPivot) fanPivot.rotation.z += 0.06;
 
         renderer.render(scene, camera);
     }
 
     function setDoorLeft(closed) {
-        if (doorLeftPanel) doorLeftPanel.material = closed ? MAT_DOOR_CLOSED : MAT_DOOR_OPEN;
+        if (!doorLeftPanel) return;
+        doorAnimLeft.target = closed ? 1.0 : 0.0;
+        if (closed) {
+            // Make visible immediately so the panel is seen dropping in
+            doorLeftPanel.visible = true;
+            // Reset position to just above the frame so it always drops down cleanly
+            if (doorAnimLeft.pos < 0.05) {
+                doorAnimLeft.pos = 0.0;
+                doorAnimLeft.vel = 0.0;
+            }
+        }
     }
     function setDoorRight(closed) {
-        if (doorRightPanel) doorRightPanel.material = closed ? MAT_DOOR_CLOSED : MAT_DOOR_OPEN;
+        if (!doorRightPanel) return;
+        doorAnimRight.target = closed ? 1.0 : 0.0;
+        if (closed) {
+            doorRightPanel.visible = true;
+            if (doorAnimRight.pos < 0.05) {
+                doorAnimRight.pos = 0.0;
+                doorAnimRight.vel = 0.0;
+            }
+        }
     }
     function setLightLeft(on) {
         hallLeftLightOn = on;
-        if (hallLightLeft) hallLightLeft.intensity = on ? 18 : 0;
-        if (hallCurtainLeft)  hallCurtainLeft.visible  = !on;
-        hallMeshesLeft.forEach(function(m)  { m.material = on ? MAT_HALL_LIT : MAT_HALL_DARK; });
+        if (hallLightLeft)    hallLightLeft.intensity   = on ? 24 : 0;
+        if (hallApertureLeft) hallApertureLeft.visible  = !on;
+        hallDecorLeft.forEach(function(m) { m.visible = on; });
         updateHallVis('left');
     }
     function setLightRight(on) {
         hallRightLightOn = on;
-        if (hallLightRight) hallLightRight.intensity = on ? 18 : 0;
-        if (hallCurtainRight) hallCurtainRight.visible = !on;
-        hallMeshesRight.forEach(function(m) { m.material = on ? MAT_HALL_LIT : MAT_HALL_DARK; });
+        if (hallLightRight)    hallLightRight.intensity  = on ? 24 : 0;
+        if (hallApertureRight) hallApertureRight.visible = !on;
+        hallDecorRight.forEach(function(m) { m.visible = on; });
         updateHallVis('right');
     }
     function setHallLeft(colorCss) {

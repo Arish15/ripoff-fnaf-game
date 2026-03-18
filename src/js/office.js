@@ -53,11 +53,10 @@ function toggleLight(side) {
 }
 
 function updateHUD() {
-    var h = game.hour === 0 ? 12 : game.hour;
-    var m = String(Math.min(59, Math.floor(game.minute))).padStart(2, '0');
+    var HOURS = ['12 AM', '1 AM', '2 AM', '3 AM', '4 AM', '5 AM'];
     var td = document.getElementById('timeDisplay');
     var pd = document.getElementById('powerDisplay');
-    if (td) td.textContent = h + ':' + m + ' AM';
+    if (td) td.textContent = HOURS[game.hour] !== undefined ? HOURS[game.hour] : '6 AM';
     if (pd) pd.textContent = Math.floor(game.power) + '%';
 
     var lightsOn  = game.lightLeft || game.lightRight;

@@ -6,16 +6,16 @@ var camCanvas, camCtx;
 
 var CAM_LABELS = {
     stage:        'CAM 1A - SHOW STAGE',
-    stage_left:   'CAM 2A - SUPPLY CLOSET',
-    stage_right:  'CAM 2B - EAST HALL',
     dining:       'CAM 1B - DINING AREA',
-    kitchen:      'CAM 4B - KITCHEN',
-    backstage:    'CAM 5  - BACKSTAGE',
     pirate:       'CAM 1C - PIRATE COVE',
-    hallW:        'CAM 2A - W. HALL',
-    hallW_corner: 'CAM 4A - W. HALL CORNER',
+    backstage:    'CAM 5  - BACKSTAGE',
     hallE:        'CAM 3  - E. HALL',
-    hallE_corner: 'CAM 4B - E. HALL CORNER'
+    hallW:        'CAM 2A - W. HALL',
+    hallW_corner: 'CAM 2B - W. HALL CORNER',
+    hallE_corner: 'CAM 4A - E. HALL CORNER',
+    kitchen:      'CAM 6  - KITCHEN',
+    stage_left:   'CAM 4B - SUPPLY CLOSET',
+    stage_right:  'CAM 7  - MAIN HALL'
 };
 
 function initCanvas() {

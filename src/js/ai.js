@@ -8,14 +8,15 @@ function tickAnimatronics(ai) {
         a.ai = ai[key] || 0;
 
         if (key === 'foxy') {
+            if (a.ai <= 0) return; // foxy inactive this night
             if (game.currentCam !== 'pirate') {
-                a.timer = (a.timer || 0) + 6;
+                a.timer = (a.timer || 0) + a.ai; // rate scales with AI level
             } else {
                 a.timer = Math.max(0, (a.timer || 0) - 12.5);
             }
             if (a.timer >= 100) {
                 a.timer = 0;
-                if (!game.doorLeft) triggerGameOver('');
+                if (!game.doorLeft) triggerGameOver('FOXY');
                 else game.power = Math.max(0, game.power - 12);
             }
         } else {

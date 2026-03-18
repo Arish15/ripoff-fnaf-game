@@ -43,41 +43,11 @@
     </div>
 
     <div id="gameContainer">
-        <!-- Monitor Area with Controls and Time Display -->
+        <!-- Monitor Area with Controls -->
         <div id="monitorArea">
-            <!-- Time Display Top-Right -->
-            <div id="timeDisplay">12:00 AM</div>
-
             <!-- Center Camera Monitor -->
             <div id="monitorStand">
                 <canvas id="cameraCanvas"></canvas>
-            </div>
-        </div>
-
-        <!-- Control Panels - Always Visible -->
-        <div id="controlPanelArea">
-            <!-- Left Control Panel -->
-            <div id="leftPanel">
-                <button class="controlBtn door" id="btnDL" onclick="window.toggleDoor && window.toggleDoor('left')">
-                    <div class="btnLabel">DOOR</div>
-                    <div class="btnStatus" id="dlStatus">OPEN</div>
-                </button>
-                <button class="controlBtn light" id="btnLL" onclick="window.toggleLight && window.toggleLight('left')">
-                    <div class="btnLabel">LIGHT</div>
-                    <div class="btnStatus" id="llStatus">ON</div>
-                </button>
-            </div>
-
-            <!-- Right Control Panel -->
-            <div id="rightPanel">
-                <button class="controlBtn door" id="btnDR" onclick="window.toggleDoor && window.toggleDoor('right')">
-                    <div class="btnLabel">DOOR</div>
-                    <div class="btnStatus" id="drStatus">OPEN</div>
-                </button>
-                <button class="controlBtn light" id="btnLR" onclick="window.toggleLight && window.toggleLight('right')">
-                    <div class="btnLabel">LIGHT</div>
-                    <div class="btnStatus" id="lrStatus">ON</div>
-                </button>
             </div>
         </div>
     </div>
@@ -110,18 +80,57 @@
     </button>
 
     <!-- Hidden Camera Grid - Shows on button click -->
+    <!-- Layout matches FNAF1 building schematic -->
     <div id="cameraGrid">
-        <button class="camBtn" data-cam="stage">1A</button>
-        <button class="camBtn" data-cam="stage_left">2A</button>
-        <button class="camBtn" data-cam="stage_right">2B</button>
-        <button class="camBtn" data-cam="dining">1B</button>
-        <button class="camBtn" data-cam="kitchen">4B</button>
-        <button class="camBtn" data-cam="backstage">5</button>
-        <button class="camBtn" data-cam="pirate">1C</button>
-        <button class="camBtn" data-cam="hallW">2A</button>
-        <button class="camBtn" data-cam="hallE">3</button>
-        <button class="camBtn" data-cam="hallW_corner">4A</button>
-        <button class="camBtn" data-cam="hallE_corner">4B</button>
+        <!-- Connecting corridor lines -->
+        <svg id="camMapSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 215" preserveAspectRatio="none">
+            <g stroke="#4a4a4a" stroke-width="1.5" fill="none" stroke-linecap="square">
+                <!-- 1A to 1B (top to second row left-center) -->
+                <line x1="142" y1="25" x2="75" y2="67"/>
+                <!-- 1A to 7 (stage to main hall, right side) -->
+                <polyline points="188,25 300,25 300,67 279,67"/>
+                <!-- 5 to 1B (backstage to dining horizontal) -->
+                <line x1="27" y1="67" x2="75" y2="67"/>
+                <!-- 1B to 1C (dining to pirate cove vertical) -->
+                <line x1="75" y1="67" x2="75" y2="102"/>
+                <!-- 5 down to 3 (backstage to east hall vertical) -->
+                <line x1="26" y1="67" x2="26" y2="102"/>
+                <!-- 3 to 1C (east hall to pirate cove horizontal) -->
+                <line x1="26" y1="102" x2="75" y2="102"/>
+                <!-- 1C down to 2A (pirate cove to west hall vertical) -->
+                <line x1="75" y1="102" x2="75" y2="137"/>
+                <!-- 4A to 6 (east hall corner to kitchen horizontal) -->
+                <line x1="217" y1="102" x2="279" y2="102"/>
+                <!-- 6 down to 7 (kitchen to main hall vertical) -->
+                <line x1="279" y1="102" x2="279" y2="67"/>
+                <!-- 2A down to 2B (west hall hierarchy) -->
+                <line x1="75" y1="137" x2="75" y2="172"/>
+                <!-- 2B to YOU (corridor to office left) -->
+                <line x1="75" y1="172" x2="142" y2="172"/>
+                <!-- YOU to 4B (office to east side right) -->
+                <line x1="188" y1="172" x2="217" y2="172"/>
+                <!-- 4B up to 4A (east hall corner upward) -->
+                <line x1="217" y1="172" x2="217" y2="102"/>
+            </g>
+        </svg>
+
+        <button class="camBtn" data-cam="stage"        style="left:142px;top:8px"   >CAM<br>1A</button>
+        
+        <button class="camBtn" data-cam="backstage"    style="left:8px;top:50px"   >CAM<br>5</button>
+        <button class="camBtn" data-cam="dining"       style="left:75px;top:50px"  >CAM<br>1B</button>
+        <button class="camBtn" data-cam="stage_right"  style="left:279px;top:50px" >CAM<br>7</button>
+        
+        <button class="camBtn" data-cam="hallE"        style="left:8px;top:85px"   >CAM<br>3</button>
+        <button class="camBtn" data-cam="pirate"       style="left:75px;top:85px"  >CAM<br>1C</button>
+        <button class="camBtn" data-cam="hallE_corner" style="left:217px;top:85px" >CAM<br>4A</button>
+        <button class="camBtn" data-cam="kitchen"      style="left:279px;top:85px" >CAM<br>6</button>
+        
+        <button class="camBtn" data-cam="hallW"        style="left:75px;top:120px" >CAM<br>2A</button>
+        
+        <button class="camBtn" data-cam="hallW_corner" style="left:75px;top:155px" >CAM<br>2B</button>
+        <button class="camBtn" data-cam="stage_left"   style="left:217px;top:155px">CAM<br>4B</button>
+        <!-- YOU marker -->
+        <div class="cam-you">YOU<span class="cam-you-dot"></span></div>
     </div>
 
     <!-- Power & Usage Display - Bottom Left Fixed -->
@@ -142,6 +151,9 @@
             </div>
         </div>
     </div>
+
+    <!-- Time Display - always visible top-right -->
+    <div id="timeDisplay">12 AM</div>
 
     <!-- Game Over Screen -->
     <div id="gameOverScreen">
