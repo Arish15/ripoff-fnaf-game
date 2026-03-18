@@ -1,4 +1,5 @@
 /* ============ GLOBAL STYLES ============ */
+
 * {
     margin: 0;
     padding: 0;
@@ -14,7 +15,9 @@ body {
     background-attachment: fixed;
 }
 
+
 /* ============ START SCREEN ============ */
+
 #startScreen {
     position: fixed;
     top: 0;
@@ -37,13 +40,7 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.15) 0px,
-        rgba(0, 0, 0, 0.15) 1px,
-        transparent 1px,
-        transparent 2px
-    );
+    background-image: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
     opacity: 0.1;
     pointer-events: none;
     animation: scanlines 8s linear infinite;
@@ -53,7 +50,6 @@ body {
     0% {
         transform: translateY(0);
     }
-
     100% {
         transform: translateY(2px);
     }
@@ -77,11 +73,11 @@ body {
 }
 
 @keyframes glow {
-    0%, 100% {
+    0%,
+    100% {
         text-shadow: 0 0 40px #ff0000, 0 0 80px #aa0000;
         transform: scale(1);
     }
-
     50% {
         text-shadow: 0 0 80px #ff3333, 0 0 160px #ff0000;
         transform: scale(1.02);
@@ -141,7 +137,9 @@ body {
     box-shadow: none;
 }
 
+
 /* ============ GAME CONTAINER ============ */
+
 #gameContainer {
     width: 100%;
     height: 100%;
@@ -156,7 +154,9 @@ body {
     display: flex;
 }
 
+
 /* Monitor Area - fills screen when camera is up */
+
 #monitorArea {
     flex: 1;
     display: none;
@@ -174,18 +174,19 @@ body {
     display: flex;
 }
 
+
 /* Control Panel Area - Removed (controls now in office view only) */
 
+
 /* Monitor Stand - Center */
+
 #monitorStand {
     width: 100%;
     height: 100%;
     background: transparent;
     border: 8px solid #1a1a1a;
     border-radius: 2px;
-    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05),
-        0 10px 30px rgba(0, 0, 0, 0.8),
-        0 0 50px rgba(0, 150, 200, 0.15);
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 150, 200, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -200,13 +201,7 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background-image: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.08) 0px,
-        rgba(0, 0, 0, 0.08) 1px,
-        transparent 1px,
-        transparent 2px
-    );
+    background-image: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.08) 0px, rgba(0, 0, 0, 0.08) 1px, transparent 1px, transparent 2px);
     pointer-events: none;
     border-radius: 2px;
     animation: scanlines 8s linear infinite;
@@ -224,9 +219,12 @@ body {
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
+
 /* Control Panels - Removed (integrated into office view) */
 
+
 /* Office Area - fills available space above camera button */
+
 #officeArea {
     flex: 1;
     background: transparent;
@@ -236,7 +234,8 @@ body {
     justify-content: center;
     align-items: stretch;
     overflow: hidden;
-    margin-bottom: 54px; /* leave space for camera toggle button */
+    margin-bottom: 54px;
+    /* leave space for camera toggle button */
 }
 
 #officeCanvas {
@@ -246,7 +245,9 @@ body {
     max-width: 100%;
 }
 
+
 /* ============ TIME & POWER DISPLAY ============ */
+
 #timeDisplay {
     position: fixed;
     top: 20px;
@@ -262,15 +263,14 @@ body {
     padding: 12px 18px;
     border: 4px solid #222;
     border-radius: 2px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.02);
     text-align: center;
 }
 
 #powerArea {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    bottom: 25px;
+    left: 12px;
     background: rgba(10, 10, 10, 0.95);
     border: 4px solid #222;
     padding: 8px 12px;
@@ -353,17 +353,18 @@ body {
     box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
 }
 
+
 /* ============ CAMERA CONTROLS ============ */
+
 #cameraToggleBtn {
     position: fixed;
-    left: 160px;
+    left: 0;
     right: 0;
     bottom: 0;
-    width: calc(100vw - 160px);
+    width: 100vw;
     height: 54px;
     background: #222 linear-gradient(90deg, #222 0%, #333 100%);
     border: 2px solid #888;
-    border-radius: 8px 0 0 0;
     box-shadow: 0 2px 12px #000a, 0 0 0 2px #111 inset;
     display: flex;
     align-items: center;
@@ -399,8 +400,7 @@ body {
     border-color: #888;
     color: #000;
     transform: scaleY(1.03);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .cameraBtnText {
@@ -417,17 +417,15 @@ body {
     color: #00ff00;
     border-color: #00ff00;
     opacity: 1;
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.6),
-        inset 0 1px 0 rgba(0, 255, 0, 0.3),
-        0 6px 20px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.6), inset 0 1px 0 rgba(0, 255, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.9);
 }
 
 #cameraGrid {
     position: fixed;
-    bottom: 60px;
-    right: 20px;
-    width: 330px;
-    height: 215px;
+    bottom: 64px;
+    left: 16px;
+    width: 320px;
+    height: 205px;
     display: none;
     background: transparent;
     border: none;
@@ -456,14 +454,14 @@ body {
 
 .camBtn {
     position: absolute;
-    width: 46px;
-    height: 34px;
-    background: rgba(6,6,6,0.82);
+    width: 44px;
+    height: 30px;
+    background: rgba(6, 6, 6, 0.82);
     border: 2px solid #3a3a3a;
     color: #5a5a5a;
     font-size: 8px;
     font-weight: bold;
-    line-height: 1.3;
+    line-height: 1.2;
     cursor: pointer;
     transition: all 0.15s ease;
     border-radius: 1px;
@@ -489,27 +487,28 @@ body {
     background: rgba(0, 40, 0, 0.95);
     color: #00ff00;
     border-color: #00ff00;
-    box-shadow: 0 0 18px rgba(0, 255, 0, 0.5),
-        inset 0 0 8px rgba(0, 255, 0, 0.2);
+    box-shadow: 0 0 18px rgba(0, 255, 0, 0.5), inset 0 0 8px rgba(0, 255, 0, 0.2);
 }
 
 .cam-you {
     position: absolute;
-    left: 142px;
-    top: 155px;
-    width: 46px;
-    height: 34px;
+    left: 194px;
+    top: 195px;
+    width: 44px;
+    height: 30px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #444;
+    color: #f5f5f5;
     font-size: 8px;
     font-family: 'Courier New', monospace;
     font-weight: bold;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    border: 1px solid #272727;
+    border: 1px solid #f5f5f5;
+    background: rgba(0, 0, 0, 0.85);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.45), inset 0 0 6px rgba(255, 255, 255, 0.2);
     z-index: 3;
     pointer-events: none;
     line-height: 1.3;
@@ -519,12 +518,14 @@ body {
     display: block;
     width: 4px;
     height: 4px;
-    background: #444;
+    background: #f5f5f5;
     border-radius: 50%;
     margin-top: 2px;
 }
 
+
 /* ============ CONTROL PANEL ============ */
+
 #controlPanel {
     display: none;
     flex-direction: column;
@@ -560,7 +561,10 @@ body {
     letter-spacing: 0.5px;
 }
 
+
 /* Remove conflicting cameraGridContainer styles - using #cameraGrid instead */
+
+
 /* .cameraGridContainer {
     display: none;
 }
@@ -570,7 +574,9 @@ body {
     flex-direction: column;
 } */
 
+
 /* ============ GAME OVER SCREEN ============ */
+
 #gameOverScreen {
     position: fixed;
     top: 0;
@@ -604,11 +610,11 @@ body {
 }
 
 @keyframes scare {
-    0%, 100% {
+    0%,
+    100% {
         background: #f00;
         opacity: 1;
     }
-
     50% {
         background: #fff;
         opacity: 0.8;
@@ -652,7 +658,9 @@ body {
     box-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
 }
 
+
 /* ============ NIGHT COMPLETE SCREEN ============ */
+
 #nightCompleteScreen {
     position: fixed;
     top: 0;
@@ -702,7 +710,9 @@ body {
     box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
 }
 
+
 /* ============ AUDIO ============ */
+
 audio {
     display: none;
 }

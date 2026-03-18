@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <!-- Three.js r152 — served locally (CDN path for r163 doesn't exist) -->
     <script src="src/js/three.min.js"></script>
 </head>
+
 <body>
     <!-- Audio Assets — drop matching files into src/assets/ to enable sound -->
     <audio id="doorAudio">
@@ -82,55 +84,53 @@
     <!-- Hidden Camera Grid - Shows on button click -->
     <!-- Layout matches FNAF1 building schematic -->
     <div id="cameraGrid">
-        <!-- Connecting corridor lines -->
-        <svg id="camMapSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 215" preserveAspectRatio="none">
+        <!-- Connecting corridor lines (pixel-matched to FNAF 1 map) -->
+        <svg id="camMapSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 205" preserveAspectRatio="none">
             <g stroke="#4a4a4a" stroke-width="1.5" fill="none" stroke-linecap="square">
-                <!-- 1A to 1B (top to second row left-center) -->
-                <line x1="142" y1="25" x2="75" y2="67"/>
-                <!-- 1A to 7 (stage to main hall, right side) -->
-                <polyline points="188,25 300,25 300,67 279,67"/>
-                <!-- 5 to 1B (backstage to dining horizontal) -->
-                <line x1="27" y1="67" x2="75" y2="67"/>
-                <!-- 1B to 1C (dining to pirate cove vertical) -->
-                <line x1="75" y1="67" x2="75" y2="102"/>
-                <!-- 5 down to 3 (backstage to east hall vertical) -->
-                <line x1="26" y1="67" x2="26" y2="102"/>
-                <!-- 3 to 1C (east hall to pirate cove horizontal) -->
-                <line x1="26" y1="102" x2="75" y2="102"/>
-                <!-- 1C down to 2A (pirate cove to west hall vertical) -->
-                <line x1="75" y1="102" x2="75" y2="137"/>
-                <!-- 4A to 6 (east hall corner to kitchen horizontal) -->
-                <line x1="217" y1="102" x2="279" y2="102"/>
-                <!-- 6 down to 7 (kitchen to main hall vertical) -->
-                <line x1="279" y1="102" x2="279" y2="67"/>
-                <!-- 2A down to 2B (west hall hierarchy) -->
-                <line x1="75" y1="137" x2="75" y2="172"/>
-                <!-- 2B to YOU (corridor to office left) -->
-                <line x1="75" y1="172" x2="142" y2="172"/>
-                <!-- YOU to 4B (office to east side right) -->
-                <line x1="188" y1="172" x2="217" y2="172"/>
-                <!-- 4B up to 4A (east hall corner upward) -->
-                <line x1="217" y1="172" x2="217" y2="102"/>
+                <!-- 1A to 1B -->
+                <line x1="165" y1="14" x2="165" y2="70"/>
+                <!-- 1A to 7 -->
+                <line x1="165" y1="14" x2="270" y2="95"/>
+                <!-- 1A to 5 -->
+                <line x1="165" y1="14" x2="105" y2="92"/>
+                <!-- 1B to 1C -->
+                <line x1="165" y1="70" x2="115" y2="140"/>
+                <!-- 5 to 3 -->
+                <line x1="105" y1="92" x2="130" y2="162"/>
+                <!-- 1C to 2A -->
+                <line x1="115" y1="140" x2="160" y2="180"/>
+                <!-- 3 to 2A -->
+                <line x1="130" y1="162" x2="160" y2="180"/>
+                <!-- 2A to 2B -->
+                <line x1="160" y1="180" x2="176" y2="195"/>
+                <!-- 2B to YOU -->
+                <line x1="176" y1="195" x2="194" y2="195"/>
+                <!-- 4B to YOU -->
+                <line x1="250" y1="195" x2="194" y2="195"/>
+                <!-- 7 to 6 -->
+                <line x1="270" y1="95" x2="270" y2="150"/>
+                <!-- 4A to 4B -->
+                <line x1="230" y1="180" x2="250" y2="195"/>
             </g>
         </svg>
 
-        <button class="camBtn" data-cam="stage"        style="left:142px;top:8px"   >CAM<br>1A</button>
-        
-        <button class="camBtn" data-cam="backstage"    style="left:8px;top:50px"   >CAM<br>5</button>
-        <button class="camBtn" data-cam="dining"       style="left:75px;top:50px"  >CAM<br>1B</button>
-        <button class="camBtn" data-cam="stage_right"  style="left:279px;top:50px" >CAM<br>7</button>
-        
-        <button class="camBtn" data-cam="hallE"        style="left:8px;top:85px"   >CAM<br>3</button>
-        <button class="camBtn" data-cam="pirate"       style="left:75px;top:85px"  >CAM<br>1C</button>
-        <button class="camBtn" data-cam="hallE_corner" style="left:217px;top:85px" >CAM<br>4A</button>
-        <button class="camBtn" data-cam="kitchen"      style="left:279px;top:85px" >CAM<br>6</button>
-        
-        <button class="camBtn" data-cam="hallW"        style="left:75px;top:120px" >CAM<br>2A</button>
-        
-        <button class="camBtn" data-cam="hallW_corner" style="left:75px;top:155px" >CAM<br>2B</button>
-        <button class="camBtn" data-cam="stage_left"   style="left:217px;top:155px">CAM<br>4B</button>
+        <button class="camBtn" data-cam="stage" style="left:165px;top:14px">CAM<br>1A</button>
+
+        <button class="camBtn" data-cam="backstage" style="left:105px;top:92px">CAM<br>5</button>
+        <button class="camBtn" data-cam="dining" style="left:165px;top:70px">CAM<br>1B</button>
+        <button class="camBtn" data-cam="stage_right" style="left:270px;top:95px">CAM<br>7</button>
+
+        <button class="camBtn" data-cam="hallE" style="left:130px;top:162px">CAM<br>3</button>
+        <button class="camBtn" data-cam="pirate" style="left:115px;top:140px">CAM<br>1C</button>
+        <button class="camBtn" data-cam="hallE_corner" style="left:230px;top:180px">CAM<br>4A</button>
+        <button class="camBtn" data-cam="kitchen" style="left:270px;top:150px">CAM<br>6</button>
+
+        <button class="camBtn" data-cam="hallW" style="left:160px;top:180px">CAM<br>2A</button>
+
+        <button class="camBtn" data-cam="hallW_corner" style="left:176px;top:195px">CAM<br>2B</button>
+        <button class="camBtn" data-cam="stage_left" style="left:250px;top:195px">CAM<br>4B</button>
         <!-- YOU marker -->
-        <div class="cam-you">YOU<span class="cam-you-dot"></span></div>
+        <div class="cam-you" style="left:194px;top:195px;">YOU<span class="cam-you-dot"></span></div>
     </div>
 
     <!-- Power & Usage Display - Bottom Left Fixed -->
@@ -139,15 +139,21 @@
         <div class="usageContainer">
             <div class="usageBar" id="barLights">
                 <div class="usageLabel">L</div>
-                <div class="usageBarBg"><div class="usageBarFill" id="usageLights"></div></div>
+                <div class="usageBarBg">
+                    <div class="usageBarFill" id="usageLights"></div>
+                </div>
             </div>
             <div class="usageBar" id="barDoors">
                 <div class="usageLabel">D</div>
-                <div class="usageBarBg"><div class="usageBarFill" id="usageDoors"></div></div>
+                <div class="usageBarBg">
+                    <div class="usageBarFill" id="usageDoors"></div>
+                </div>
             </div>
             <div class="usageBar" id="barCamera">
                 <div class="usageLabel">C</div>
-                <div class="usageBarBg"><div class="usageBarFill" id="usageCamera"></div></div>
+                <div class="usageBarBg">
+                    <div class="usageBarFill" id="usageCamera"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -184,4 +190,5 @@
     <script src="src/js/game.js?v=20260302"></script>
 
 </body>
+
 </html>
