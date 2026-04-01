@@ -3,7 +3,7 @@
  */
 
 function toggleDoor(side) {
-    if (!game.running) return;
+    if (!game.running || game.powerOutage) return;
     if (side === 'left') {
         game.doorLeft = !game.doorLeft;
         if (window.office3d) window.office3d.setDoorLeft(game.doorLeft);
@@ -11,7 +11,7 @@ function toggleDoor(side) {
         if (btn) {
             btn.classList.toggle('active', game.doorLeft);
             btn.classList.add('pressed');
-            setTimeout(function(){ btn.classList.remove('pressed'); }, 120);
+            setTimeout(function() { btn.classList.remove('pressed'); }, 120);
         }
     } else {
         game.doorRight = !game.doorRight;
@@ -20,22 +20,22 @@ function toggleDoor(side) {
         if (btn2) {
             btn2.classList.toggle('active', game.doorRight);
             btn2.classList.add('pressed');
-            setTimeout(function(){ btn2.classList.remove('pressed'); }, 120);
+            setTimeout(function() { btn2.classList.remove('pressed'); }, 120);
         }
     }
     var audio = document.getElementById('doorAudio');
-    if (audio) audio.play().catch(function(){});
+    if (audio) audio.play().catch(function() {});
 }
 
 function toggleLight(side) {
-    if (!game.running) return;
+    if (!game.running || game.powerOutage) return;
     if (side === 'left') {
         game.lightLeft = !game.lightLeft;
         var btn = document.querySelector('.office-btn-light-left');
         if (btn) btn.classList.toggle('active', game.lightLeft);
         if (btn) {
             btn.classList.add('pressed');
-            setTimeout(function(){ btn.classList.remove('pressed'); }, 120);
+            setTimeout(function() { btn.classList.remove('pressed'); }, 120);
         }
         if (window.office3d) window.office3d.setLightLeft(game.lightLeft);
     } else {
@@ -44,12 +44,12 @@ function toggleLight(side) {
         if (btn2) btn2.classList.toggle('active', game.lightRight);
         if (btn2) {
             btn2.classList.add('pressed');
-            setTimeout(function(){ btn2.classList.remove('pressed'); }, 120);
+            setTimeout(function() { btn2.classList.remove('pressed'); }, 120);
         }
         if (window.office3d) window.office3d.setLightRight(game.lightRight);
     }
     var audio = document.getElementById('doorAudio');
-    if (audio) audio.play().catch(function(){});
+    if (audio) audio.play().catch(function() {});
 }
 
 function updateHUD() {
@@ -57,22 +57,20 @@ function updateHUD() {
     var td = document.getElementById('timeDisplay');
     var pd = document.getElementById('powerDisplay');
     if (td) td.textContent = HOURS[game.hour] !== undefined ? HOURS[game.hour] : '6 AM';
-    if (pd) pd.textContent = Math.floor(game.power) + '%';
+    if (pd) pd.textContent = Math.floor(game.power);
 
-    var lightsOn  = game.lightLeft || game.lightRight;
-    var doorsUsed = game.doorLeft  || game.doorRight;
-    var lu = (game.lightLeft ? 50 : 0) + (game.lightRight ? 50 : 0);
-    var du = (game.doorLeft  ? 50 : 0) + (game.doorRight  ? 50 : 0);
-    var bl = document.getElementById('barLights');
-    var bd = document.getElementById('barDoors');
-    var bc = document.getElementById('barCamera');
-    if (bl) bl.classList.toggle('active', lightsOn);
-    if (bd) bd.classList.toggle('active', doorsUsed);
-    if (bc) bc.classList.toggle('active', monitorOpen);
-    var el;
-    el = document.getElementById('usageLights'); if (el) el.style.width = lu + '%';
-    el = document.getElementById('usageDoors');  if (el) el.style.width = du + '%';
-    el = document.getElementById('usageCamera'); if (el) el.style.width = (monitorOpen ? 100 : 0) + '%';
+    // FNAF1 usage bars: 1 base + 1 per active system (doors, lights, camera)
+    var usage = 1;
+    if (game.doorLeft) usage++;
+    if (game.doorRight) usage++;
+    if (game.lightLeft) usage++;
+    if (game.lightRight) usage++;
+    if (monitorOpen) usage++;
+
+    for (var i = 1; i <= 5; i++) {
+        var block = document.getElementById('usageBlock' + i);
+        if (block) block.classList.toggle('active', i <= usage);
+    }
 }
 
 function updateNightButtons() {

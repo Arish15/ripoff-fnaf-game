@@ -3,6 +3,7 @@
  */
 
 var camCanvas, camCtx;
+var camStaticTimer = 0;
 
 var CAM_LABELS = {
     stage: 'CAM 1A - SHOW STAGE',
@@ -40,13 +41,13 @@ function drawCamBg(cam, w, h) {
     var c = camCtx;
 
     if (cam === 'stage') {
-        c.fillStyle = '#d4a574';
+        c.fillStyle = '#8a6a44';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#8B7355';
+        c.fillStyle = '#5a4835';
         c.fillRect(0, h * 0.6, w, h * 0.4);
-        c.fillStyle = '#a0522d';
+        c.fillStyle = '#6a3520';
         c.fillRect(w * 0.15, h * 0.3, w * 0.7, h * 0.35);
-        c.fillStyle = '#8B4513';
+        c.fillStyle = '#5a2a0d';
         c.fillRect(w * 0.1, h * 0.65, w * 0.8, h * 0.08);
         c.fillStyle = '#8B0000';
         c.fillRect(w * 0.2, h * 0.15, w * 0.6, h * 0.2);
@@ -56,11 +57,11 @@ function drawCamBg(cam, w, h) {
         c.fillText("FREDDY FAZBEAR'S PIZZA", w / 2, h * 0.08);
 
     } else if (cam === 'dining') {
-        c.fillStyle = '#d4a574';
+        c.fillStyle = '#8a6a44';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#8B7355';
+        c.fillStyle = '#5a4835';
         c.fillRect(0, h * 0.65, w, h * 0.35);
-        c.fillStyle = '#a0522d';
+        c.fillStyle = '#6a3520';
         c.fillRect(w * 0.08, h * 0.25, w * 0.3, h * 0.15);
         c.fillRect(w * 0.62, h * 0.25, w * 0.3, h * 0.15);
         c.fillRect(w * 0.08, h * 0.45, w * 0.3, h * 0.15);
@@ -76,27 +77,119 @@ function drawCamBg(cam, w, h) {
         c.fill();
 
     } else if (cam === 'pirate') {
-        c.fillStyle = '#1a3a4a';
+        // Foxy has 4 curtain stages based on timer (0-100)
+        // foxyStage comes from a.pos: 0=curtain closed, 1=peeking, 2=fully visible, 3=gone (in hall)
+        var foxyStage = (animatronics && animatronics.foxy) ? Math.min(3, animatronics.foxy.pos) : 0;
+
+        // Background
+        c.fillStyle = '#0d1f2a';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#2a5a6a';
-        c.fillRect(0, h * 0.6, w, h * 0.4);
-        c.fillStyle = '#8B0000';
-        c.fillRect(0, h * 0.1, w * 0.35, h * 0.6);
-        c.fillStyle = '#5a0000';
-        c.fillRect(w * 0.65, h * 0.1, w * 0.35, h * 0.6);
-        c.fillStyle = '#8B5A2B';
-        c.fillRect(w * 0.2, h * 0.55, w * 0.6, h * 0.15);
+        c.fillStyle = '#1a3040';
+        c.fillRect(0, h * 0.65, w, h * 0.35);
+
+        // Stage banner
         c.fillStyle = '#ffcc00';
-        c.font = 'bold ' + Math.floor(h * 0.06) + 'px Arial';
+        c.font = 'bold ' + Math.floor(h * 0.055) + 'px Arial';
         c.textAlign = 'center';
-        c.fillText('★ PIRATE COVE ★', w / 2, h * 0.08);
+        c.fillText('\u2605 PIRATE COVE \u2605', w / 2, h * 0.08);
+
+        // Stars
         c.fillStyle = '#ffdd88';
-        for (var s = 0; s < 5; s++) { c.fillRect(w * (0.1 + s * 0.2), h * 0.25, h * 0.03, h * 0.03); }
+        for (var s = 0; s < 5; s++) { c.fillRect(w * (0.1 + s * 0.2), h * 0.25, h * 0.025, h * 0.025); }
+
+        if (foxyStage === 3) {
+            // Empty cove — curtains open, dark and empty
+            c.fillStyle = '#5a0000';
+            c.fillRect(0, h * 0.1, w * 0.18, h * 0.6);
+            c.fillRect(w * 0.82, h * 0.1, w * 0.18, h * 0.6);
+            c.fillStyle = '#0a0a0a';
+            c.fillRect(w * 0.18, h * 0.1, w * 0.64, h * 0.6);
+            c.fillStyle = 'rgba(200,50,50,0.18)';
+            c.font = 'bold ' + Math.floor(h * 0.07) + 'px Arial';
+            c.fillText('ITS ME', w / 2, h * 0.45);
+        } else if (foxyStage === 2) {
+            // Curtains wide open, Foxy fully visible standing in cove
+            c.fillStyle = '#5a0000';
+            c.fillRect(0, h * 0.1, w * 0.14, h * 0.6);
+            c.fillRect(w * 0.86, h * 0.1, w * 0.14, h * 0.6);
+            // Foxy body (orange-red)
+            c.fillStyle = '#c0392b';
+            c.fillRect(w * 0.38, h * 0.3, w * 0.24, h * 0.35);
+            // Foxy head
+            c.fillStyle = '#e74c3c';
+            c.beginPath();
+            c.arc(w * 0.5, h * 0.3, w * 0.12, 0, Math.PI * 2);
+            c.fill();
+            // Eyes
+            c.fillStyle = '#fff';
+            c.beginPath();
+            c.arc(w * 0.44, h * 0.27, w * 0.03, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(w * 0.56, h * 0.27, w * 0.03, 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#00aaff';
+            c.beginPath();
+            c.arc(w * 0.44, h * 0.27, w * 0.015, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(w * 0.56, h * 0.27, w * 0.015, 0, Math.PI * 2);
+            c.fill();
+            // Hook
+            c.strokeStyle = '#aaa';
+            c.lineWidth = 3;
+            c.beginPath();
+            c.moveTo(w * 0.62, h * 0.42);
+            c.lineTo(w * 0.7, h * 0.5);
+            c.arc(w * 0.7, h * 0.54, h * 0.04, -Math.PI / 2, Math.PI / 2);
+            c.stroke();
+        } else if (foxyStage === 1) {
+            // Curtains slightly open — Foxy peeking out from gap
+            c.fillStyle = '#8B0000';
+            c.fillRect(0, h * 0.1, w * 0.42, h * 0.6);
+            c.fillStyle = '#5a0000';
+            c.fillRect(w * 0.58, h * 0.1, w * 0.42, h * 0.6);
+            // Foxy peeking in the gap
+            c.fillStyle = '#e74c3c';
+            c.beginPath();
+            c.arc(w * 0.5, h * 0.38, w * 0.08, 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#fff';
+            c.beginPath();
+            c.arc(w * 0.47, h * 0.36, w * 0.02, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(w * 0.53, h * 0.36, w * 0.02, 0, Math.PI * 2);
+            c.fill();
+            c.fillStyle = '#00aaff';
+            c.beginPath();
+            c.arc(w * 0.47, h * 0.36, w * 0.01, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(w * 0.53, h * 0.36, w * 0.01, 0, Math.PI * 2);
+            c.fill();
+        } else {
+            // Stage 0 — curtain fully closed
+            c.fillStyle = '#8B0000';
+            c.fillRect(0, h * 0.1, w * 0.5, h * 0.6);
+            c.fillStyle = '#5a0000';
+            c.fillRect(w * 0.5, h * 0.1, w * 0.5, h * 0.6);
+            // OUT OF ORDER sign
+            c.fillStyle = 'rgba(0,0,0,0.5)';
+            c.fillRect(w * 0.2, h * 0.38, w * 0.6, h * 0.12);
+            c.fillStyle = '#ffcc00';
+            c.font = 'bold ' + Math.floor(h * 0.06) + 'px Courier New';
+            c.textAlign = 'center';
+            c.fillText('OUT OF ORDER', w / 2, h * 0.465);
+        }
+        // Stage decoration — platform at base
+        c.fillStyle = '#8B5A2B';
+        c.fillRect(w * 0.15, h * 0.68, w * 0.7, h * 0.06);
 
     } else if (cam === 'stage_left') {
-        c.fillStyle = '#c8a882';
+        c.fillStyle = '#7a6050';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#8B7355';
+        c.fillStyle = '#5a4835';
         c.fillRect(0, h * 0.65, w, h * 0.35);
         c.strokeStyle = '#5a4030';
         c.lineWidth = 2;
@@ -126,9 +219,9 @@ function drawCamBg(cam, w, h) {
         c.fill();
 
     } else if (cam === 'stage_right') {
-        c.fillStyle = '#c8a882';
+        c.fillStyle = '#7a6050';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#8B7355';
+        c.fillStyle = '#5a4835';
         c.fillRect(0, h * 0.65, w, h * 0.35);
         c.strokeStyle = '#5a4030';
         c.lineWidth = 3;
@@ -192,9 +285,9 @@ function drawCamBg(cam, w, h) {
         c.fillText('PARTS & SERVICE', w / 2, h * 0.08);
 
     } else if (cam === 'hallW') {
-        c.fillStyle = '#b8860b';
+        c.fillStyle = '#7a5808';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#8b7355';
+        c.fillStyle = '#5a4835';
         c.fillRect(0, h * 0.55, w, h * 0.45);
         c.fillStyle = '#a0826d';
         c.beginPath();
@@ -219,9 +312,9 @@ function drawCamBg(cam, w, h) {
         c.fillRect(w * 0.7, h * 0.05, w * 0.2, h * 0.1);
 
     } else if (cam === 'hallE') {
-        c.fillStyle = '#c8860b';
+        c.fillStyle = '#805808';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#7b5d4a';
+        c.fillStyle = '#4b3a2a';
         c.fillRect(0, h * 0.55, w, h * 0.45);
         c.fillStyle = '#b4846d';
         c.beginPath();
@@ -246,9 +339,9 @@ function drawCamBg(cam, w, h) {
         c.fillRect(w * 0.77, h * 0.12, w * 0.15, h * 0.12);
 
     } else if (cam === 'hallW_corner') {
-        c.fillStyle = '#a0826d';
+        c.fillStyle = '#6a5545';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#8b7355';
+        c.fillStyle = '#5a4835';
         c.fillRect(0, h * 0.5, w, h * 0.5);
         c.fillStyle = '#9a7663';
         c.beginPath();
@@ -277,9 +370,9 @@ function drawCamBg(cam, w, h) {
         c.fill();
 
     } else if (cam === 'hallE_corner') {
-        c.fillStyle = '#b4846d';
+        c.fillStyle = '#755545';
         c.fillRect(0, 0, w, h);
-        c.fillStyle = '#7b5d4a';
+        c.fillStyle = '#4b3a2a';
         c.fillRect(0, h * 0.5, w, h * 0.5);
         c.fillStyle = '#a87d66';
         c.beginPath();
@@ -335,7 +428,29 @@ function drawCamera() {
         return;
     }
 
+    // Camera static effect on switch
+    if (camStaticTimer > 0) {
+        camStaticTimer--;
+        var imgd = camCtx.createImageData(w, h);
+        for (var si = 0; si < imgd.data.length; si += 4) {
+            var sv = Math.floor(Math.random() * 60);
+            imgd.data[si] = imgd.data[si + 1] = imgd.data[si + 2] = sv;
+            imgd.data[si + 3] = 255;
+        }
+        camCtx.putImageData(imgd, 0, 0);
+        // Draw scanlines over static
+        camCtx.fillStyle = 'rgba(0,0,0,0.3)';
+        for (var sl = 0; sl < h; sl += 3) {
+            camCtx.fillRect(0, sl, w, 1);
+        }
+        return;
+    }
+
     drawCamBg(game.currentCam, w, h);
+
+    // FNAF1-style darkness: cameras are dim surveillance feeds
+    camCtx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+    camCtx.fillRect(0, 0, w, h);
 
     var slots = [
         { x: w * 0.25, y: h * 0.65, scale: 1.0 },
@@ -358,17 +473,12 @@ function drawCamera() {
     camCtx.fillStyle = '#00ff88';
     camCtx.fillText(CAM_LABELS[game.currentCam] || game.currentCam, 8, fontSize + 8);
 
-    if (Math.floor(Date.now() / 600) % 2 === 0) {
+    if (Math.floor(Date.now() / 200) % 2 === 0) {
         camCtx.fillStyle = '#ff9999';
         camCtx.font = 'bold 11px Courier New';
         camCtx.textAlign = 'right';
         camCtx.fillText('REC', w - 32, 23);
     }
-
-    camCtx.fillStyle = 'rgba(0,255,136,0.5)';
-    camCtx.font = '11px Courier New';
-    camCtx.textAlign = 'right';
-    camCtx.fillText('NIGHT ' + game.currentNight, w - 8, h - 8);
 }
 
 function drawAnimatronic(anim, cx, cy, scale) {
@@ -444,6 +554,7 @@ function drawAnimatronic(anim, cx, cy, scale) {
 
 function toggleMonitor() {
     if (!game.running) return;
+    if (game.powerOutage) return; // cameras disabled during power outage
     monitorOpen = !monitorOpen;
     var grid = document.getElementById('cameraGrid');
     var mon = document.getElementById('monitorArea');
@@ -456,6 +567,7 @@ function toggleMonitor() {
 
     if (monitorOpen) {
         game.currentCam = game.lastCam || 'stage';
+        camStaticTimer = 2; // brief static on monitor open
         document.querySelectorAll('.camBtn').forEach(function(b) {
             b.classList.toggle('active', b.getAttribute('data-cam') === game.currentCam);
         });
@@ -480,6 +592,7 @@ function switchCam(cam) {
     game.currentCam = cam;
     game.lastCam = cam;
     monitorOpen = true;
+    camStaticTimer = 2; // ~2 frames of static on switch
     var grid = document.getElementById('cameraGrid');
     var btn = document.getElementById('cameraToggleBtn');
     if (grid) grid.classList.add('show');

@@ -267,6 +267,19 @@ body {
     text-align: center;
 }
 
+#nightDisplay {
+    position: fixed;
+    top: 85px;
+    right: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    z-index: 100;
+    text-align: center;
+}
+
 #powerArea {
     position: fixed;
     bottom: 25px;
@@ -278,13 +291,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    z-index: 110;
+    z-index: 130;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95);
     font-family: 'Courier New', monospace;
 }
 
-#powerDisplay {
-    font-size: 18px;
+#powerLabel {
+    font-size: 16px;
     color: #ffffff;
     font-weight: bold;
     letter-spacing: 1px;
@@ -292,65 +305,37 @@ body {
     text-shadow: 0 0 8px rgba(0, 150, 0, 0.4);
 }
 
-#powerBar {
-    width: 140px;
-    height: 22px;
-    background: #000;
-    border: 2px solid #333;
-    border-radius: 1px;
-    overflow: hidden;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+#powerDisplay {
+    color: #ffffff;
 }
 
-#powerBarFill {
-    height: 100%;
-    background: linear-gradient(90deg, #00AA00 0%, #FFAA00 50%, #FF0000 100%);
-    width: 100%;
-    transition: width 0.1s linear;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
-.usageContainer {
+#usageArea {
     display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.usageBar {
-    display: none;
     align-items: center;
     gap: 4px;
+    margin-top: 2px;
 }
 
-.usageBar.active {
-    display: flex;
-}
-
-.usageLabel {
-    font-size: 10px;
-    color: #666;
+#usageLabel {
+    font-size: 13px;
+    color: #aaa;
     font-weight: bold;
-    width: 12px;
-    text-align: center;
-    text-transform: uppercase;
+    margin-right: 4px;
 }
 
-.usageBarBg {
-    width: 80px;
-    height: 6px;
-    background: #000;
-    border: 1px solid #333;
+.usage-block {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: #111;
+    border: 1px solid #444;
     border-radius: 1px;
-    overflow: hidden;
-    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.9);
 }
 
-.usageBarFill {
-    height: 100%;
-    background: linear-gradient(90deg, #00AA00 0%, #FFAA00 50%, #FF0000 100%);
-    width: 100%;
-    transition: width 0.1s linear;
-    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+.usage-block.active {
+    background: #00cc00;
+    border-color: #00aa00;
+    box-shadow: 0 0 4px rgba(0, 200, 0, 0.5);
 }
 
 
@@ -422,16 +407,17 @@ body {
 
 #cameraGrid {
     position: fixed;
-    bottom: 64px;
-    left: 16px;
-    width: 320px;
-    height: 205px;
+    bottom: 90px;
+    right: 8px;
+    width: 540px;
+    height: 330px;
     display: none;
     background: transparent;
     border: none;
     border-radius: 2px;
-    z-index: 90;
+    z-index: 115;
     overflow: visible;
+    pointer-events: none;
 }
 
 #cameraGrid::before {
@@ -449,69 +435,71 @@ body {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    z-index: 2;
+    z-index: 1;
 }
 
 .camBtn {
     position: absolute;
-    width: 44px;
-    height: 30px;
-    background: rgba(6, 6, 6, 0.82);
-    border: 2px solid #3a3a3a;
-    color: #5a5a5a;
-    font-size: 8px;
+    width: 62px;
+    height: 44px;
+    background: rgba(10, 10, 10, 0.92);
+    border: 2px solid #44aa44;
+    color: #00cc00;
+    font-size: 10px;
     font-weight: bold;
-    line-height: 1.2;
+    line-height: 1.3;
     cursor: pointer;
     transition: all 0.15s ease;
-    border-radius: 1px;
+    border-radius: 2px;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
     font-family: 'Courier New', monospace;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    z-index: 3;
-    padding: 0;
+    z-index: 120;
+    padding: 2px;
+    pointer-events: auto;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.8), 0 0 6px rgba(68, 170, 68, 0.25), 0 2px 6px rgba(0, 0, 0, 0.7);
 }
 
 .camBtn:hover {
-    border-color: #00ff00;
+    border-color: #00cc00;
     color: #00ff00;
-    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-    background: rgba(0, 20, 0, 0.95);
+    box-shadow: 0 0 14px rgba(0, 204, 0, 0.5), inset 0 1px 3px rgba(0, 0, 0, 0.8);
+    background: rgba(0, 20, 0, 0.97);
+    transform: scale(1.05);
 }
 
 .camBtn.active {
-    background: rgba(0, 40, 0, 0.95);
+    background: rgba(0, 40, 0, 0.98);
     color: #00ff00;
     border-color: #00ff00;
-    box-shadow: 0 0 18px rgba(0, 255, 0, 0.5), inset 0 0 8px rgba(0, 255, 0, 0.2);
+    box-shadow: 0 0 18px rgba(0, 255, 0, 0.6), inset 0 0 8px rgba(0, 255, 0, 0.2), 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
 .cam-you {
     position: absolute;
-    left: 194px;
-    top: 195px;
-    width: 44px;
-    height: 30px;
+    width: 62px;
+    height: 44px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    color: #f5f5f5;
-    font-size: 8px;
+    color: #ffffff;
+    font-size: 11px;
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.6px;
     text-transform: uppercase;
-    border: 1px solid #f5f5f5;
+    border: 1.5px solid #dddddd;
     background: rgba(0, 0, 0, 0.85);
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.45), inset 0 0 6px rgba(255, 255, 255, 0.2);
-    z-index: 3;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.35), inset 0 1px 2px rgba(255, 255, 255, 0.15);
+    z-index: 120;
     pointer-events: none;
-    line-height: 1.3;
+    line-height: 1.2;
+    border-radius: 2px;
 }
 
 .cam-you-dot {

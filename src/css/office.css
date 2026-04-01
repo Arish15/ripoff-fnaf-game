@@ -129,6 +129,21 @@
 }
 
 
+/* Rotation-based visibility toggle */
+
+.office-btn.btn-hidden {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.office-btn.btn-visible {
+    opacity: 1;
+    pointer-events: auto;
+    transition: opacity 0.2s ease;
+}
+
+
 /* ── VIGNETTE OVERLAY ────────────────────────────────────── */
 
 .office-vignette {

@@ -57,6 +57,7 @@
         setHallLeft: setHallLeft,
         setHallRight: setHallRight,
         setMouse: setMouse,
+        getRotation: function() { return currentRotY; },
         show: show,
         hide: hide,
         resize: onResize
@@ -67,8 +68,10 @@
         if (!container) { console.warn('[office3d] #officeScene not found'); return; }
         if (typeof THREE === 'undefined') { console.warn('[office3d] Three.js not loaded'); return; }
 
-        if (animId) { cancelAnimationFrame(animId);
-            animId = null; }
+        if (animId) {
+            cancelAnimationFrame(animId);
+            animId = null;
+        }
         container.innerHTML = '';
 
         scene = new THREE.Scene();
@@ -487,20 +490,20 @@
     }
 
     function buildLighting() {
-        scene.add(new THREE.AmbientLight(0xffe0b0, 1.1));
+        scene.add(new THREE.AmbientLight(0xffe0b0, 0.65));
 
         // Main light from above-front
-        var dir = new THREE.DirectionalLight(0xffd070, 1.6);
+        var dir = new THREE.DirectionalLight(0xffd070, 1.1);
         dir.position.set(0, 10, 8);
         scene.add(dir);
 
         // Fill from right
-        var fill = new THREE.DirectionalLight(0xffb040, 0.4);
+        var fill = new THREE.DirectionalLight(0xffb040, 0.25);
         fill.position.set(5, 6, 4);
         scene.add(fill);
 
         // Rim from behind
-        var rim = new THREE.DirectionalLight(0x301a08, 0.3);
+        var rim = new THREE.DirectionalLight(0x301a08, 0.2);
         rim.position.set(0, 4, -10);
         scene.add(rim);
 
@@ -659,10 +662,14 @@
             anim.vel *= (1.0 - DOOR_DAMPING);
             anim.pos += anim.vel;
             // Allow a tiny overshoot for physical bounce feel
-            if (anim.pos < -0.04) { anim.pos = -0.04;
-                anim.vel *= -0.3; }
-            if (anim.pos > 1.04) { anim.pos = 1.04;
-                anim.vel *= -0.3; }
+            if (anim.pos < -0.04) {
+                anim.pos = -0.04;
+                anim.vel *= -0.3;
+            }
+            if (anim.pos > 1.04) {
+                anim.pos = 1.04;
+                anim.vel *= -0.3;
+            }
         } else {
             anim.pos = anim.target;
             anim.vel = 0.0;
