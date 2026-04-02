@@ -13,13 +13,19 @@
 
 function tickAnimatronics(ai) {
     // Apply in-night AI increments on top of base values
+    // Custom Night (7): no increments — use slider values directly
+    var isCustom = (game.currentNight === 7);
     var effectiveAi = {
-        freddy: ai.freddy || 0,
-        bonnie: Math.min(20, (ai.bonnie || 0) +
+        // Night 4 Freddy is randomized 1 or 2 per wiki; pick once when night starts
+        freddy: isCustom ? (ai.freddy || 0) :
+            ((game.currentNight === 4 && !animatronics.freddy._n4roll) ?
+                (animatronics.freddy._n4roll = (Math.random() < 0.5 ? 1 : 2)) :
+                (game.currentNight === 4 ? animatronics.freddy._n4roll : (ai.freddy || 0))),
+        bonnie: isCustom ? (ai.bonnie || 0) : Math.min(20, (ai.bonnie || 0) +
             (game.hour >= 2 ? 1 : 0) + (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0)),
-        chica: Math.min(20, (ai.chica || 0) +
+        chica: isCustom ? (ai.chica || 0) : Math.min(20, (ai.chica || 0) +
             (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0)),
-        foxy: Math.min(20, (ai.foxy || 0) +
+        foxy: isCustom ? (ai.foxy || 0) : Math.min(20, (ai.foxy || 0) +
             (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0))
     };
 
@@ -72,6 +78,11 @@ function tickFoxy(a) {
             if (a.ignoreTicks > 0 && a.ignoreTicks % 50 === 0) {
                 if (Math.floor(Math.random() * 20) < a.ai) {
                     if (a.pos < a.path.length - 1) a.pos++;
+                    // Foxy starts sprinting down the hall
+                    if (a.path[a.pos] === 'hallW') {
+                        var foxyRun = document.getElementById('foxyRunAudio');
+                        if (foxyRun) foxyRun.play().catch(function() {});
+                    }
                     if (a.path[a.pos] === 'office') {
                         a.pos = 0;
                         a.preventionTimer = 50 + Math.floor(Math.random() * 1001);
@@ -108,7 +119,7 @@ function tickFreddy(a) {
         if (!bonnieGone || !chicaGone) return;
     }
 
-    var atCorner = (a.path[a.pos] === 'hallE_corner' || a.path[a.pos] === 'stage_left');
+    var atCorner = (a.path[a.pos] === 'hallE_corner');
     if (atCorner) {
         if (!game.doorRight && a.pos < a.path.length - 1) a.pos++;
     } else {
@@ -131,8 +142,7 @@ function tickOther(key, a) {
     a.moveTick = 0;
 
     var atCorner = (a.path[a.pos] === 'hallW_corner' ||
-        a.path[a.pos] === 'hallE_corner' ||
-        a.path[a.pos] === 'stage_left');
+        a.path[a.pos] === 'hallE_corner');
     if (atCorner) {
         var doorBlocks = (key === 'bonnie' && game.doorLeft) ||
             (key === 'chica' && game.doorRight);
@@ -156,7 +166,7 @@ function updateHallAnimatronics() {
     Object.values(animatronics).forEach(function(a) {
         var pos = a.path[a.pos];
         if (pos === 'hallW_corner' || pos === 'hallW') leftAnim = a;
-        if (pos === 'stage_left' || pos === 'hallE_corner') rightAnim = a;
+        if (pos === 'hallE_corner' || pos === 'hallE') rightAnim = a;
     });
     window.office3d.setHallLeft(leftAnim ? leftAnim.color : null);
     window.office3d.setHallRight(rightAnim ? rightAnim.color : null);

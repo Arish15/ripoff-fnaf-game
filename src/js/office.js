@@ -71,6 +71,16 @@ function updateHUD() {
         var block = document.getElementById('usageBlock' + i);
         if (block) block.classList.toggle('active', i <= usage);
     }
+
+    // Low power warning: flash the power display when below 15%
+    var powerArea = document.getElementById('powerArea');
+    if (powerArea) {
+        if (game.power > 0 && game.power < 15) {
+            powerArea.classList.add('power-critical');
+        } else {
+            powerArea.classList.remove('power-critical');
+        }
+    }
 }
 
 function updateNightButtons() {

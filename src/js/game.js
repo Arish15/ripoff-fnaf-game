@@ -35,7 +35,7 @@ function tickGame() {
 
     game.time += 0.1;
     var hrs = game.time / 90;
-    game.hour = Math.floor(hrs) % 6;
+    game.hour = Math.floor(hrs);
     game.minute = (hrs % 1) * 60;
 
     var drain = 0.01;
@@ -45,6 +45,12 @@ function tickGame() {
     if (game.doorRight) drain += 0.01;
     if (monitorOpen) drain += 0.01;
     game.power = Math.max(0, game.power - drain);
+
+    // Ambient audio tension: volume increases as power decreases
+    var ambient = document.getElementById('ambientAudio');
+    if (ambient && !ambient.paused) {
+        ambient.volume = Math.min(1.0, 0.3 + (1 - game.power / 100) * 0.5);
+    }
 
     if (game.power <= 0 && !game.powerOutage) {
         game.powerOutage = true;
@@ -57,11 +63,12 @@ function tickGame() {
             var grid = document.getElementById('cameraGrid');
             var mon = document.getElementById('monitorArea');
             var ctBtn = document.getElementById('cameraToggleBtn');
-            var oArea = document.getElementById('officeArea');
             if (grid) grid.classList.remove('show');
             if (mon) mon.classList.remove('visible');
             if (ctBtn) ctBtn.classList.remove('active');
-            if (oArea) oArea.style.display = 'flex';
+            // Show office back
+            var officeEl = document.getElementById('officeArea');
+            if (officeEl) officeEl.style.display = 'flex';
         }
         if (window.office3d) {
             window.office3d.setDoorLeft(false);
@@ -69,17 +76,43 @@ function tickGame() {
             window.office3d.setLightLeft(false);
             window.office3d.setLightRight(false);
         }
+        // Dim camera toggle — cameras are dead
+        var ctBtnPO = document.getElementById('cameraToggleBtn');
+        if (ctBtnPO) ctBtnPO.classList.add('disabled');
+        // Dim door/light buttons — no power
+        document.querySelectorAll('.office-btn').forEach(function(b) {
+            b.classList.remove('active');
+            b.classList.add('disabled');
+        });
         var po = document.getElementById('powerOutAudio');
         if (po) po.play().catch(function() {});
     }
 
-    // Freddy jumpscares ~20 seconds after power outage (random 15-25s)
+    // Freddy power outage sequence:
+    // Phase 1 (0–10s): total darkness
+    // Phase 2 (10s+): Freddy appears in doorway with jingle
+    // Phase 3 (delay elapsed): jumpscare
     if (game.powerOutage && game.powerOutageTime) {
         var elapsed = game.time - game.powerOutageTime;
         if (!game.powerOutageDelay) {
             game.powerOutageDelay = 15 + Math.random() * 10;
         }
+        var freddyOverlay = document.getElementById('freddyPowerOut');
+        // Phase 2: Show Freddy's face + play jingle after ~10s
+        if (elapsed >= 10 && !game.freddyJingleStarted) {
+            game.freddyJingleStarted = true;
+            if (freddyOverlay) freddyOverlay.classList.add('show');
+            var jingle = document.getElementById('freddyJingleAudio');
+            if (jingle) jingle.play().catch(function() {});
+        }
+        // Phase 3: Jumpscare after full delay
         if (elapsed >= game.powerOutageDelay) {
+            if (freddyOverlay) freddyOverlay.classList.remove('show');
+            var jingle2 = document.getElementById('freddyJingleAudio');
+            if (jingle2) {
+                jingle2.pause();
+                jingle2.currentTime = 0;
+            }
             triggerGameOver('FREDDY');
             return;
         }
@@ -87,12 +120,31 @@ function tickGame() {
 
     var ai = NIGHT_AI[game.currentNight] || NIGHT_AI[1];
 
-    if (game.time - lastAiTick >= 5.0) {
-        lastAiTick = game.time;
-        tickAnimatronics(ai);
-        checkCollisions();
-        updateHallAnimatronics();
+    // Golden Freddy: counts down when active in office, opening camera dismisses
+    if (goldenFreddyActive) {
+        if (monitorOpen) {
+            goldenFreddyActive = false;
+            goldenFreddyTimer = 0;
+            var gfOverlay = document.getElementById('goldenFreddyOverlay');
+            if (gfOverlay) gfOverlay.classList.remove('show');
+        } else {
+            goldenFreddyTimer--;
+            var gfOverlay2 = document.getElementById('goldenFreddyOverlay');
+            if (gfOverlay2 && !gfOverlay2.classList.contains('show')) gfOverlay2.classList.add('show');
+            if (goldenFreddyTimer <= 0) {
+                goldenFreddyActive = false;
+                if (gfOverlay2) gfOverlay2.classList.remove('show');
+                triggerGameOver('GOLDEN FREDDY');
+                return;
+            }
+        }
     }
+
+    tickAnimatronics(ai);
+    checkCollisions();
+    updateHallAnimatronics();
+    checkFreddyLaugh();
+    tickHallucination();
 
     updateHUD();
 
@@ -117,22 +169,47 @@ function startGame(night) {
     game.powerOutage = false;
     game.powerOutageTime = 0;
     game.powerOutageDelay = 0;
+    game.freddyJingleStarted = false;
+    goldenFreddyActive = false;
+    goldenFreddyTimer = 0;
     lastAiTick = 0;
+    hallucinationCooldown = 0;
+    lastFreddyPos = 0;
+    hidePhoneGuy();
 
     Object.values(animatronics).forEach(function(a) {
         a.pos = 0;
         a.ai = 0;
+        a.moveTick = 0;
+        a._n4roll = 0;
         if (a.timer !== undefined) a.timer = 0;
+        // Reset Foxy-specific fields
+        a.ignoreTicks = 0;
+        a.preventionTimer = 0;
+        a.wasWatchingCam1c = false;
+        a.wasMonitorOpen = false;
     });
 
     var doorBtnLeft = document.querySelector('.office-btn-door-left');
     var doorBtnRight = document.querySelector('.office-btn-door-right');
     var lightBtnLeft = document.querySelector('.office-btn-light-left');
     var lightBtnRight = document.querySelector('.office-btn-light-right');
-    if (doorBtnLeft) doorBtnLeft.classList.remove('active');
-    if (doorBtnRight) doorBtnRight.classList.remove('active');
-    if (lightBtnLeft) lightBtnLeft.classList.remove('active');
-    if (lightBtnRight) lightBtnRight.classList.remove('active');
+    if (doorBtnLeft) {
+        doorBtnLeft.classList.remove('active');
+        doorBtnLeft.classList.remove('disabled');
+    }
+    if (doorBtnRight) {
+        doorBtnRight.classList.remove('active');
+        doorBtnRight.classList.remove('disabled');
+    }
+    if (lightBtnLeft) {
+        lightBtnLeft.classList.remove('active');
+        lightBtnLeft.classList.remove('disabled');
+    }
+    if (lightBtnRight) {
+        lightBtnRight.classList.remove('active');
+        lightBtnRight.classList.remove('disabled');
+    }
 
     monitorOpen = false;
     var grid = document.getElementById('cameraGrid');
@@ -140,7 +217,10 @@ function startGame(night) {
     var ctBtn = document.getElementById('cameraToggleBtn');
     if (grid) grid.classList.remove('show');
     if (mon) mon.classList.remove('visible');
-    if (ctBtn) ctBtn.classList.remove('active');
+    if (ctBtn) {
+        ctBtn.classList.remove('active');
+        ctBtn.classList.remove('disabled');
+    }
 
     document.getElementById('startScreen').classList.add('hidden');
     document.getElementById('gameContainer').classList.add('show');
@@ -165,10 +245,41 @@ function startGame(night) {
     }
 
     var nd = document.getElementById('nightDisplay');
-    if (nd) nd.textContent = 'NIGHT ' + night;
+    if (nd) nd.textContent = night === 7 ? 'CUSTOM NIGHT' : 'NIGHT ' + night;
+
+    // Night intro overlay — "Night X" title card with brief delay
+    var intro = document.getElementById('nightIntro');
+    var introText = document.getElementById('nightIntroText');
+    if (intro && introText) {
+        introText.textContent = night === 7 ? 'Custom Night' : 'Night ' + night;
+        intro.classList.add('show');
+        setTimeout(function() {
+            intro.classList.remove('show');
+            // Phone Guy message after intro fades
+            showPhoneGuy(night);
+        }, 2200);
+    }
+
+    // Hide Freddy power-out overlay from previous game
+    var fpo = document.getElementById('freddyPowerOut');
+    if (fpo) fpo.classList.remove('show');
+    var gfo = document.getElementById('goldenFreddyOverlay');
+    if (gfo) gfo.classList.remove('show');
+    var jingle = document.getElementById('freddyJingleAudio');
+    if (jingle) {
+        jingle.pause();
+        jingle.currentTime = 0;
+    }
 
     if (gameLoop) clearInterval(gameLoop);
     gameLoop = setInterval(tickGame, 100);
+
+    // Start ambient audio
+    var ambient = document.getElementById('ambientAudio');
+    if (ambient) {
+        ambient.volume = 0.3;
+        ambient.play().catch(function() {});
+    }
 
     updateHUD();
 }
@@ -179,18 +290,44 @@ function endNight() {
         clearInterval(gameLoop);
         gameLoop = null;
     }
+    var ambient = document.getElementById('ambientAudio');
+    if (ambient) {
+        ambient.pause();
+        ambient.currentTime = 0;
+    }
     var audio = document.getElementById('successAudio');
     if (audio) audio.play().catch(function() {});
-    document.getElementById('nightCompleteScreen').classList.add('show');
-    if (game.currentNight < 6 && unlockedNights.indexOf(game.currentNight + 1) < 0) {
+
+    // Night 5 ending: show 6AM screen, then newspaper article
+    if (game.currentNight === 5) {
+        document.getElementById('nightCompleteScreen').classList.add('show');
+        setTimeout(function() {
+            document.getElementById('nightCompleteScreen').classList.remove('show');
+            var newspaper = document.getElementById('newspaperScreen');
+            if (newspaper) newspaper.classList.add('show');
+        }, 3000);
+    } else {
+        document.getElementById('nightCompleteScreen').classList.add('show');
+    }
+
+    if (game.currentNight < 7 && unlockedNights.indexOf(game.currentNight + 1) < 0) {
         unlockedNights.push(game.currentNight + 1);
         saveProgress();
+    }
+
+    // 20/20/20/20 mode star
+    if (game.currentNight === 7) {
+        var ai7 = NIGHT_AI[7];
+        if (ai7 && ai7.freddy === 20 && ai7.bonnie === 20 && ai7.chica === 20 && ai7.foxy === 20) {
+            try { localStorage.setItem('fnafBeat2020', 'true'); } catch (e) {}
+        }
     }
 }
 
 function nextNight() {
     document.getElementById('nightCompleteScreen').classList.remove('show');
-    if (game.currentNight >= 6) returnToStart();
+    if (game.currentNight >= 7) returnToStart();
+    else if (game.currentNight >= 6) returnToStart();
     else startGame(game.currentNight + 1);
 }
 
@@ -201,9 +338,25 @@ function triggerGameOver(msg) {
         clearInterval(gameLoop);
         gameLoop = null;
     }
+    var ambient = document.getElementById('ambientAudio');
+    if (ambient) {
+        ambient.pause();
+        ambient.currentTime = 0;
+    }
 
     var scare = document.getElementById('jumpScare');
-    if (scare) scare.classList.add('show');
+    if (scare) {
+        // Remove any previous scare classes
+        scare.className = '';
+        // Set per-animatronic scare color
+        if (msg.indexOf('FREDDY') >= 0 && msg.indexOf('GOLDEN') < 0) scare.classList.add('scare-freddy');
+        else if (msg.indexOf('BONNIE') >= 0) scare.classList.add('scare-bonnie');
+        else if (msg.indexOf('CHICA') >= 0) scare.classList.add('scare-chica');
+        else if (msg.indexOf('FOXY') >= 0) scare.classList.add('scare-foxy');
+        else if (msg.indexOf('GOLDEN') >= 0) scare.classList.add('scare-golden');
+        else scare.classList.add('scare-freddy');
+        scare.classList.add('show');
+    }
     var audio = document.getElementById('jumpScareAudio');
     if (audio) audio.play().catch(function() {});
 
@@ -229,10 +382,47 @@ function returnToStart() {
         clearInterval(gameLoop);
         gameLoop = null;
     }
+    // Clean up overlays
+    var fpo = document.getElementById('freddyPowerOut');
+    if (fpo) fpo.classList.remove('show');
+    var gfo = document.getElementById('goldenFreddyOverlay');
+    if (gfo) gfo.classList.remove('show');
+    goldenFreddyActive = false;
+    goldenFreddyTimer = 0;
+    // Stop all game audio
+    hidePhoneGuy();
+    var halluOverlay = document.getElementById('hallucinationOverlay');
+    if (halluOverlay) halluOverlay.classList.remove('show');
+    var ambient = document.getElementById('ambientAudio');
+    if (ambient) {
+        ambient.pause();
+        ambient.currentTime = 0;
+    }
+    var jingle = document.getElementById('freddyJingleAudio');
+    if (jingle) {
+        jingle.pause();
+        jingle.currentTime = 0;
+    }
+    var scareAudio = document.getElementById('jumpScareAudio');
+    if (scareAudio) {
+        scareAudio.pause();
+        scareAudio.currentTime = 0;
+    }
+    var intro = document.getElementById('nightIntro');
+    if (intro) intro.classList.remove('show');
+    var scare = document.getElementById('jumpScare');
+    if (scare) {
+        scare.classList.remove('show');
+        scare.className = '';
+    }
+
     document.getElementById('gameOverScreen').classList.remove('show');
     document.getElementById('nightCompleteScreen').classList.remove('show');
+    var newspaper = document.getElementById('newspaperScreen');
+    if (newspaper) newspaper.classList.remove('show');
     document.getElementById('gameContainer').classList.remove('show');
     document.getElementById('startScreen').classList.remove('hidden');
+    hideCustomNight();
     var officeEl = document.getElementById('officeArea');
     if (officeEl) officeEl.style.display = 'none';
     var grid = document.getElementById('cameraGrid');
@@ -240,8 +430,16 @@ function returnToStart() {
     var ctBtn = document.getElementById('cameraToggleBtn');
     if (grid) grid.classList.remove('show');
     if (mon) mon.classList.remove('visible');
-    if (ctBtn) ctBtn.classList.remove('active');
+    if (ctBtn) {
+        ctBtn.classList.remove('active');
+        ctBtn.classList.remove('disabled');
+    }
+    // Re-enable office buttons that may have been disabled by power outage
+    document.querySelectorAll('.office-btn').forEach(function(b) {
+        b.classList.remove('disabled');
+    });
     updateNightButtons();
+    updateStars();
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -254,6 +452,7 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (e) {}
     startCameraLoop();
     updateNightButtons();
+    initExtras();
 
     var officeArea = document.getElementById('officeArea');
     if (officeArea) {
@@ -298,6 +497,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape' && game.running) returnToStart();
+        // Space: toggle monitor
+        if (e.key === ' ' && game.running) {
+            e.preventDefault();
+            toggleMonitor();
+        }
+        // D/F: toggle left/right door
+        if ((e.key === 'd' || e.key === 'D') && game.running && !monitorOpen) toggleDoor('left');
+        if ((e.key === 'f' || e.key === 'F') && game.running && !monitorOpen) toggleDoor('right');
+        // C/V or Shift+D/Shift+F: toggle left/right light
+        if ((e.key === 'c' || e.key === 'C') && game.running && !monitorOpen) toggleLight('left');
+        if ((e.key === 'v' || e.key === 'V') && game.running && !monitorOpen) toggleLight('right');
     });
 });
 

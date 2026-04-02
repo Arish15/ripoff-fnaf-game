@@ -24,9 +24,10 @@ var NIGHT_AI = {
     1: { freddy: 0, bonnie: 0, chica: 0, foxy: 0 },
     2: { freddy: 0, bonnie: 3, chica: 1, foxy: 1 },
     3: { freddy: 1, bonnie: 0, chica: 5, foxy: 2 },
-    4: { freddy: (Math.random() < 0.5 ? 1 : 2), bonnie: 2, chica: 4, foxy: 6 },
+    4: { freddy: 1, bonnie: 2, chica: 4, foxy: 6 }, // wiki: freddy is 1 or 2 randomized
     5: { freddy: 3, bonnie: 5, chica: 7, foxy: 5 },
-    6: { freddy: 4, bonnie: 10, chica: 12, foxy: 6 }
+    6: { freddy: 4, bonnie: 10, chica: 12, foxy: 6 },
+    7: { freddy: 0, bonnie: 0, chica: 0, foxy: 0 } // Custom Night — overridden by sliders
 };
 
 var animatronics = {
@@ -34,7 +35,7 @@ var animatronics = {
         name: 'Freddy',
         color: '#c8843a',
         pos: 0,
-        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE_corner', 'stage_left', 'office'],
+        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE', 'hallE_corner', 'office'],
         ai: 0,
         moveTick: 0
     },
@@ -42,7 +43,7 @@ var animatronics = {
         name: 'Bonnie',
         color: '#9b59b6',
         pos: 0,
-        path: ['stage', 'dining', 'hallW', 'hallW_corner', 'office'],
+        path: ['stage', 'backstage', 'dining', 'stage_left', 'hallW', 'hallW_corner', 'office'],
         ai: 0,
         moveTick: 0
     },
@@ -50,7 +51,7 @@ var animatronics = {
         name: 'Chica',
         color: '#f1c40f',
         pos: 0,
-        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE_corner', 'stage_left', 'office'],
+        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE', 'hallE_corner', 'office'],
         ai: 0,
         moveTick: 0
     },
@@ -75,6 +76,11 @@ var mouseNormX = 0.5;
 var lastAiTick = 0;
 var cameraRafId = null;
 var office3dInited = false;
+var goldenFreddyActive = false; // Golden Freddy easter egg state
+var goldenFreddyTimer = 0; // ticks until jumpscare if not dismissed
+var customNightAI = { freddy: 0, bonnie: 0, chica: 0, foxy: 0 }; // Custom Night sliders
+var hallucinationCooldown = 0; // ticks until next hallucination can fire
+var phoneGuyTimer = 0; // ticks until phone guy message disappears
 
 // ─────────────────────────────────────────────
 //  PROGRESS PERSISTENCE
@@ -86,7 +92,7 @@ function loadProgress() {
         if (raw) {
             var arr = JSON.parse(raw);
             if (Array.isArray(arr) && arr.length) {
-                unlockedNights = arr.filter(function(n) { return n >= 1 && n <= 6; });
+                unlockedNights = arr.filter(function(n) { return n >= 1 && n <= 7; });
                 if (!unlockedNights.length) unlockedNights = [1];
                 return;
             }

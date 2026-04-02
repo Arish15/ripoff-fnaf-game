@@ -9,7 +9,7 @@
  *   Depth  Z:  -9 to  +9  (18 deep)
  *   Camera: (0, 4, 7.5) looking toward z=-9 (back wall)
  *
- * Lighting: AmbientLight 0.9 + DirectionalLights (no shadows for performance)
+ * Lighting: AmbientLight 0.38 + DirectionalLights (no shadows for performance)
  * Fog: THREE.Fog linear 18-32 (gentle, does not kill the back wall)
  */
 (function() {
@@ -490,15 +490,15 @@
     }
 
     function buildLighting() {
-        scene.add(new THREE.AmbientLight(0xffe0b0, 0.65));
+        scene.add(new THREE.AmbientLight(0xffe0b0, 0.38));
 
         // Main light from above-front
-        var dir = new THREE.DirectionalLight(0xffd070, 1.1);
+        var dir = new THREE.DirectionalLight(0xffd070, 0.75);
         dir.position.set(0, 10, 8);
         scene.add(dir);
 
         // Fill from right
-        var fill = new THREE.DirectionalLight(0xffb040, 0.25);
+        var fill = new THREE.DirectionalLight(0xffb040, 0.15);
         fill.position.set(5, 6, 4);
         scene.add(fill);
 
@@ -508,11 +508,11 @@
         scene.add(rim);
 
         // Side lights — illuminate the inward-facing door panels (±X normals)
-        var sideR = new THREE.DirectionalLight(0xffd070, 1.0);
+        var sideR = new THREE.DirectionalLight(0xffd070, 0.7);
         sideR.position.set(18, 8, 4); // from +X → hits left door inner face
         scene.add(sideR);
 
-        var sideL = new THREE.DirectionalLight(0xffd070, 1.0);
+        var sideL = new THREE.DirectionalLight(0xffd070, 0.7);
         sideL.position.set(-18, 8, 4); // from -X → hits right door inner face
         scene.add(sideL);
 
