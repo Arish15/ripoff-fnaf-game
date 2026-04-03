@@ -1285,3 +1285,138 @@ audio {
         transform: translate(0, 0) skewX(0deg);
     }
 }
+
+
+/* ============ RESPONSIVE — scale UI to screen size ============ */
+
+
+/* Small screens (phones, ≤600px) */
+
+@media (max-height: 600px),
+(max-width: 600px) {
+    #cameraGrid {
+        width: 200px;
+        height: 200px;
+        bottom: 60px;
+        right: 4px;
+    }
+    #cameraToggleBtn {
+        height: 40px;
+    }
+    #powerArea {
+        padding: 4px 8px;
+    }
+    #powerLabel {
+        font-size: 12px;
+    }
+    #timeDisplay {
+        font-size: 22px;
+        padding: 8px 12px;
+    }
+    #nightDisplay {
+        font-size: 10px;
+        top: 65px;
+    }
+    .office-btn {
+        width: 42px;
+        height: 22px;
+        font-size: 8px;
+    }
+    .office-btn-light-left,
+    .office-btn-light-right {
+        width: 42px;
+        height: 18px;
+        font-size: 7px;
+    }
+    .office-btn-door-left {
+        left: 10px;
+        bottom: 140px;
+    }
+    .office-btn-light-left {
+        left: 10px;
+        bottom: 108px;
+    }
+    .office-btn-door-right {
+        right: 10px;
+        bottom: 140px;
+    }
+    .office-btn-light-right {
+        right: 10px;
+        bottom: 108px;
+    }
+}
+
+
+/* Medium screens (tablets / small laptops, 601–900px) */
+
+@media (min-width: 601px) and (max-width: 900px),
+(min-height: 601px) and (max-height: 750px) {
+    #cameraGrid {
+        width: 280px;
+        height: 280px;
+        bottom: 70px;
+    }
+    .office-btn {
+        width: 48px;
+        height: 24px;
+        font-size: 9px;
+    }
+    .office-btn-light-left,
+    .office-btn-light-right {
+        width: 48px;
+        height: 20px;
+    }
+    .office-btn-door-left {
+        left: 14px;
+        bottom: 170px;
+    }
+    .office-btn-light-left {
+        left: 14px;
+        bottom: 135px;
+    }
+    .office-btn-door-right {
+        right: 14px;
+        bottom: 170px;
+    }
+    .office-btn-light-right {
+        right: 14px;
+        bottom: 135px;
+    }
+}
+
+
+/* Large screens (≥1400px wide and ≥900px tall) */
+
+@media (min-width: 1400px) and (min-height: 900px) {
+    #cameraGrid {
+        width: 420px;
+        height: 420px;
+    }
+    .office-btn {
+        width: 64px;
+        height: 32px;
+        font-size: 11px;
+    }
+    .office-btn-light-left,
+    .office-btn-light-right {
+        width: 64px;
+        height: 28px;
+        font-size: 10px;
+    }
+    .office-btn-door-left {
+        left: 24px;
+        bottom: 220px;
+    }
+    .office-btn-light-left {
+        left: 24px;
+        bottom: 175px;
+    }
+    .office-btn-door-right {
+        right: 24px;
+        bottom: 220px;
+    }
+    .office-btn-light-right {
+        right: 24px;
+        bottom: 175px;
+    }
+}
