@@ -889,10 +889,10 @@ function switchCam(cam) {
     });
     sizeCanvas();
     drawCamera();
-    var camSfx2 = document.getElementById('camStaticAudio');
-    if (camSfx2) {
-        camSfx2.currentTime = 0;
-        camSfx2.play().catch(function() {});
+    var camBlip = document.getElementById('camChangeAudio');
+    if (camBlip) {
+        camBlip.currentTime = 0;
+        camBlip.play().catch(function() {});
     }
 }
 

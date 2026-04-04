@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="360" height="360">
+  <defs>
+    <style>
+      .room { fill: #1a1c1e; stroke: #3a3f44; stroke-width: 0.4; }
+      .hall { fill: #14161a; stroke: #3a3f44; stroke-width: 0.3; }
+      .label { fill: #0c0e10; stroke: #4a5058; stroke-width: 0.35; rx: 1; }
+      .label-text { fill: #d0d4d8; font-family: 'Courier New', monospace; font-weight: bold; text-anchor: middle; dominant-baseline: central; }
+      .you-box { fill: #18191c; stroke: #9a9ea4; stroke-width: 0.4; rx: 1; }
+      .you-text { fill: #e8eaee; font-family: 'Courier New', monospace; font-weight: bold; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect x="0" y="0" width="100" height="100" fill="#0e1012"/>
+
+  <!-- ====== ROOMS ====== -->
+  <rect class="room" x="22" y="1" width="24" height="16" rx="1"/>
+  <rect class="room" x="16" y="16" width="36" height="18" rx="1"/>
+  <rect class="room" x="0" y="22" width="16" height="16" rx="1"/>
+  <rect class="room" x="77" y="19" width="18" height="16" rx="1"/>
+  <rect class="room" x="8" y="34" width="18" height="18" rx="1"/>
+  <rect class="room" x="4" y="57" width="18" height="16" rx="1"/>
+  <rect class="room" x="76" y="52" width="20" height="18" rx="1"/>
+  <rect class="hall" x="24" y="52" width="16" height="40" rx="0.5"/>
+  <rect class="hall" x="46" y="52" width="18" height="42" rx="0.5"/>
+  <path class="hall" d="M26,34 L26,52 L40,52 L40,34 Z"/>
+  <path class="hall" d="M52,34 L52,52 L64,52 L64,34 Z"/>
+  <path class="hall" d="M64,34 L77,34 L77,52 L64,52 Z"/>
+  <rect class="room" x="30" y="90" width="24" height="9" rx="1"/>
+  <path class="hall" d="M34,82 L34,91 L50,91 L50,82 Z"/>
+
+  <!-- ====== CAM LABELS — uniform 13×10, centered in rooms, no overlaps ====== -->
+
+  <!-- CAM 1A — Show Stage: room center (34,9) -->
+  <rect class="label" x="27.5" y="4" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="34" y="7.5">CAM</text>
+  <text class="label-text" font-size="4" x="34" y="12">1A</text>
+
+  <!-- CAM 1B — Dining Area: room center (34,25) -->
+  <rect class="label" x="27.5" y="19" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="34" y="22.5">CAM</text>
+  <text class="label-text" font-size="4" x="34" y="27">1B</text>
+
+  <!-- CAM 5 — Backstage: room center (8,30) -->
+  <rect class="label" x="1.5" y="25" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="8" y="28.5">CAM</text>
+  <text class="label-text" font-size="4" x="8" y="33">5</text>
+
+  <!-- CAM 7 — Restrooms: room center (86,27) -->
+  <rect class="label" x="79.5" y="22" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="86" y="25.5">CAM</text>
+  <text class="label-text" font-size="4" x="86" y="30">7</text>
+
+  <!-- CAM 1C — Pirate Cove: room center (17,43) -->
+  <rect class="label" x="10.5" y="38" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="17" y="41.5">CAM</text>
+  <text class="label-text" font-size="4" x="17" y="46">1C</text>
+
+  <!-- CAM 3 — Supply Closet: room center (13,65) -->
+  <rect class="label" x="6.5" y="60" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="13" y="63.5">CAM</text>
+  <text class="label-text" font-size="4" x="13" y="68">3</text>
+
+  <!-- CAM 6 — Kitchen: room center (86,61) -->
+  <rect class="label" x="79.5" y="56" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="86" y="59.5">CAM</text>
+  <text class="label-text" font-size="4" x="86" y="64">6</text>
+
+  <!-- CAM 2A — W. Hall: corridor at (32,72) -->
+  <rect class="label" x="25.5" y="67" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="32" y="70.5">CAM</text>
+  <text class="label-text" font-size="4" x="32" y="75">2A</text>
+
+  <!-- CAM 4A — E. Hall: corridor at (55,72) -->
+  <rect class="label" x="48.5" y="67" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="55" y="70.5">CAM</text>
+  <text class="label-text" font-size="4" x="55" y="75">4A</text>
+
+  <!-- CAM 2B — W. Hall Corner: corridor at (32,84) -->
+  <rect class="label" x="25.5" y="79" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="32" y="82.5">CAM</text>
+  <text class="label-text" font-size="4" x="32" y="87">2B</text>
+
+  <!-- CAM 4B — E. Hall Corner: corridor at (55,84) -->
+  <rect class="label" x="48.5" y="79" width="13" height="10"/>
+  <text class="label-text" font-size="3.2" x="55" y="82.5">CAM</text>
+  <text class="label-text" font-size="4" x="55" y="87">4B</text>
+
+  <!-- YOU marker -->
+  <rect class="you-box" x="35.5" y="91" width="13" height="7"/>
+  <text class="you-text" font-size="3.5" x="42" y="94.5">YOU</text>
+  <circle cx="42" cy="97" r="0.8" fill="#9a9ea4"/>
+</svg>

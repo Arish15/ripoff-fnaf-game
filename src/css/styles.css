@@ -371,10 +371,10 @@ body {
 
 #cameraToggleBtn {
     position: fixed;
-    left: 0;
+    left: 180px;
     right: 0;
     bottom: 0;
-    width: 100vw;
+    width: auto;
     height: 54px;
     background: #222 linear-gradient(90deg, #222 0%, #333 100%);
     border: 2px solid #888;
@@ -446,7 +446,7 @@ body {
     width: 360px;
     height: 360px;
     display: none;
-    background: url('../assets/camera_map.png') center/contain no-repeat;
+    background: url('../assets/camera_map.svg') center/contain no-repeat;
     background-color: transparent;
     border: none;
     border-radius: 2px;
@@ -608,82 +608,48 @@ body {
 /* Per-animatronic jumpscare color flashes */
 
 #jumpScare.scare-freddy {
-    animation: scare-freddy 0.1s 8;
+    animation: scare-shake 0.07s 28;
+    background: url('../assets/freddy_jumpscare.webp') center/cover no-repeat;
+}
+
+#jumpScare.scare-freddy-power {
+    animation: scare-shake 0.07s 28;
+    background: url('../assets/freddy_jumpscare_power.gif') center/cover no-repeat;
 }
 
 #jumpScare.scare-bonnie {
-    animation: scare-bonnie 0.1s 8;
+    animation: scare-shake 0.07s 28;
+    background: url('../assets/bonnie_jumpscare.webp') center/cover no-repeat;
 }
 
 #jumpScare.scare-chica {
-    animation: scare-chica 0.1s 8;
+    animation: scare-shake 0.07s 28;
+    background: url('../assets/chica_jumpscare.webp') center/cover no-repeat;
 }
 
 #jumpScare.scare-foxy {
-    animation: scare-foxy 0.1s 8;
+    animation: scare-shake 0.07s 28;
+    background: url('../assets/foxy_jumpscare.gif') center/cover no-repeat;
 }
 
 #jumpScare.scare-golden {
-    animation: scare-golden 0.08s 10;
+    animation: scare-shake 0.07s 28;
+    background: url('../assets/golden_freddy.webp') center/cover no-repeat;
 }
 
-@keyframes scare-freddy {
+@keyframes scare-shake {
     0%,
     100% {
-        background: #8B4513;
-        opacity: 1;
+        transform: translate(0, 0);
+    }
+    25% {
+        transform: translate(-4px, 3px);
     }
     50% {
-        background: #fff;
-        opacity: 0.8;
+        transform: translate(4px, -3px);
     }
-}
-
-@keyframes scare-bonnie {
-    0%,
-    100% {
-        background: #6a0dad;
-        opacity: 1;
-    }
-    50% {
-        background: #ddd;
-        opacity: 0.85;
-    }
-}
-
-@keyframes scare-chica {
-    0%,
-    100% {
-        background: #daa520;
-        opacity: 1;
-    }
-    50% {
-        background: #fff;
-        opacity: 0.8;
-    }
-}
-
-@keyframes scare-foxy {
-    0%,
-    100% {
-        background: #cc2222;
-        opacity: 1;
-    }
-    50% {
-        background: #ffcccc;
-        opacity: 0.85;
-    }
-}
-
-@keyframes scare-golden {
-    0%,
-    100% {
-        background: #ffd700;
-        opacity: 1;
-    }
-    50% {
-        background: #000;
-        opacity: 0.9;
+    75% {
+        transform: translate(-3px, -4px);
     }
 }
 

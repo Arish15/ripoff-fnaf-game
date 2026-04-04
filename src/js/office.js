@@ -2,6 +2,22 @@
  * FNAF Game — Office Interactions & HUD
  */
 
+// ── Window scare: plays when animatronic visible at door with light on ──
+function _checkWindowScare(side) {
+    if (!window.office3d) return;
+    var animAtDoor = false;
+    Object.values(animatronics).forEach(function(a) {
+        var pos = a.path[a.pos];
+        if (side === 'left' && (pos === 'hallW_corner' || pos === 'hallW')) animAtDoor = true;
+        if (side === 'right' && (pos === 'hallE_corner' || pos === 'hallE')) animAtDoor = true;
+    });
+    if (animAtDoor) {
+        var ws = document.getElementById('windowScareAudio');
+        if (ws) { ws.currentTime = 0;
+            ws.play().catch(function() {}); }
+    }
+}
+
 function toggleDoor(side) {
     if (!game.running || game.powerOutage) return;
     if (side === 'left') {
@@ -24,7 +40,10 @@ function toggleDoor(side) {
         }
     }
     var audio = document.getElementById('doorAudio');
-    if (audio) audio.play().catch(function() {});
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(function() {});
+    }
 }
 
 function toggleLight(side) {
@@ -48,8 +67,9 @@ function toggleLight(side) {
         }
         if (window.office3d) window.office3d.setLightRight(game.lightRight);
     }
-    var audio = document.getElementById('doorAudio');
-    if (audio) audio.play().catch(function() {});
+    // Check for window scare (animatronic at door)
+    if (side === 'left' && game.lightLeft) _checkWindowScare('left');
+    if (side === 'right' && game.lightRight) _checkWindowScare('right');
 }
 
 function updateHUD() {

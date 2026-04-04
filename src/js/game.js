@@ -113,7 +113,7 @@ function tickGame() {
                 jingle2.pause();
                 jingle2.currentTime = 0;
             }
-            triggerGameOver('FREDDY');
+            triggerGameOver('FREDDY_POWER');
             return;
         }
     }
@@ -349,7 +349,8 @@ function triggerGameOver(msg) {
         // Remove any previous scare classes
         scare.className = '';
         // Set per-animatronic scare color
-        if (msg.indexOf('FREDDY') >= 0 && msg.indexOf('GOLDEN') < 0) scare.classList.add('scare-freddy');
+        if (msg.indexOf('FREDDY') >= 0 && msg.indexOf('GOLDEN') < 0 && msg.indexOf('POWER') < 0) scare.classList.add('scare-freddy');
+        else if (msg.indexOf('FREDDY_POWER') >= 0) scare.classList.add('scare-freddy-power');
         else if (msg.indexOf('BONNIE') >= 0) scare.classList.add('scare-bonnie');
         else if (msg.indexOf('CHICA') >= 0) scare.classList.add('scare-chica');
         else if (msg.indexOf('FOXY') >= 0) scare.classList.add('scare-foxy');
@@ -357,22 +358,35 @@ function triggerGameOver(msg) {
         else scare.classList.add('scare-freddy');
         scare.classList.add('show');
     }
-    var audio = document.getElementById('jumpScareAudio');
-    if (audio) audio.play().catch(function() {});
+    var audio;
+    if (msg.indexOf('GOLDEN') >= 0) {
+        audio = document.getElementById('goldenFreddyScareAudio');
+    } else {
+        audio = document.getElementById('jumpScareAudio');
+    }
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(function() {});
+    }
 
     setTimeout(function() {
-        if (scare) scare.classList.remove('show');
+        if (scare) {
+            scare.classList.remove('show');
+            scare.className = '';
+        }
         var goScreen = document.getElementById('gameOverScreen');
         if (goScreen) goScreen.classList.add('show');
         var goMsg = document.getElementById('gameOverMessage');
         if (goMsg) {
-            if (msg.indexOf('FREDDY') >= 0) goMsg.textContent = 'FREDDY FAZBEAR GOT YOU!';
+            if (msg.indexOf('GOLDEN') >= 0) goMsg.textContent = 'IT\'S ME';
+            else if (msg.indexOf('FREDDY_POWER') >= 0) goMsg.textContent = 'FREDDY FAZBEAR GOT YOU!';
+            else if (msg.indexOf('FREDDY') >= 0) goMsg.textContent = 'FREDDY FAZBEAR GOT YOU!';
             else if (msg.indexOf('BONNIE') >= 0) goMsg.textContent = 'BONNIE GOT YOU!';
             else if (msg.indexOf('CHICA') >= 0) goMsg.textContent = 'CHICA GOT YOU!';
             else if (msg.indexOf('FOXY') >= 0) goMsg.textContent = 'FOXY BREACHED THE HALL!';
             else goMsg.textContent = msg;
         }
-    }, 900);
+    }, 2000);
 }
 
 function returnToStart() {

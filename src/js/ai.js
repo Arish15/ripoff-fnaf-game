@@ -11,6 +11,17 @@
  *   Freddy: no increments (fixed AI all night)
  */
 
+// ── Garble sound: plays when an animatronic moves while camera is open ──
+function _playGarble() {
+    if (!monitorOpen) return;
+    var id = Math.random() < 0.5 ? 'garble1Audio' : 'garble2Audio';
+    var audio = document.getElementById(id);
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(function() {});
+    }
+}
+
 function tickAnimatronics(ai) {
     // Apply in-night AI increments on top of base values
     // Custom Night (7): no increments — use slider values directly
@@ -80,15 +91,24 @@ function tickFoxy(a) {
                     if (a.pos < a.path.length - 1) a.pos++;
                     // Foxy starts sprinting down the hall
                     if (a.path[a.pos] === 'hallW') {
-                        var foxyRun = document.getElementById('foxyRunAudio');
-                        if (foxyRun) foxyRun.play().catch(function() {});
+                        var foxySprint = document.getElementById('foxySprintAudio');
+                        if (foxySprint) { foxySprint.currentTime = 0;
+                            foxySprint.play().catch(function() {}); }
                     }
                     if (a.path[a.pos] === 'office') {
                         a.pos = 0;
                         a.preventionTimer = 50 + Math.floor(Math.random() * 1001);
                         a.ignoreTicks = 0;
                         if (!game.doorLeft) triggerGameOver('FOXY');
-                        else game.power = Math.max(0, game.power - 12);
+                        else {
+                            game.power = Math.max(0, game.power - 12);
+                            // Foxy punch: banging on the closed door
+                            var foxyPunch = document.getElementById('foxyRunAudio');
+                            if (foxyPunch) {
+                                foxyPunch.currentTime = 0;
+                                foxyPunch.play().catch(function() {});
+                            }
+                        }
                     }
                 }
             }
@@ -146,7 +166,10 @@ function tickOther(key, a) {
     if (atCorner) {
         var doorBlocks = (key === 'bonnie' && game.doorLeft) ||
             (key === 'chica' && game.doorRight);
-        if (!doorBlocks && a.pos < a.path.length - 1) a.pos++;
+        if (!doorBlocks && a.pos < a.path.length - 1) {
+            a.pos++;
+            _playGarble();
+        }
     } else {
         if (Math.floor(Math.random() * 20) < a.ai && a.pos < a.path.length - 1) {
             var next = a.path[a.pos + 1];
@@ -155,6 +178,7 @@ function tickOther(key, a) {
                 if (key === 'chica' && game.doorRight) return;
             }
             a.pos++;
+            _playGarble();
         }
     }
 }

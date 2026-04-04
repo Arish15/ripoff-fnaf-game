@@ -50,6 +50,24 @@
         <source src="src/assets/camstatic.mp3" type="audio/mpeg">
         <source src="src/assets/camstatic.ogg" type="audio/ogg">
     </audio>
+    <audio id="camChangeAudio">
+        <source src="src/assets/lightswitch.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="garble1Audio">
+        <source src="src/assets/garble1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="garble2Audio">
+        <source src="src/assets/garble2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="windowScareAudio">
+        <source src="src/assets/windowscare.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="foxySprintAudio">
+        <source src="src/assets/foxy_sprint.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="goldenFreddyScareAudio">
+        <source src="src/assets/golden_freddy.ogg" type="audio/ogg">
+    </audio>
 
     <!-- Phone Guy Messages Overlay -->
     <div id="phoneGuyOverlay" class="phone-guy-overlay">
@@ -162,43 +180,43 @@
          - YOU marker at bottom-center -->
     <div id="cameraGrid">
         <!-- Invisible clickable overlays positioned on map label boxes -->
-        <!-- Positions from FNAF1 camera map (percentage-based) -->
+        <!-- All buttons: uniform 13% × 10%, centered in rooms, no overlaps -->
 
         <!-- Show Stage (CAM 1A) — top center -->
-        <button class="camBtn" data-cam="stage" style="left:27.25%;top:3.5%;width:13.25%;height:12.5%"></button>
+        <button class="camBtn" data-cam="stage" style="left:27.5%;top:4%;width:13%;height:10%"></button>
 
         <!-- Dining Area (CAM 1B) — center, below stage -->
-        <button class="camBtn" data-cam="dining" style="left:24%;top:19%;width:12.25%;height:11.5%"></button>
+        <button class="camBtn" data-cam="dining" style="left:27.5%;top:19%;width:13%;height:10%"></button>
 
         <!-- Backstage (CAM 5) — far left -->
-        <button class="camBtn" data-cam="backstage" style="left:0%;top:25.5%;width:13.5%;height:12%"></button>
+        <button class="camBtn" data-cam="backstage" style="left:1.5%;top:25%;width:13%;height:10%"></button>
 
         <!-- Restrooms (CAM 7) — far right -->
-        <button class="camBtn" data-cam="stage_right" style="left:79.75%;top:22.75%;width:12.75%;height:11.5%"></button>
+        <button class="camBtn" data-cam="stage_right" style="left:79.5%;top:22%;width:13%;height:10%"></button>
 
         <!-- Pirate Cove (CAM 1C) — left, middle -->
-        <button class="camBtn" data-cam="pirate" style="left:12%;top:38%;width:12.75%;height:12%"></button>
+        <button class="camBtn" data-cam="pirate" style="left:10.5%;top:38%;width:13%;height:10%"></button>
 
         <!-- Supply Closet (CAM 3) — left, lower-middle -->
-        <button class="camBtn" data-cam="stage_left" style="left:8.25%;top:61%;width:12%;height:11.5%"></button>
+        <button class="camBtn" data-cam="stage_left" style="left:6.5%;top:60%;width:13%;height:10%"></button>
 
         <!-- Kitchen (CAM 6) — far right, middle -->
-        <button class="camBtn" data-cam="kitchen" style="left:79.5%;top:56.25%;width:14.25%;height:12%"></button>
+        <button class="camBtn" data-cam="kitchen" style="left:79.5%;top:56%;width:13%;height:10%"></button>
 
         <!-- W. Hall (CAM 2A) — center-left, lower area -->
-        <button class="camBtn" data-cam="hallW" style="left:26.5%;top:69%;width:12.5%;height:12%"></button>
+        <button class="camBtn" data-cam="hallW" style="left:25.5%;top:67%;width:13%;height:10%"></button>
 
         <!-- E. Hall (CAM 4A) — center-right, lower area -->
-        <button class="camBtn" data-cam="hallE" style="left:49%;top:68.5%;width:14.5%;height:12.5%"></button>
+        <button class="camBtn" data-cam="hallE" style="left:48.5%;top:67%;width:13%;height:10%"></button>
 
         <!-- W. Hall Corner (CAM 2B) — center-left, near bottom -->
-        <button class="camBtn" data-cam="hallW_corner" style="left:26%;top:80.5%;width:14%;height:11%"></button>
+        <button class="camBtn" data-cam="hallW_corner" style="left:25.5%;top:79%;width:13%;height:10%"></button>
 
         <!-- E. Hall Corner (CAM 4B) — center-right, near bottom -->
-        <button class="camBtn" data-cam="hallE_corner" style="left:49.25%;top:80%;width:14.25%;height:12.5%"></button>
+        <button class="camBtn" data-cam="hallE_corner" style="left:48.5%;top:79%;width:13%;height:10%"></button>
 
         <!-- YOU marker — center bottom (the office) -->
-        <div class="cam-you" style="left:40%;top:91%;width:15%;height:7%;padding:2px">YOU<span class="cam-you-dot"></span></div>
+        <div class="cam-you" style="left:35.5%;top:91%;width:13%;height:7%;padding:2px">YOU<span class="cam-you-dot"></span></div>
     </div>
 
     <!-- Power & Usage Display - Bottom Left Fixed (FNAF1 style) -->

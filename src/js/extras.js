@@ -57,6 +57,17 @@ function startCustomNight() {
     customNightAI.chica = parseInt(document.getElementById('aiChica').value) || 0;
     customNightAI.foxy = parseInt(document.getElementById('aiFoxy').value) || 0;
 
+    // Easter egg: 1/9/8/7 = "The Bite of '87" → instant Golden Freddy jumpscare
+    if (customNightAI.freddy === 1 && customNightAI.bonnie === 9 &&
+        customNightAI.chica === 8 && customNightAI.foxy === 7) {
+        hideCustomNight();
+        document.getElementById('startScreen').classList.add('hidden');
+        document.getElementById('gameContainer').classList.add('show');
+        game.running = true;
+        triggerGameOver('GOLDEN FREDDY');
+        return;
+    }
+
     // Override Night 7 AI with custom values
     NIGHT_AI[7] = {
         freddy: customNightAI.freddy,
