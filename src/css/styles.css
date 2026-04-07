@@ -20,10 +20,7 @@ body {
 
 #startScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: linear-gradient(135deg, #1a0a00 0%, #0a0a0a 50%, #1a0a1a 100%);
     display: flex;
     align-items: center;
@@ -36,14 +33,11 @@ body {
 #startScreen::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background-image: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
     opacity: 0.1;
     pointer-events: none;
-    animation: scanlines 8s linear infinite;
+    will-change: transform;
 }
 
 @keyframes scanlines {
@@ -70,17 +64,16 @@ body {
     position: relative;
     z-index: 1;
     font-family: 'Arial Black', sans-serif;
+    will-change: opacity;
 }
 
 @keyframes glow {
     0%,
     100% {
-        text-shadow: 0 0 40px #ff0000, 0 0 80px #aa0000;
-        transform: scale(1);
+        opacity: 0.88;
     }
     50% {
-        text-shadow: 0 0 80px #ff3333, 0 0 160px #ff0000;
-        transform: scale(1.02);
+        opacity: 1;
     }
 }
 
@@ -150,7 +143,14 @@ body {
     z-index: 50;
 }
 
-#gameContainer.show {
+#gameContainer.show,
+#controlPanel.show,
+#gameOverScreen.show,
+#nightCompleteScreen.show,
+#nightIntro.show,
+#freddyPowerOut.show,
+#newspaperScreen.show,
+.custom-night-setup.show {
     display: flex;
 }
 
@@ -203,10 +203,7 @@ body {
 #monitorStand::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset: 0;
     background-image: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.08) 0px, rgba(0, 0, 0, 0.08) 1px, transparent 1px, transparent 2px);
     pointer-events: none;
     border-radius: 2px;
@@ -227,22 +224,6 @@ body {
 
 
 /* Control Panels - Removed (integrated into office view) */
-
-
-/* Office Area - fills available space above camera button */
-
-#officeArea {
-    flex: 1;
-    background: transparent;
-    border-top: none;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    overflow: hidden;
-    margin-bottom: 54px;
-    /* leave space for camera toggle button */
-}
 
 #officeCanvas {
     display: block;
@@ -371,7 +352,7 @@ body {
 
 #cameraToggleBtn {
     position: fixed;
-    left: 180px;
+    left: 190px;
     right: 0;
     bottom: 0;
     width: auto;
@@ -441,13 +422,13 @@ body {
 
 #cameraGrid {
     position: fixed;
-    bottom: 90px;
+    bottom: 58px;
     right: 8px;
     width: 360px;
     height: 360px;
     display: none;
     background: url('../assets/camera_map.svg') center/contain no-repeat;
-    background-color: transparent;
+    background-color: rgba(10, 12, 15, 0.55);
     border: none;
     border-radius: 2px;
     z-index: 115;
@@ -465,8 +446,8 @@ body {
 
 .camBtn {
     position: absolute;
-    background: transparent;
-    border: 2px solid transparent;
+    background: rgba(255, 255, 255, 0.04);
+    border: 2px solid rgba(255, 255, 255, 0.15);
     color: transparent;
     font-size: 0;
     cursor: pointer;
@@ -533,10 +514,6 @@ body {
     border-top: 3px solid #444;
 }
 
-#controlPanel.show {
-    display: flex;
-}
-
 .controlGroup {
     display: flex;
     flex-direction: column;
@@ -559,45 +536,24 @@ body {
 }
 
 
-/* Remove conflicting cameraGridContainer styles - using #cameraGrid instead */
-
-
-/* .cameraGridContainer {
-    display: none;
-}
-
-.cameraGridContainer.show {
-    display: flex;
-    flex-direction: column;
-} */
-
-
 /* ============ GAME OVER SCREEN ============ */
 
 #gameOverScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: radial-gradient(circle, #1a0000 0%, #000 100%);
     display: none;
-    z-index: 2000;
+    z-index: 10000;
     align-items: center;
     justify-content: center;
     flex-direction: column;
 }
 
-#gameOverScreen.show {
-    display: flex;
-}
-
 #jumpScare {
     position: fixed;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     display: none;
-    z-index: 1999;
+    z-index: 9999;
 }
 
 #jumpScare.show {
@@ -605,35 +561,41 @@ body {
 }
 
 
-/* Per-animatronic jumpscare color flashes */
+/* Per-animatronic jumpscare — iteration count matches each asset's exact duration */
 
 #jumpScare.scare-freddy {
-    animation: scare-shake 0.07s 28;
+    /* 30 × 70ms = 2100ms — longer shake, image holds after */
+    animation: scare-shake 0.07s 30;
     background: url('../assets/freddy_jumpscare.webp') center/cover no-repeat;
 }
 
 #jumpScare.scare-freddy-power {
-    animation: scare-shake 0.07s 28;
+    /* 20 × 70ms = 1400ms */
+    animation: scare-shake 0.07s 20;
     background: url('../assets/freddy_jumpscare_power.gif') center/cover no-repeat;
 }
 
 #jumpScare.scare-bonnie {
-    animation: scare-shake 0.07s 28;
+    /* 10 × 70ms = 700ms */
+    animation: scare-shake 0.07s 10;
     background: url('../assets/bonnie_jumpscare.webp') center/cover no-repeat;
 }
 
 #jumpScare.scare-chica {
-    animation: scare-shake 0.07s 28;
+    /* 14 × 70ms = 980ms */
+    animation: scare-shake 0.07s 14;
     background: url('../assets/chica_jumpscare.webp') center/cover no-repeat;
 }
 
 #jumpScare.scare-foxy {
-    animation: scare-shake 0.07s 28;
+    /* 18 × 70ms = 1260ms */
+    animation: scare-shake 0.07s 18;
     background: url('../assets/foxy_jumpscare.gif') center/cover no-repeat;
 }
 
 #jumpScare.scare-golden {
-    animation: scare-shake 0.07s 28;
+    /* 30 × 70ms = 2100ms — long shake for static image impact */
+    animation: scare-shake 0.07s 30;
     background: url('../assets/golden_freddy.webp') center/cover no-repeat;
 }
 
@@ -695,20 +657,13 @@ body {
 
 #nightCompleteScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: radial-gradient(circle, #001a00 0%, #000 100%);
     display: none;
     z-index: 2000;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-}
-
-#nightCompleteScreen.show {
-    display: flex;
 }
 
 #nightCompleteContent h1 {
@@ -755,10 +710,6 @@ body {
     justify-content: center;
 }
 
-#nightIntro.show {
-    display: flex;
-}
-
 #nightIntroText {
     font-size: 48px;
     font-family: 'Courier New', monospace;
@@ -798,6 +749,24 @@ body {
 }
 
 
+/* ============ POWER DARK OVERLAY ============ */
+
+#powerDarkOverlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 83;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+#powerDarkOverlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
 /* ============ FREDDY POWER OUTAGE OVERLAY ============ */
 
 #freddyPowerOut {
@@ -809,10 +778,6 @@ body {
     align-items: center;
     justify-content: flex-start;
     padding-left: 15%;
-}
-
-#freddyPowerOut.show {
-    display: flex;
 }
 
 #freddyPowerOutFace {
@@ -886,10 +851,6 @@ audio {
     justify-content: center;
 }
 
-#newspaperScreen.show {
-    display: flex;
-}
-
 #newspaperContent {
     max-width: 520px;
     background: #d4c9a0;
@@ -908,8 +869,14 @@ audio {
     pointer-events: none;
 }
 
-.newspaper-header {
+.newspaper-header,
+.newspaper-headline,
+.newspaper-body,
+.newspaper-footer {
     font-family: 'Times New Roman', serif;
+}
+
+.newspaper-header {
     font-size: 14px;
     color: #5a4a2a;
     letter-spacing: 6px;
@@ -920,7 +887,6 @@ audio {
 }
 
 .newspaper-headline {
-    font-family: 'Times New Roman', serif;
     font-size: 22px;
     font-weight: 900;
     color: #1a1208;
@@ -929,7 +895,6 @@ audio {
 }
 
 .newspaper-body {
-    font-family: 'Times New Roman', serif;
     font-size: 13px;
     color: #2a2010;
     line-height: 1.7;
@@ -940,7 +905,6 @@ audio {
 }
 
 .newspaper-footer {
-    font-family: 'Times New Roman', serif;
     font-size: 11px;
     color: #5a4a2a;
     margin-bottom: 16px;
@@ -969,6 +933,37 @@ audio {
     justify-self: center;
 }
 
+.deathModeBtn {
+    margin-top: 8px;
+    width: 220px;
+    justify-self: center;
+    background: linear-gradient(180deg, #3a0000 0%, #1a0000 100%);
+    border-color: #880000;
+    color: #ff4444;
+    text-shadow: 0 0 8px #ff0000, 0 0 20px #aa0000;
+    box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
+    letter-spacing: 3px;
+    font-size: 12px;
+    animation: deathPulse 2.4s ease-in-out infinite;
+}
+
+.deathModeBtn:hover {
+    background: linear-gradient(180deg, #660000 0%, #330000 100%);
+    border-color: #ff0000;
+    box-shadow: 0 0 28px rgba(255, 0, 0, 0.7);
+    transform: scale(1.06);
+}
+
+@keyframes deathPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 28px rgba(255, 0, 0, 0.75), 0 0 50px rgba(180, 0, 0, 0.4);
+    }
+}
+
 .custom-night-setup {
     display: none;
     flex-direction: column;
@@ -979,10 +974,6 @@ audio {
     z-index: 10;
     padding: 40px 20px;
     overflow-y: auto;
-}
-
-.custom-night-setup.show {
-    display: flex;
 }
 
 .custom-night-title {
@@ -1141,27 +1132,26 @@ audio {
     position: fixed;
     top: 90px;
     left: 20px;
-    max-width: 320px;
-    background: rgba(10, 10, 10, 0.9);
-    border: 2px solid #444;
+    width: 320px;
+    background: rgba(8, 8, 8, 0.95);
+    border: 1px solid #2a4a2a;
     border-radius: 4px;
-    padding: 10px 14px;
     z-index: 95;
     display: none;
-    align-items: flex-start;
-    gap: 10px;
+    flex-direction: column;
     font-family: 'Courier New', monospace;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.9), 0 0 8px rgba(40, 160, 40, 0.15);
+    overflow: hidden;
 }
 
 .phone-guy-overlay.show {
     display: flex;
-    animation: phoneSlideIn 0.5s ease-out;
+    animation: phoneSlideIn 0.4s ease-out;
 }
 
 @keyframes phoneSlideIn {
     from {
-        transform: translateX(-100%);
+        transform: translateX(-110%);
         opacity: 0;
     }
     to {
@@ -1170,11 +1160,24 @@ audio {
     }
 }
 
-.phone-guy-icon {
-    font-size: 24px;
-    color: #44aa44;
+
+/* header row: icon + caller name + mute button */
+
+.phone-guy-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px 6px;
+    background: rgba(20, 40, 20, 0.9);
+    border-bottom: 1px solid #1e3a1e;
     flex-shrink: 0;
-    animation: phoneRing 0.5s ease-in-out 3;
+}
+
+.phone-guy-icon {
+    font-size: 18px;
+    color: #44cc44;
+    flex-shrink: 0;
+    animation: phoneRing 0.45s ease-in-out 4;
 }
 
 @keyframes phoneRing {
@@ -1183,18 +1186,70 @@ audio {
         transform: rotate(0deg);
     }
     25% {
-        transform: rotate(-15deg);
+        transform: rotate(-16deg);
     }
     75% {
-        transform: rotate(15deg);
+        transform: rotate(16deg);
     }
 }
 
+.phone-guy-caller {
+    flex: 1;
+    font-size: 10px;
+    color: #88ee88;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.phone-guy-mute {
+    background: #6a1010;
+    border: 1px solid #aa2020;
+    color: #ffaaaa;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.phone-guy-mute:hover {
+    background: #aa1818;
+    color: #fff;
+}
+
+
+/* scrolling transcript box */
+
 .phone-guy-text {
     font-size: 11px;
-    color: #aaa;
-    line-height: 1.5;
-    letter-spacing: 0.3px;
+    color: #9aaa88;
+    line-height: 1.6;
+    letter-spacing: 0.25px;
+    padding: 10px 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+
+/* thin custom scrollbar */
+
+.phone-guy-text::-webkit-scrollbar {
+    width: 4px;
+}
+
+.phone-guy-text::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.phone-guy-text::-webkit-scrollbar-thumb {
+    background: #2a4a2a;
+    border-radius: 2px;
 }
 
 
@@ -1263,11 +1318,12 @@ audio {
     #cameraGrid {
         width: 200px;
         height: 200px;
-        bottom: 60px;
+        bottom: 44px;
         right: 4px;
     }
     #cameraToggleBtn {
         height: 40px;
+        left: 110px;
     }
     #powerArea {
         padding: 4px 8px;
@@ -1283,33 +1339,6 @@ audio {
         font-size: 10px;
         top: 65px;
     }
-    .office-btn {
-        width: 42px;
-        height: 22px;
-        font-size: 8px;
-    }
-    .office-btn-light-left,
-    .office-btn-light-right {
-        width: 42px;
-        height: 18px;
-        font-size: 7px;
-    }
-    .office-btn-door-left {
-        left: 10px;
-        bottom: 140px;
-    }
-    .office-btn-light-left {
-        left: 10px;
-        bottom: 108px;
-    }
-    .office-btn-door-right {
-        right: 10px;
-        bottom: 140px;
-    }
-    .office-btn-light-right {
-        right: 10px;
-        bottom: 108px;
-    }
 }
 
 
@@ -1320,33 +1349,7 @@ audio {
     #cameraGrid {
         width: 280px;
         height: 280px;
-        bottom: 70px;
-    }
-    .office-btn {
-        width: 48px;
-        height: 24px;
-        font-size: 9px;
-    }
-    .office-btn-light-left,
-    .office-btn-light-right {
-        width: 48px;
-        height: 20px;
-    }
-    .office-btn-door-left {
-        left: 14px;
-        bottom: 170px;
-    }
-    .office-btn-light-left {
-        left: 14px;
-        bottom: 135px;
-    }
-    .office-btn-door-right {
-        right: 14px;
-        bottom: 170px;
-    }
-    .office-btn-light-right {
-        right: 14px;
-        bottom: 135px;
+        bottom: 58px;
     }
 }
 
@@ -1357,32 +1360,6 @@ audio {
     #cameraGrid {
         width: 420px;
         height: 420px;
-    }
-    .office-btn {
-        width: 64px;
-        height: 32px;
-        font-size: 11px;
-    }
-    .office-btn-light-left,
-    .office-btn-light-right {
-        width: 64px;
-        height: 28px;
-        font-size: 10px;
-    }
-    .office-btn-door-left {
-        left: 24px;
-        bottom: 220px;
-    }
-    .office-btn-light-left {
-        left: 24px;
-        bottom: 175px;
-    }
-    .office-btn-door-right {
-        right: 24px;
-        bottom: 220px;
-    }
-    .office-btn-light-right {
-        right: 24px;
-        bottom: 175px;
+        bottom: 58px;
     }
 }

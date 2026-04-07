@@ -48,6 +48,9 @@
 
     var MAT_DOOR_OPEN, MAT_DOOR_CLOSED;
 
+    var wallBtns = {};
+    var raycaster3D;
+
     window.office3d = {
         init: init,
         setDoorLeft: setDoorLeft,
@@ -75,8 +78,8 @@
         container.innerHTML = '';
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1a1208);
-        scene.fog = new THREE.Fog(0x1a1208, 18, 32);
+        scene.background = new THREE.Color(0x0e0c08);
+        scene.fog = new THREE.Fog(0x0e0c08, 14, 26);
 
         var w = container.clientWidth || window.innerWidth;
         var h = container.clientHeight || window.innerHeight;
@@ -93,10 +96,46 @@
 
         buildMaterials();
         buildRoom();
+        buildDecorations();
         buildLighting();
         buildApertureCovers();
         buildHallDecor();
         buildHallAnimatronics();
+        buildWallButtons();
+
+        renderer.domElement.addEventListener('click', function(e) {
+            var g = window.game;
+            if (!g || !g.running || g.powerOutage) return;
+            if (!raycaster3D) return;
+            var rect = renderer.domElement.getBoundingClientRect();
+            var mouse = new THREE.Vector2(
+                ((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1
+            );
+            raycaster3D.setFromCamera(mouse, camera);
+            var meshes = Object.keys(wallBtns).map(function(k) { return wallBtns[k].mesh; });
+            var hits = raycaster3D.intersectObjects(meshes);
+            if (hits.length > 0) {
+                var id = hits[0].object.userData.btnId;
+                if (id === 'doorLeft' && window.toggleDoor) window.toggleDoor('left');
+                else if (id === 'doorRight' && window.toggleDoor) window.toggleDoor('right');
+                else if (id === 'lightLeft' && window.toggleLight) window.toggleLight('left');
+                else if (id === 'lightRight' && window.toggleLight) window.toggleLight('right');
+            }
+        });
+
+        renderer.domElement.addEventListener('mousemove', function(e) {
+            if (!raycaster3D || !Object.keys(wallBtns).length) return;
+            var g = window.game;
+            if (!g || !g.running || g.powerOutage) { renderer.domElement.style.cursor = 'default'; return; }
+            var rect = renderer.domElement.getBoundingClientRect();
+            var mouse = new THREE.Vector2(
+                ((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1
+            );
+            raycaster3D.setFromCamera(mouse, camera);
+            var meshes = Object.keys(wallBtns).map(function(k) { return wallBtns[k].mesh; });
+            var hits = raycaster3D.intersectObjects(meshes);
+            renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'default';
+        });
 
         window.addEventListener('resize', onResize);
         animate();
@@ -369,11 +408,11 @@
         var HW = RW / 2;
         var HD = RD / 2;
 
-        var mBackWall = mat(0xb89060);
-        var mSideWall = mat(0x8a6840);
-        var mDarkWall = mat(0x3a2810);
-        var mFloor = mat(0x2a1e0e);
-        var mCeil = mat(0x181008);
+        var mBackWall = mat(0x9c9a94); // FNAF1 canonical gray wall
+        var mSideWall = mat(0x8a8880); // gray side walls
+        var mDarkWall = mat(0x282828); // dark areas beside doors
+        var mFloor = mat(0x1a1610); // dark linoleum floor
+        var mCeil = mat(0x20201a); // dark ceiling
         var mHall = mat(0x100c06);
         var mDesk = mat(0x3a2818);
         var mDeskFront = mat(0x1e1008);
@@ -440,12 +479,176 @@
         box(scene, RW, 0.25, 0.3, 0, RH - 0.1, -HD + 0.3, mTrim);
         box(scene, RW, 0.25, 0.3, 0, 0.15, -HD + 0.3, mTrim);
 
-        box(scene, 3.8, 5.0, 0.12, 0, 7.5, -HD + 0.3, mPoster);
-        box(scene, 3.2, 0.55, 0.18, 0, 8.4, -HD + 0.38, mPosterTxt);
-        box(scene, 3.2, 0.55, 0.18, 0, 7.7, -HD + 0.38, mPosterTxt);
-        box(scene, 3.2, 0.55, 0.18, 0, 7.0, -HD + 0.38, mPosterTxt);
-        box(scene, 1.5, 2.0, 0.10, -4.5, 7.8, -HD + 0.28, mDrawing);
-        box(scene, 1.5, 2.0, 0.10, 4.5, 7.8, -HD + 0.28, mDrawing);
+        // ---- CELEBRATE poster (FNAF1 canonical — Freddy/Bonnie/Chica on stage) ----
+        (function() {
+            var W = 512,
+                H = 448;
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            // Dark purple/blue stage atmosphere
+            var bg = ctx.createLinearGradient(0, 0, 0, H);
+            bg.addColorStop(0, '#18082c');
+            bg.addColorStop(1, '#3c1450');
+            ctx.fillStyle = bg;
+            ctx.fillRect(0, 0, W, H);
+            // Stars
+            for (var st = 0; st < 55; st++) {
+                var sv = 0.25 + Math.abs(Math.sin(st * 7.3)) * 0.65;
+                ctx.fillStyle = 'rgba(255,255,200,' + sv + ')';
+                ctx.fillRect(Math.abs(Math.sin(st * 2.7)) * W, Math.abs(Math.sin(st * 3.1)) * H * 0.52, 2, 2);
+            }
+            // Red curtain left, blue curtain right
+            ctx.fillStyle = 'rgba(160,18,18,0.68)';
+            ctx.fillRect(0, 0, 55, H);
+            ctx.fillStyle = 'rgba(18,18,160,0.68)';
+            ctx.fillRect(W - 55, 0, 55, H);
+            // Stage platform
+            var sY = Math.floor(H * 0.70);
+            ctx.fillStyle = '#5c3a18';
+            ctx.fillRect(0, sY, W, H - sY);
+            ctx.fillStyle = '#2c1808';
+            ctx.fillRect(0, sY, W, 5);
+            // Freddy (center, brown bear, top hat)
+            var fxC = Math.floor(W / 2);
+            ctx.fillStyle = '#4a2e10';
+            ctx.fillRect(fxC - 26, sY - 88, 52, 68);
+            ctx.fillStyle = '#6a4020';
+            ctx.fillRect(fxC - 16, sY - 78, 32, 48);
+            ctx.fillStyle = '#4a2e10';
+            ctx.beginPath();
+            ctx.arc(fxC, sY - 112, 31, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(fxC - 32, sY - 133, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(fxC + 32, sY - 133, 11, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#1a0808';
+            ctx.fillRect(fxC - 24, sY - 153, 48, 8);
+            ctx.fillRect(fxC - 16, sY - 196, 32, 46);
+            ctx.fillStyle = '#e8e8e4';
+            ctx.beginPath();
+            ctx.arc(fxC - 11, sY - 115, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(fxC + 11, sY - 115, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#080808';
+            ctx.beginPath();
+            ctx.arc(fxC - 11, sY - 115, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(fxC + 11, sY - 115, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#f0c878';
+            ctx.beginPath();
+            ctx.arc(fxC, sY - 109, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#888';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(fxC, sY - 18);
+            ctx.lineTo(fxC, sY);
+            ctx.stroke();
+            // Bonnie (left, purple rabbit, guitar)
+            var bxC = Math.floor(W * 0.22);
+            ctx.fillStyle = '#3a1870';
+            ctx.fillRect(bxC - 20, sY - 82, 40, 62);
+            ctx.fillRect(bxC - 18, sY - 178, 12, 70);
+            ctx.fillRect(bxC + 6, sY - 178, 12, 70);
+            ctx.fillStyle = '#c870b0';
+            ctx.fillRect(bxC - 15, sY - 174, 6, 58);
+            ctx.fillRect(bxC + 9, sY - 174, 6, 58);
+            ctx.fillStyle = '#3a1870';
+            ctx.beginPath();
+            ctx.arc(bxC, sY - 100, 26, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#aa48ff';
+            ctx.beginPath();
+            ctx.arc(bxC - 9, sY - 102, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(bxC + 9, sY - 102, 8, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#cc0000';
+            ctx.beginPath();
+            ctx.arc(bxC - 9, sY - 102, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(bxC + 9, sY - 102, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#7a4820';
+            ctx.fillRect(bxC + 15, sY - 58, 8, 34);
+            ctx.beginPath();
+            ctx.arc(bxC + 19, sY - 30, 12, 0, Math.PI * 2);
+            ctx.fill();
+            // Chica (right, yellow chicken, cupcake)
+            var chxC = Math.floor(W * 0.78);
+            ctx.fillStyle = '#c88010';
+            ctx.fillRect(chxC - 22, sY - 85, 44, 65);
+            ctx.beginPath();
+            ctx.arc(chxC, sY - 107, 28, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#f0a820';
+            ctx.beginPath();
+            ctx.moveTo(chxC - 10, sY - 105);
+            ctx.lineTo(chxC + 10, sY - 105);
+            ctx.lineTo(chxC, sY - 93);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#f4f4f4';
+            ctx.beginPath();
+            ctx.arc(chxC - 11, sY - 114, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(chxC + 11, sY - 114, 9, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#080808';
+            ctx.beginPath();
+            ctx.arc(chxC - 11, sY - 114, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(chxC + 11, sY - 114, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#e03030';
+            ctx.fillRect(chxC + 28, sY - 62, 16, 16);
+            ctx.fillStyle = '#f0d0c0';
+            ctx.beginPath();
+            ctx.arc(chxC + 36, sY - 62, 10, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#ff2020';
+            ctx.beginPath();
+            ctx.arc(chxC + 36, sY - 67, 4, 0, Math.PI * 2);
+            ctx.fill();
+            // "CELEBRATE!" text
+            ctx.shadowColor = '#ffcc00';
+            ctx.shadowBlur = 16;
+            ctx.fillStyle = '#ffe800';
+            ctx.font = 'bold 60px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText('CELEBRATE!', W / 2, 10);
+            ctx.shadowBlur = 0;
+            // Gold border
+            ctx.strokeStyle = '#f0c020';
+            ctx.lineWidth = 7;
+            ctx.strokeRect(3, 3, W - 6, H - 6);
+            var posterTex = new THREE.CanvasTexture(cv);
+            var posterMesh = new THREE.Mesh(
+                new THREE.PlaneGeometry(9.2, 7.8),
+                new THREE.MeshLambertMaterial({ map: posterTex })
+            );
+            posterMesh.position.set(3.5, 7.0, -HD + 0.32);
+            posterMesh.rotation.y = Math.PI;
+            scene.add(posterMesh);
+            // Freddy's nose — small sphere (honk easter egg)
+            var noseMsh = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 6), mat(0xf0c878));
+            noseMsh.position.set(3.5, 6.68, -HD + 0.45);
+            scene.add(noseMsh);
+        })();
 
         var lh = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 0.5, 16), mLightBody);
         lh.position.set(0, RH - 0.25, 1.0);
@@ -472,6 +675,84 @@
 
         box(scene, 1.0, 0.8, 0.12, -2.6, 2.85, 6.75, mMonBody);
         box(scene, 0.88, 0.66, 0.14, -2.6, 2.85, 6.69, mMonScreen);
+        // Second monitor (right of first)
+        box(scene, 1.0, 0.8, 0.12, -1.2, 2.85, 6.75, mMonBody);
+        box(scene, 0.88, 0.66, 0.14, -1.2, 2.85, 6.69, mMonScreen);
+        // Mr. Cupcake — iconic pink cupcake with glowing eyes, sits on right monitor
+        var mCpkW = mat(0xcc3344);
+        var mCpkF = mat(0xf0b0a0);
+        var cpkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.14, 8), mCpkW);
+        cpkBase.position.set(-1.2, 3.33, 6.7);
+        scene.add(cpkBase);
+        var cpkFrost = new THREE.Mesh(new THREE.SphereGeometry(0.12, 8, 6), mCpkF);
+        cpkFrost.position.set(-1.2, 3.49, 6.7);
+        scene.add(cpkFrost);
+        var cpkCandle = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.12, 6), mat(0xf0e858));
+        cpkCandle.position.set(-1.2, 3.63, 6.7);
+        scene.add(cpkCandle);
+        var cpkFlame = new THREE.Mesh(new THREE.SphereGeometry(0.04, 6, 4), mat(0xff8820, true, 0xff4400));
+        cpkFlame.position.set(-1.2, 3.72, 6.7);
+        scene.add(cpkFlame);
+        var mCpkEye = mat(0xffffff);
+        var cpkEL = new THREE.Mesh(new THREE.SphereGeometry(0.032, 6, 4), mCpkEye);
+        cpkEL.position.set(-1.27, 3.48, 6.59);
+        scene.add(cpkEL);
+        var cpkER = new THREE.Mesh(new THREE.SphereGeometry(0.032, 6, 4), mCpkEye);
+        cpkER.position.set(-1.13, 3.48, 6.59);
+        scene.add(cpkER);
+        // Speaker with spider web — canonical desk prop
+        (function() {
+            var sw = 64,
+                sh = 64;
+            var scv = document.createElement('canvas');
+            scv.width = sw;
+            scv.height = sh;
+            var sctx = scv.getContext('2d');
+            sctx.fillStyle = '#141008';
+            sctx.fillRect(0, 0, sw, sh);
+            sctx.strokeStyle = '#282010';
+            sctx.lineWidth = 1.5;
+            for (var gi = 0; gi < 5; gi++) {
+                sctx.beginPath();
+                sctx.moveTo(4, 4 + gi * 12);
+                sctx.lineTo(60, 4 + gi * 12);
+                sctx.stroke();
+                sctx.beginPath();
+                sctx.moveTo(4 + gi * 12, 4);
+                sctx.lineTo(4 + gi * 12, 60);
+                sctx.stroke();
+            }
+            sctx.strokeStyle = 'rgba(230,230,200,0.58)';
+            sctx.lineWidth = 0.9;
+            var wcx = 52,
+                wcy = 12,
+                wR = 18;
+            for (var wr = 4; wr <= wR; wr += 5) {
+                sctx.beginPath();
+                sctx.arc(wcx, wcy, wr, 0, Math.PI * 2);
+                sctx.stroke();
+            }
+            for (var wa = 0; wa < 7; wa++) {
+                var wang = wa / 7 * Math.PI * 2;
+                sctx.beginPath();
+                sctx.moveTo(wcx, wcy);
+                sctx.lineTo(wcx + Math.cos(wang) * wR, wcy + Math.sin(wang) * wR);
+                sctx.stroke();
+            }
+            var spkMat = new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(scv) });
+            var spk = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.35, 0.10), spkMat);
+            spk.position.set(2.1, 2.68, 6.70);
+            scene.add(spk);
+        })();
+        // Wires from monitors to ceiling
+        var mWire = mat(0x1c1808);
+        [
+            [-2.54, 6.74],
+            [-1.14, 6.74]
+        ].forEach(function(w) {
+            var wh = RH - 2.5;
+            box(scene, 0.025, wh, 0.025, w[0], 2.45 + wh * 0.5, w[1], mWire);
+        });
 
         var cup = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.13, 0.52, 8), mCup);
         cup.position.set(-3.8, 2.46, 7.1);
@@ -489,16 +770,536 @@
         });
     }
 
+    function buildDecorations() {
+        var RH = 11,
+            HD = 9,
+            HW = 11;
+
+        // ── Procedural texture helpers ────────────────────────────────────
+        function ceilTex() {
+            var W = 512,
+                H = 512,
+                ts = Math.floor(W / 6);
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            ctx.fillStyle = '#c8c8bc';
+            ctx.fillRect(0, 0, W, H);
+            for (var i = 0; i < 5000; i++) {
+                var v = 178 + Math.floor(Math.random() * 32);
+                ctx.fillStyle = 'rgba(' + v + ',' + v + ',' + (v - 6) + ',0.5)';
+                ctx.fillRect(Math.random() * W, Math.random() * H, 1 + Math.random() * 2, 1 + Math.random() * 2);
+            }
+            ctx.strokeStyle = '#5c5c54';
+            ctx.lineWidth = 3;
+            for (var gx = ts; gx < W; gx += ts) {
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, H);
+                ctx.stroke();
+            }
+            for (var gy = ts; gy < H; gy += ts) {
+                ctx.beginPath();
+                ctx.moveTo(0, gy);
+                ctx.lineTo(W, gy);
+                ctx.stroke();
+            }
+            [{ x: 82, y: 68, r: 26 }, { x: 318, y: 198, r: 19 }, { x: 168, y: 398, r: 14 }].forEach(function(s) {
+                var g = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, s.r);
+                g.addColorStop(0, 'rgba(138,108,58,0.42)');
+                g.addColorStop(1, 'rgba(138,108,58,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            var t = new THREE.CanvasTexture(cv);
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(7, 5);
+            return t;
+        }
+
+        function floorTex() {
+            var W = 512,
+                H = 512,
+                ts = Math.floor(W / 10);
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            // True black-and-white checkered tiles (canonical FNAF1 floor)
+            for (var ty = 0; ty < 10; ty++) {
+                for (var tx = 0; tx < 10; tx++) {
+                    var isW = (tx + ty) % 2 === 0;
+                    var bv = isW ? 200 + Math.floor(Math.sin(tx * 3.1 + ty * 2.7) * 14) : 22 + Math.floor(Math.sin(tx * 2.3 + ty * 4.1) * 8);
+                    ctx.fillStyle = 'rgb(' + bv + ',' + bv + ',' + bv + ')';
+                    ctx.fillRect(tx * ts, ty * ts, ts, ts);
+                }
+            }
+            ctx.strokeStyle = '#585858';
+            ctx.lineWidth = 2.5;
+            for (var gx = ts; gx < W; gx += ts) {
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, H);
+                ctx.stroke();
+            }
+            for (var gy = ts; gy < H; gy += ts) {
+                ctx.beginPath();
+                ctx.moveTo(0, gy);
+                ctx.lineTo(W, gy);
+                ctx.stroke();
+            }
+            ctx.save();
+            ctx.globalAlpha = 0.20;
+            ctx.fillStyle = '#080808';
+            ctx.fillRect(W * 0.28, 0, W * 0.44, H);
+            ctx.restore();
+            var t = new THREE.CanvasTexture(cv);
+            t.wrapS = t.wrapT = THREE.RepeatWrapping;
+            t.repeat.set(9, 7);
+            return t;
+        }
+
+        function drawingTex(seed) {
+            var W = 128,
+                H = 160;
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            var rng = function(n) { return Math.abs(Math.sin(n * 127.1 + seed * 311.7) * 43758.5453) % 1; };
+            ctx.fillStyle = 'rgb(' + Math.floor(205 + rng(1) * 25) + ',' + Math.floor(188 + rng(2) * 22) + ',' + Math.floor(150 + rng(3) * 25) + ')';
+            ctx.fillRect(0, 0, W, H);
+            // Canonical FNAF1 header text on each child drawing
+            ctx.fillStyle = '#cc1818';
+            ctx.font = 'bold 11px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            ctx.fillText('MY FUN DAY!!!', W / 2, 4);
+            ctx.strokeStyle = '#881010';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(5, 17);
+            ctx.lineTo(W - 5, 17);
+            ctx.stroke();
+            var cols = ['#e01808', '#0e3ed0', '#d09010', '#0a8a3a', '#b828aa', '#e05400'];
+            for (var i = 0; i < 5; i++) {
+                ctx.strokeStyle = cols[Math.floor(rng(i * 7) * cols.length)];
+                ctx.lineWidth = 3 + Math.floor(rng(i * 3) * 4);
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(8 + rng(i + 0.1) * (W - 16), 8 + rng(i + 0.2) * (H - 16));
+                ctx.lineTo(8 + rng(i * 2 + 0.5) * (W - 16), 8 + rng(i * 2 + 0.7) * (H - 16));
+                if (rng(i + 9) > 0.5) { ctx.lineTo(8 + rng(i * 3 + 1.1) * (W - 16), 8 + rng(i * 3 + 1.2) * (H - 16)); }
+                ctx.stroke();
+            }
+            var sx = Math.floor(rng(10) * 65 + 22),
+                sy = 20;
+            ctx.strokeStyle = '#e0b000';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(sx, sy, 11, 0, Math.PI * 2);
+            ctx.stroke();
+            for (var ri = 0; ri < 8; ri++) {
+                var ang = ri / 8 * Math.PI * 2;
+                ctx.beginPath();
+                ctx.moveTo(sx + Math.cos(ang) * 12, sy + Math.sin(ang) * 12);
+                ctx.lineTo(sx + Math.cos(ang) * 17, sy + Math.sin(ang) * 17);
+                ctx.stroke();
+            }
+            var hx = Math.floor(rng(20) * 55 + 42),
+                hy = H - 88;
+            ctx.strokeStyle = '#32200a';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(hx, hy + 9, 9, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(hx, hy + 18);
+            ctx.lineTo(hx, hy + 50);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(hx - 13, hy + 30);
+            ctx.lineTo(hx + 13, hy + 30);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(hx, hy + 50);
+            ctx.lineTo(hx - 10, hy + 72);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(hx, hy + 50);
+            ctx.lineTo(hx + 10, hy + 72);
+            ctx.stroke();
+            ctx.strokeStyle = '#0a0400';
+            ctx.lineWidth = 6;
+            ctx.strokeRect(3, 3, W - 6, H - 6);
+            return new THREE.CanvasTexture(cv);
+        }
+
+        function exitSignTex() {
+            var W = 192,
+                H = 80;
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            ctx.fillStyle = '#c81010';
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = '#f5f5f5';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('EXIT', W / 2, H / 2);
+            ctx.strokeStyle = '#660808';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(2, 2, W - 4, H - 4);
+            return new THREE.CanvasTexture(cv);
+        }
+
+        function posterTex(title, sub, bgHex, textHex) {
+            var W = 256,
+                H = 320;
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            ctx.fillStyle = bgHex;
+            ctx.fillRect(0, 0, W, H);
+            var g = ctx.createLinearGradient(0, 0, 0, H);
+            g.addColorStop(0, 'rgba(255,255,255,0.10)');
+            g.addColorStop(1, 'rgba(0,0,0,0.35)');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+            ctx.fillStyle = 'rgba(0,0,0,0.2)';
+            ctx.fillRect(30, 18, W - 60, Math.floor(H * 0.52));
+            ctx.fillStyle = textHex;
+            ctx.font = 'bold 34px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(title, W / 2, Math.floor(H * 0.68));
+            ctx.font = '17px Arial';
+            ctx.fillText(sub, W / 2, Math.floor(H * 0.80));
+            ctx.strokeStyle = 'rgba(255,255,255,0.32)';
+            ctx.lineWidth = 5;
+            ctx.strokeRect(4, 4, W - 8, H - 8);
+            return new THREE.CanvasTexture(cv);
+        }
+
+        function clockTex() {
+            var W = 256,
+                H = 256;
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            var cx = W / 2,
+                cy = H / 2,
+                R = W / 2 - 10;
+            ctx.fillStyle = '#f0ece0';
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#2e2e2e';
+            ctx.lineWidth = 13;
+            ctx.beginPath();
+            ctx.arc(cx, cy, R, 0, Math.PI * 2);
+            ctx.stroke();
+            for (var hh = 0; hh < 12; hh++) {
+                var a = hh / 12 * Math.PI * 2 - Math.PI / 2;
+                ctx.strokeStyle = '#111111';
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a) * (R - 20), cy + Math.sin(a) * (R - 20));
+                ctx.lineTo(cx + Math.cos(a) * (R - 4), cy + Math.sin(a) * (R - 4));
+                ctx.stroke();
+            }
+            ctx.fillStyle = '#111111';
+            ctx.font = 'bold 22px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].forEach(function(n, i) {
+                var a2 = i / 12 * Math.PI * 2 - Math.PI / 2;
+                ctx.fillText(n, cx + Math.cos(a2) * (R - 38), cy + Math.sin(a2) * (R - 38));
+            });
+            var ha = (11 / 12) * Math.PI * 2 - Math.PI / 2;
+            ctx.strokeStyle = '#111111';
+            ctx.lineWidth = 9;
+            ctx.lineCap = 'round';
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(ha) * (R * 0.52), cy + Math.sin(ha) * (R * 0.52));
+            ctx.stroke();
+            var ma = (59 / 60) * Math.PI * 2 - Math.PI / 2;
+            ctx.lineWidth = 6;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(ma) * (R * 0.76), cy + Math.sin(ma) * (R * 0.76));
+            ctx.stroke();
+            ctx.fillStyle = '#7a0000';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 7, 0, Math.PI * 2);
+            ctx.fill();
+            return new THREE.CanvasTexture(cv);
+        }
+
+        // ── Material helpers ─────────────────────────────────────────────
+        function mL(hex) { return new THREE.MeshLambertMaterial({ color: hex }); }
+
+        function mT(tex, emHex) {
+            var o = { map: tex };
+            if (emHex) {
+                o.emissive = new THREE.Color(emHex);
+                o.emissiveIntensity = 0.55;
+            }
+            return new THREE.MeshLambertMaterial(o);
+        }
+
+        // ── Ceiling tile overlay ─────────────────────────────────────────
+        var ct = new THREE.Mesh(new THREE.PlaneGeometry(22, 18), mT(ceilTex()));
+        ct.rotation.x = Math.PI / 2;
+        ct.position.set(0, RH - 0.18, 0);
+        scene.add(ct);
+
+        // ── Additional side ceiling lights ───────────────────────────────
+        var mLBody = mL(0x1e1c14);
+        var mBulbE = new THREE.MeshLambertMaterial({ color: 0xffe870, emissive: new THREE.Color(0xffe870), emissiveIntensity: 0.7 });
+        [-6, 6].forEach(function(lx) {
+            var lh = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.38, 0.38, 12), mLBody);
+            lh.position.set(lx, RH - 0.24, 1.0);
+            scene.add(lh);
+            var bl = new THREE.Mesh(new THREE.SphereGeometry(0.18, 10, 6), mBulbE);
+            bl.position.set(lx, RH - 0.54, 1.0);
+            scene.add(bl);
+        });
+
+        // ── Floor tile overlay ───────────────────────────────────────────
+        var ft = new THREE.Mesh(new THREE.PlaneGeometry(22, 18), mT(floorTex()));
+        ft.rotation.x = -Math.PI / 2;
+        ft.position.set(0, 0.17, 0);
+        scene.add(ft);
+
+        // ── 6 canonical children's drawings (left side of back wall, per wiki) ─
+        // Layout: 2 columns × 3 rows — each has "MY FUN DAY!!!" header
+        // Drawing subjects (canonical): 1:Bonnie-in-box, 2:Freddy+child, 3:Sun+balloons
+        //                               4:Freddy+girl, 5:Bonnie bust, 6:Birthday cake
+        var drawData = [
+            [-8.0, 7.6], // top-left  (Bonnie popping out of box)
+            [-5.6, 7.4], // top-right (child getting present from Freddy)
+            [-7.6, 5.9], // mid-left  (sun next to balloons)
+            [-5.2, 5.7], // mid-right (Freddy handing girl a present)
+            [-7.8, 4.3], // bot-left  (bust of Bonnie — partially obscured at edge)
+            [-5.4, 4.1] // bot-right (two kids + birthday cake)
+        ];
+        drawData.forEach(function(d, i) {
+            var dm = new THREE.Mesh(new THREE.PlaneGeometry(1.05, 1.35), mT(drawingTex(i * 7 + 2)));
+            dm.position.set(d[0], d[1], -HD + 0.34);
+            dm.rotation.y = Math.PI;
+            dm.rotation.z = Math.sin(i * 2.1 + 0.5) * 0.07;
+            scene.add(dm);
+        });
+
+        // ── EXIT signs (back wall upper corners) ─────────────────────────
+        var mExit = mT(exitSignTex(), 0x550000);
+        var eGeo = new THREE.PlaneGeometry(0.9, 0.38);
+        [-8.0, 8.0].forEach(function(ex) {
+            var s = new THREE.Mesh(eGeo, mExit);
+            s.position.set(ex, 9.4, -HD + 0.26);
+            s.rotation.y = Math.PI;
+            scene.add(s);
+            box(scene, 0.95, 0.44, 0.07, ex, 9.4, -HD + 0.23, mL(0x1a1a1a));
+        });
+
+        // ── Baseboards ───────────────────────────────────────────────────
+        var mBB = mL(0x241608);
+        box(scene, 22, 0.16, 0.12, 0, 0.08, -HD + 0.36, mBB);
+        box(scene, 0.12, 0.16, 18, -HW + 0.28, 0.08, 0, mBB);
+        box(scene, 0.12, 0.16, 18, HW - 0.28, 0.08, 0, mBB);
+
+        // ── Black-and-white tile stripe on walls (canonical FNAF1) ───────
+        // The floor tile pattern continues as a stripe on all walls, ~1.8 units high
+        (function() {
+            var W = 256,
+                H = 64,
+                ts = Math.floor(W / 8);
+            var cv = document.createElement('canvas');
+            cv.width = W;
+            cv.height = H;
+            var ctx = cv.getContext('2d');
+            var rowsH = Math.ceil(H / ts);
+            for (var ty2 = 0; ty2 < rowsH; ty2++) {
+                for (var tx2 = 0; tx2 < 8; tx2++) {
+                    var isW2 = (tx2 + ty2) % 2 === 0;
+                    var bv2 = isW2 ? 196 : 26;
+                    ctx.fillStyle = 'rgb(' + bv2 + ',' + bv2 + ',' + bv2 + ')';
+                    ctx.fillRect(tx2 * ts, ty2 * ts, ts, ts);
+                }
+            }
+            ctx.strokeStyle = '#505050';
+            ctx.lineWidth = 2;
+            for (var gx2 = ts; gx2 < W; gx2 += ts) {
+                ctx.beginPath();
+                ctx.moveTo(gx2, 0);
+                ctx.lineTo(gx2, H);
+                ctx.stroke();
+            }
+            for (var gy2 = ts; gy2 < H; gy2 += ts) {
+                ctx.beginPath();
+                ctx.moveTo(0, gy2);
+                ctx.lineTo(W, gy2);
+                ctx.stroke();
+            }
+            var stripeTex = new THREE.CanvasTexture(cv);
+            stripeTex.wrapS = stripeTex.wrapT = THREE.RepeatWrapping;
+            // Back wall stripe
+            var bwStripe = new THREE.Mesh(new THREE.PlaneGeometry(22, 1.8),
+                new THREE.MeshLambertMaterial({ map: stripeTex }));
+            bwStripe.position.set(0, 0.9, -HD + 0.38);
+            bwStripe.rotation.y = Math.PI;
+            stripeTex.repeat.set(7, 1);
+            scene.add(bwStripe);
+            // Clone texture for sides (different repeat)
+            function wallStripe(x, ry) {
+                var tex2 = new THREE.CanvasTexture(cv);
+                tex2.wrapS = tex2.wrapT = THREE.RepeatWrapping;
+                tex2.repeat.set(6, 1);
+                var m = new THREE.Mesh(new THREE.PlaneGeometry(18, 1.8),
+                    new THREE.MeshLambertMaterial({ map: tex2 }));
+                m.position.set(x, 0.9, 0);
+                m.rotation.y = ry;
+                scene.add(m);
+            }
+            wallStripe(-HW + 0.38, Math.PI / 2);
+            wallStripe(HW - 0.38, -Math.PI / 2);
+        })();
+
+        // ── Wall posters (side walls) ────────────────────────────────────
+        var pLMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.9),
+            mT(posterTex('KEEP IT UP', 'YOURE DOING GREAT', '#7a2818', '#f5d050')));
+        pLMesh.position.set(-HW + 0.22, 6.2, -3.5);
+        pLMesh.rotation.y = Math.PI / 2;
+        scene.add(pLMesh);
+        box(scene, 0.07, 2.05, 1.65, -HW + 0.18, 6.2, -3.5, mL(0x2c1408));
+
+        var pRMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.5, 1.9),
+            mT(posterTex('STAY SAFE', 'HAVE A GREAT NIGHT', '#184878', '#f0e030')));
+        pRMesh.position.set(HW - 0.22, 6.2, -3.5);
+        pRMesh.rotation.y = -Math.PI / 2;
+        scene.add(pRMesh);
+        box(scene, 0.07, 2.05, 1.65, HW - 0.18, 6.2, -3.5, mL(0x2c1408));
+
+        // ── Storage shelves (left wall) ─────────────────────────────────
+        var mSh = mL(0x5a3e28),
+            mBkt = mL(0x3c3c3c),
+            mBx = mL(0x7a6040),
+            mBxL = mL(0xc8b070);
+        [3.2, 4.8, 6.4].forEach(function(sy) {
+            box(scene, 0.10, 0.14, 2.1, -HW + 0.30, sy, -4.0, mSh);
+            box(scene, 0.07, 0.44, 0.07, -HW + 0.28, sy - 0.24, -3.1, mBkt);
+            box(scene, 0.07, 0.07, 0.46, -HW + 0.28, sy - 0.38, -3.3, mBkt);
+            box(scene, 0.07, 0.44, 0.07, -HW + 0.28, sy - 0.24, -4.9, mBkt);
+            box(scene, 0.07, 0.07, 0.46, -HW + 0.28, sy - 0.38, -4.7, mBkt);
+            box(scene, 0.09, 0.36, 0.42, -HW + 0.32, sy + 0.22, -3.6, mBx);
+            box(scene, 0.09, 0.30, 0.36, -HW + 0.32, sy + 0.19, -4.2, mBxL);
+            box(scene, 0.09, 0.28, 0.32, -HW + 0.32, sy + 0.18, -4.7, mBx);
+        });
+
+        // ── Storage shelves (right wall) ─────────────────────────────────
+        [3.2, 4.8, 6.4].forEach(function(sy) {
+            box(scene, 0.10, 0.14, 2.1, HW - 0.30, sy, -4.0, mSh);
+            box(scene, 0.07, 0.44, 0.07, HW - 0.28, sy - 0.24, -3.1, mBkt);
+            box(scene, 0.07, 0.07, 0.46, HW - 0.28, sy - 0.38, -3.3, mBkt);
+            box(scene, 0.07, 0.44, 0.07, HW - 0.28, sy - 0.24, -4.9, mBkt);
+            box(scene, 0.07, 0.07, 0.46, HW - 0.28, sy - 0.38, -4.7, mBkt);
+            box(scene, 0.09, 0.36, 0.42, HW - 0.32, sy + 0.22, -3.6, mBx);
+            box(scene, 0.09, 0.30, 0.36, HW - 0.32, sy + 0.19, -4.2, mBxL);
+            box(scene, 0.09, 0.28, 0.32, HW - 0.32, sy + 0.18, -4.7, mBx);
+        });
+
+        // ── Wall clock (back wall) ───────────────────────────────────────
+        var clkMesh = new THREE.Mesh(new THREE.CircleGeometry(0.48, 24), mT(clockTex()));
+        clkMesh.position.set(-5.0, 8.1, -HD + 0.26);
+        clkMesh.rotation.y = Math.PI;
+        scene.add(clkMesh);
+        var clkRim = new THREE.Mesh(new THREE.CylinderGeometry(0.52, 0.52, 0.07, 24), mL(0x3c3c34));
+        clkRim.rotation.x = Math.PI / 2;
+        clkRim.position.set(-5.0, 8.1, -HD + 0.23);
+        scene.add(clkRim);
+
+        // ── Fire extinguisher (left wall) ────────────────────────────────
+        var mExtR = mL(0xbc0e0e),
+            mMetal = mL(0x808080);
+        var extC = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.75, 10), mExtR);
+        extC.position.set(-HW + 0.36, 0.95, -7.6);
+        scene.add(extC);
+        var extT = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.12, 0.22, 10), mMetal);
+        extT.position.set(-HW + 0.36, 1.52, -7.6);
+        scene.add(extT);
+        var extN = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.28, 8), mMetal);
+        extN.rotation.z = 0.75;
+        extN.position.set(-HW + 0.48, 1.68, -7.6);
+        scene.add(extN);
+        box(scene, 0.05, 0.82, 0.15, -HW + 0.20, 0.95, -7.6, mL(0x484848));
+
+        // ── First aid kit (left wall, beside extinguisher) ───────────────
+        box(scene, 0.09, 0.44, 0.55, -HW + 0.22, 2.06, -7.6, mL(0xf0f0f0));
+        box(scene, 0.10, 0.14, 0.42, -HW + 0.20, 2.06, -7.6, mL(0xcc0000));
+        box(scene, 0.10, 0.34, 0.14, -HW + 0.20, 2.06, -7.6, mL(0xcc0000));
+
+        // ── Electrical panel (right wall) ────────────────────────────────
+        box(scene, 0.09, 0.76, 0.55, HW - 0.22, 1.26, -7.8, mL(0xc0a880));
+        box(scene, 0.10, 0.66, 0.46, HW - 0.20, 1.26, -7.8, mL(0xaa9068));
+        [-0.13, 0, 0.13].forEach(function(bz) {
+            box(scene, 0.11, 0.09, 0.07, HW - 0.18, 1.36, -7.8 + bz, mL(0x282828));
+            box(scene, 0.11, 0.09, 0.07, HW - 0.18, 1.13, -7.8 + bz, mL(0x282828));
+        });
+        box(scene, 0.10, 0.11, 0.20, HW - 0.19, 0.79, -7.8, mL(0xe01818));
+
+        // ── Ceiling vent (center) ────────────────────────────────────────
+        var ventP = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 1.1), mL(0x585858));
+        ventP.rotation.x = Math.PI / 2;
+        ventP.position.set(0, RH - 0.16, 0);
+        scene.add(ventP);
+        for (var vs = -4; vs <= 4; vs++) {
+            box(scene, 0.92, 0.05, 0.07, 0, RH - 0.14, vs * 0.11, mL(0x424242));
+        }
+
+        // ── Metal storage lockers (back wall corners) ────────────────────
+        var mLkr = mL(0x5a5a5a),
+            mLkrD = mL(0x404040);
+        [-8.5, -7.7, -6.9].forEach(function(lx) {
+            box(scene, 0.58, 3.1, 0.44, lx, 1.55, -HD + 0.52, mLkr);
+            box(scene, 0.59, 0.05, 0.45, lx, 2.16, -HD + 0.52, mLkrD);
+            box(scene, 0.59, 0.05, 0.45, lx, 0.96, -HD + 0.52, mLkrD);
+            box(scene, 0.59, 0.08, 0.05, lx, 1.55, -HD + 0.74, mL(0x363636));
+        });
+        [8.5, 7.7, 6.9].forEach(function(lx) {
+            box(scene, 0.58, 3.1, 0.44, lx, 1.55, -HD + 0.52, mLkr);
+            box(scene, 0.59, 0.05, 0.45, lx, 2.16, -HD + 0.52, mLkrD);
+            box(scene, 0.59, 0.05, 0.45, lx, 0.96, -HD + 0.52, mLkrD);
+            box(scene, 0.59, 0.08, 0.05, lx, 1.55, -HD + 0.74, mL(0x363636));
+        });
+
+        // ── Hanging streamers from ceiling (colorful, scattered) ─────────
+        var streamCols = [0xc83028, 0x2858c0, 0xe8aa10, 0x28943c, 0xb828a0];
+        [-9.5, -7.5, -5.5, -3.8, -2.2, 0.2, 1.8, 3.5, 5.2, 7.0, 9.2].forEach(function(sx, i) {
+            var h = 1.8 + (i % 4) * 0.5;
+            box(scene, 0.06, h, 0.06, sx, RH - 0.18 - h * 0.5, -HD + 0.5, mL(streamCols[i % streamCols.length]));
+        });
+
+    }
+
     function buildLighting() {
-        scene.add(new THREE.AmbientLight(0xffe0b0, 0.38));
+        scene.add(new THREE.AmbientLight(0xffd890, 0.42));
 
         // Main light from above-front
-        var dir = new THREE.DirectionalLight(0xffd070, 0.75);
+        var dir = new THREE.DirectionalLight(0xffc850, 0.82);
         dir.position.set(0, 10, 8);
         scene.add(dir);
 
         // Fill from right
-        var fill = new THREE.DirectionalLight(0xffb040, 0.15);
+        var fill = new THREE.DirectionalLight(0xffb040, 0.18);
         fill.position.set(5, 6, 4);
         scene.add(fill);
 
@@ -720,6 +1521,10 @@
                 doorAnimLeft.vel = 0.0;
             }
         }
+        if (wallBtns.doorLeft) {
+            wallBtns.doorLeft.active = closed;
+            _refreshBtn('doorLeft');
+        }
     }
 
     function setDoorRight(closed) {
@@ -732,6 +1537,10 @@
                 doorAnimRight.vel = 0.0;
             }
         }
+        if (wallBtns.doorRight) {
+            wallBtns.doorRight.active = closed;
+            _refreshBtn('doorRight');
+        }
     }
 
     function setLightLeft(on) {
@@ -740,6 +1549,10 @@
         if (hallApertureLeft) hallApertureLeft.visible = !on;
         hallDecorLeft.forEach(function(m) { m.visible = on; });
         updateHallVis('left');
+        if (wallBtns.lightLeft) {
+            wallBtns.lightLeft.active = on;
+            _refreshBtn('lightLeft');
+        }
     }
 
     function setLightRight(on) {
@@ -748,6 +1561,10 @@
         if (hallApertureRight) hallApertureRight.visible = !on;
         hallDecorRight.forEach(function(m) { m.visible = on; });
         updateHallVis('right');
+        if (wallBtns.lightRight) {
+            wallBtns.lightRight.active = on;
+            _refreshBtn('lightRight');
+        }
     }
 
     function setHallLeft(colorCss) {
@@ -789,6 +1606,112 @@
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
+    }
+
+    // =========================================================
+    // WALL BUTTON PANELS — 3D clickable panels on office walls
+    // =========================================================
+    function _refreshBtn(id) {
+        var b = wallBtns[id];
+        if (!b) return;
+        var ctx = b.ctx,
+            w = b.canvas.width,
+            h = b.canvas.height;
+        // Background panel
+        ctx.fillStyle = b.active ? '#0b1d10' : '#111115';
+        ctx.fillRect(0, 0, w, h);
+        // Outer border
+        ctx.strokeStyle = '#444';
+        ctx.lineWidth = 5;
+        ctx.strokeRect(3, 3, w - 6, h - 6);
+        // Inner bevel
+        ctx.strokeStyle = '#222';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(9, 9, w - 18, h - 18);
+        // Green fill overlay when active
+        if (b.active) {
+            ctx.fillStyle = 'rgba(0,200,80,0.06)';
+            ctx.fillRect(10, 10, w - 20, h - 20);
+        }
+        // Indicator bulb
+        var bx = w - 34,
+            by = 30,
+            br = 15;
+        var grad = ctx.createRadialGradient(bx, by - 4, 2, bx, by, br);
+        if (b.active) {
+            grad.addColorStop(0, '#ccffdd');
+            grad.addColorStop(0.45, '#22dd55');
+            grad.addColorStop(1, '#004411');
+        } else {
+            grad.addColorStop(0, '#cc5555');
+            grad.addColorStop(0.45, '#881111');
+            grad.addColorStop(1, '#330000');
+        }
+        ctx.beginPath();
+        ctx.arc(bx, by, br, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+        ctx.strokeStyle = b.active ? '#44aa66' : '#552222';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Label text
+        ctx.fillStyle = b.active ? '#88ffaa' : '#999999';
+        ctx.font = 'bold ' + Math.floor(h * 0.32) + 'px monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.label, w / 2, h * 0.65);
+        // Corner rivet dots
+        var rv = [
+            [14, 14],
+            [w - 14, 14],
+            [14, h - 14],
+            [w - 14, h - 14]
+        ];
+        rv.forEach(function(p) {
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(p[0], p[1], 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#555';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        });
+        b.tex.needsUpdate = true;
+    }
+
+    function buildWallButtons() {
+        // Buttons sit on the camera-facing wall strips beside each doorway.
+        // Z=2.3 places them near the door-frame edge — at ~64° horizontal from
+        // camera forward, visible when panned ~80% left/right (within max ±35° pan + 36° half-FOV).
+        var BW = 3.0,
+            BH = 1.8;
+        var TW = 256,
+            TH = Math.round(256 * BH / BW);
+        var defs = [
+            { id: 'doorLeft', label: 'DOOR', x: -10.61, y: 4.6, z: 2.3, ry: Math.PI / 2 },
+            { id: 'lightLeft', label: 'LIGHT', x: -10.61, y: 2.7, z: 2.3, ry: Math.PI / 2 },
+            { id: 'doorRight', label: 'DOOR', x: 10.61, y: 4.6, z: 2.3, ry: -Math.PI / 2 },
+            { id: 'lightRight', label: 'LIGHT', x: 10.61, y: 2.7, z: 2.3, ry: -Math.PI / 2 }
+        ];
+        wallBtns = {};
+        defs.forEach(function(d) {
+            var cv = document.createElement('canvas');
+            cv.width = TW;
+            cv.height = TH;
+            var ctx = cv.getContext('2d');
+            var tex = new THREE.CanvasTexture(cv);
+            var mat = new THREE.MeshBasicMaterial({ map: tex, depthWrite: true });
+            var geo = new THREE.PlaneGeometry(BW, BH);
+            var m = new THREE.Mesh(geo, mat);
+            m.position.set(d.x, d.y, d.z);
+            m.rotation.y = d.ry;
+            m.renderOrder = 1;
+            m.userData.btnId = d.id;
+            scene.add(m);
+            wallBtns[d.id] = { mesh: m, canvas: cv, ctx: ctx, tex: tex, label: d.label, active: false };
+            _refreshBtn(d.id);
+        });
+        raycaster3D = new THREE.Raycaster();
     }
 
 })();

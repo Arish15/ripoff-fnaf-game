@@ -92,10 +92,12 @@ function tickFoxy(a) {
                     // Foxy starts sprinting down the hall
                     if (a.path[a.pos] === 'hallW') {
                         var foxySprint = document.getElementById('foxySprintAudio');
-                        if (foxySprint) { foxySprint.currentTime = 0;
-                            foxySprint.play().catch(function() {}); }
+                        if (foxySprint) {
+                            foxySprint.currentTime = 0;
+                            foxySprint.play().catch(function() {});
+                        }
                     }
-                    if (a.path[a.pos] === 'office') {
+                    if (a.path[a.pos] === 'doorW') {
                         a.pos = 0;
                         a.preventionTimer = 50 + Math.floor(Math.random() * 1001);
                         a.ignoreTicks = 0;
@@ -123,29 +125,77 @@ function tickFoxy(a) {
 // Freddy — rolls every 30 ticks (~3 s). Only moves when monitor is DOWN.
 // Freddy cannot leave the show stage until both Bonnie and Chica have moved.
 // ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Door-linger formula (moveTick cycles, reflects real FNAF1 behavior):
+//   AI 1–3  → 0–3 extra cycles → up to 20 s (Bonnie/Chica) / 12 s (Freddy)
+//   AI 4–7  → 0–2 extra cycles → up to 15 s / 9 s
+//   AI 8–11 → 0–1 extra cycle  → up to 10 s / 6 s
+//   AI 12+  → 0 extra           → exactly 1 cycle (5 s / 3 s)
+//   Death (>20) → 0 extra, faster tick
+// ---------------------------------------------------------------------------
+function _doorLingerCycles(ai) {
+    if (ai > 20) return 1; // death mode: 1 extra cycle (~3 s Freddy, ~2.5 s Bonnie/Chica)
+    return Math.floor(Math.random() * Math.max(1, 4 - Math.floor(ai / 4)));
+}
+
 function tickFreddy(a) {
     if (a.ai <= 0) return;
 
+    // Death mode (ai > 20): move twice as fast
+    var speedThreshold = a.ai > 20 ? 15 : 30;
+
     a.moveTick = (a.moveTick || 0) + 1;
-    if (a.moveTick < 30) return;
+    if (a.moveTick < speedThreshold) return;
     a.moveTick = 0;
 
-    if (monitorOpen) return;
+    var atDoor = (a.path[a.pos] === 'doorE');
 
-    // Cannot leave stage until Bonnie and Chica have moved off stage
-    if (a.pos === 0) {
-        var bonnieGone = animatronics.bonnie && animatronics.bonnie.pos > 0;
-        var chicaGone = animatronics.chica && animatronics.chica.pos > 0;
-        if (!bonnieGone || !chicaGone) return;
-    }
+    if (atDoor) {
+        // Initialise linger on first arrival at door
+        if (a.doorLinger === undefined) {
+            a.doorLinger = _doorLingerCycles(a.ai);
+            a.lingerCount = 0;
+            a.doorOpenGrace = 0;
+            a.prevDoorRight = game.doorRight;
+        }
 
-    var atCorner = (a.path[a.pos] === 'hallE_corner');
-    if (atCorner) {
-        if (!game.doorRight && a.pos < a.path.length - 1) a.pos++;
+        // Door just opened → give player one full cycle (5 s Bonnie/Chica, 3 s Freddy) grace
+        if (!game.doorRight && a.prevDoorRight) {
+            a.doorOpenGrace = 1;
+        }
+        a.prevDoorRight = game.doorRight;
+
+        if (a.doorOpenGrace > 0) { a.doorOpenGrace--; return; }
+
+        // Still lingering?
+        if (a.lingerCount < a.doorLinger) { a.lingerCount++; return; }
+
+        // Linger over — attempt entry or begin retreat
+        if (game.doorRight) {
+            a.cornerTicks = (a.cornerTicks || 0) + 1;
+            if (a.cornerTicks >= 5) {
+                a.cornerTicks = 0;
+                a.pos = Math.max(0, a.pos - 2);
+                a.doorLinger = undefined;
+            }
+        } else {
+            if (a.pos < a.path.length - 1) {
+                a.pos++;
+                a.doorLinger = undefined;
+            }
+        }
     } else {
+        a.doorLinger = undefined;
+        a.cornerTicks = 0;
+
+        // General movement — only when monitor is down
+        if (monitorOpen) return;
+        if (a.pos === 0) {
+            var bonnieGone = animatronics.bonnie && animatronics.bonnie.pos > 0;
+            var chicaGone = animatronics.chica && animatronics.chica.pos > 0;
+            if (!bonnieGone || !chicaGone) return;
+        }
         if (Math.floor(Math.random() * 20) < a.ai && a.pos < a.path.length - 1) {
-            var next = a.path[a.pos + 1];
-            if (next === 'office' && game.doorRight) return;
             a.pos++;
         }
     }
@@ -157,31 +207,66 @@ function tickFreddy(a) {
 function tickOther(key, a) {
     if (a.ai <= 0) return;
 
+    // Death mode (ai > 20): move twice as fast
+    var speedThreshold = a.ai > 20 ? 25 : 50;
+
     a.moveTick = (a.moveTick || 0) + 1;
-    if (a.moveTick < 50) return;
+    if (a.moveTick < speedThreshold) return;
     a.moveTick = 0;
 
-    var atCorner = (a.path[a.pos] === 'hallW_corner' ||
-        a.path[a.pos] === 'hallE_corner');
-    if (atCorner) {
+    var atDoor = (a.path[a.pos] === 'doorW' || a.path[a.pos] === 'doorE');
+
+    if (atDoor) {
+        // Initialise linger on first arrival at door
+        if (a.doorLinger === undefined) {
+            a.doorLinger = _doorLingerCycles(a.ai);
+            a.lingerCount = 0;
+            a.doorOpenGrace = 0;
+            var doorIsLeft = (a.path[a.pos] === 'doorW');
+            a.prevDoorBlocked = doorIsLeft ? game.doorLeft : game.doorRight;
+        }
+
         var doorBlocks = (key === 'bonnie' && game.doorLeft) ||
             (key === 'chica' && game.doorRight);
-        if (!doorBlocks && a.pos < a.path.length - 1) {
-            a.pos++;
-            _playGarble();
+        var prevBlocked = a.prevDoorBlocked;
+        a.prevDoorBlocked = doorBlocks;
+
+        // Door just opened → one full cycle grace
+        if (!doorBlocks && prevBlocked) { a.doorOpenGrace = 1; }
+
+        if (a.doorOpenGrace > 0) { a.doorOpenGrace--; return; }
+
+        // Still lingering?
+        if (a.lingerCount < a.doorLinger) { a.lingerCount++; return; }
+
+        // Linger over — attempt entry or begin retreat
+        if (doorBlocks) {
+            a.cornerTicks = (a.cornerTicks || 0) + 1;
+            if (a.cornerTicks >= 5) {
+                a.cornerTicks = 0;
+                a.pos = Math.max(0, a.pos - 2);
+                a.doorLinger = undefined;
+            }
+        } else {
+            if (a.pos < a.path.length - 1) {
+                a.pos++;
+                a.doorLinger = undefined;
+                _playGarble();
+            }
         }
     } else {
+        a.doorLinger = undefined;
+        a.cornerTicks = 0;
+
         if (Math.floor(Math.random() * 20) < a.ai && a.pos < a.path.length - 1) {
-            var next = a.path[a.pos + 1];
-            if (next === 'office') {
-                if (key === 'bonnie' && game.doorLeft) return;
-                if (key === 'chica' && game.doorRight) return;
-            }
             a.pos++;
             _playGarble();
         }
     }
 }
+
+var _prevLeftHallAnim = null,
+    _prevRightHallAnim = null;
 
 function updateHallAnimatronics() {
     if (!window.office3d) return;
@@ -189,9 +274,14 @@ function updateHallAnimatronics() {
         rightAnim = null;
     Object.values(animatronics).forEach(function(a) {
         var pos = a.path[a.pos];
-        if (pos === 'hallW_corner' || pos === 'hallW') leftAnim = a;
-        if (pos === 'hallE_corner' || pos === 'hallE') rightAnim = a;
+        if (pos === 'doorW' || pos === 'hallW_corner' || pos === 'hallW') leftAnim = a;
+        if (pos === 'doorE' || pos === 'hallE_corner' || pos === 'hallE') rightAnim = a;
     });
+    // Window scare: animatronic just arrived at the door while light is already on
+    if (leftAnim !== _prevLeftHallAnim && leftAnim && game.lightLeft) _checkWindowScare('left');
+    if (rightAnim !== _prevRightHallAnim && rightAnim && game.lightRight) _checkWindowScare('right');
+    _prevLeftHallAnim = leftAnim;
+    _prevRightHallAnim = rightAnim;
     window.office3d.setHallLeft(leftAnim ? leftAnim.color : null);
     window.office3d.setHallRight(rightAnim ? rightAnim.color : null);
 }

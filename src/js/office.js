@@ -8,13 +8,15 @@ function _checkWindowScare(side) {
     var animAtDoor = false;
     Object.values(animatronics).forEach(function(a) {
         var pos = a.path[a.pos];
-        if (side === 'left' && (pos === 'hallW_corner' || pos === 'hallW')) animAtDoor = true;
-        if (side === 'right' && (pos === 'hallE_corner' || pos === 'hallE')) animAtDoor = true;
+        if (side === 'left' && (pos === 'doorW' || pos === 'hallW_corner' || pos === 'hallW')) animAtDoor = true;
+        if (side === 'right' && (pos === 'doorE' || pos === 'hallE_corner' || pos === 'hallE')) animAtDoor = true;
     });
     if (animAtDoor) {
         var ws = document.getElementById('windowScareAudio');
-        if (ws) { ws.currentTime = 0;
-            ws.play().catch(function() {}); }
+        if (ws) {
+            ws.currentTime = 0;
+            ws.play().catch(function() {});
+        }
     }
 }
 
@@ -23,21 +25,9 @@ function toggleDoor(side) {
     if (side === 'left') {
         game.doorLeft = !game.doorLeft;
         if (window.office3d) window.office3d.setDoorLeft(game.doorLeft);
-        var btn = document.querySelector('.office-btn-door-left');
-        if (btn) {
-            btn.classList.toggle('active', game.doorLeft);
-            btn.classList.add('pressed');
-            setTimeout(function() { btn.classList.remove('pressed'); }, 120);
-        }
     } else {
         game.doorRight = !game.doorRight;
         if (window.office3d) window.office3d.setDoorRight(game.doorRight);
-        var btn2 = document.querySelector('.office-btn-door-right');
-        if (btn2) {
-            btn2.classList.toggle('active', game.doorRight);
-            btn2.classList.add('pressed');
-            setTimeout(function() { btn2.classList.remove('pressed'); }, 120);
-        }
     }
     var audio = document.getElementById('doorAudio');
     if (audio) {
@@ -50,26 +40,30 @@ function toggleLight(side) {
     if (!game.running || game.powerOutage) return;
     if (side === 'left') {
         game.lightLeft = !game.lightLeft;
-        var btn = document.querySelector('.office-btn-light-left');
-        if (btn) btn.classList.toggle('active', game.lightLeft);
-        if (btn) {
-            btn.classList.add('pressed');
-            setTimeout(function() { btn.classList.remove('pressed'); }, 120);
-        }
         if (window.office3d) window.office3d.setLightLeft(game.lightLeft);
     } else {
         game.lightRight = !game.lightRight;
-        var btn2 = document.querySelector('.office-btn-light-right');
-        if (btn2) btn2.classList.toggle('active', game.lightRight);
-        if (btn2) {
-            btn2.classList.add('pressed');
-            setTimeout(function() { btn2.classList.remove('pressed'); }, 120);
-        }
         if (window.office3d) window.office3d.setLightRight(game.lightRight);
     }
     // Check for window scare (animatronic at door)
     if (side === 'left' && game.lightLeft) _checkWindowScare('left');
     if (side === 'right' && game.lightRight) _checkWindowScare('right');
+    var lightAudio = document.getElementById('lightAudio');
+    if (lightAudio) {
+        lightAudio.currentTime = 0;
+        lightAudio.play().catch(function() {});
+    }
+    var lightOn = (side === 'left') ? game.lightLeft : game.lightRight;
+    var lightHum = document.getElementById('lightHumAudio');
+    if (lightHum) {
+        if (lightOn) {
+            lightHum.currentTime = 0;
+            lightHum.play().catch(function() {});
+        } else {
+            lightHum.pause();
+            lightHum.currentTime = 0;
+        }
+    }
 }
 
 function updateHUD() {
@@ -104,7 +98,7 @@ function updateHUD() {
 }
 
 function updateNightButtons() {
-    document.querySelectorAll('.nightBtn').forEach(function(btn, i) {
+    document.querySelectorAll('.nightBtn:not(.deathModeBtn)').forEach(function(btn, i) {
         var night = i + 1;
         if (unlockedNights.indexOf(night) >= 0) {
             btn.classList.remove('locked');

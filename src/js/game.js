@@ -7,32 +7,6 @@ function tickGame() {
 
     if (window.office3d) window.office3d.setMouse(mouseNormX);
 
-    // Button visibility based on camera rotation
-    if (window.office3d && !monitorOpen) {
-        var rotY = window.office3d.getRotation();
-        var BTN_THRESHOLD = 0.3;
-        var leftBtns = document.querySelectorAll('.office-btn-door-left, .office-btn-light-left');
-        var rightBtns = document.querySelectorAll('.office-btn-door-right, .office-btn-light-right');
-        leftBtns.forEach(function(b) {
-            if (rotY > BTN_THRESHOLD) {
-                b.classList.add('btn-visible');
-                b.classList.remove('btn-hidden');
-            } else {
-                b.classList.add('btn-hidden');
-                b.classList.remove('btn-visible');
-            }
-        });
-        rightBtns.forEach(function(b) {
-            if (rotY < -BTN_THRESHOLD) {
-                b.classList.add('btn-visible');
-                b.classList.remove('btn-hidden');
-            } else {
-                b.classList.add('btn-hidden');
-                b.classList.remove('btn-visible');
-            }
-        });
-    }
-
     game.time += 0.1;
     var hrs = game.time / 90;
     game.hour = Math.floor(hrs);
@@ -41,9 +15,9 @@ function tickGame() {
     var drain = 0.01;
     if (game.lightLeft) drain += 0.01;
     if (game.lightRight) drain += 0.01;
-    if (game.doorLeft) drain += 0.01;
-    if (game.doorRight) drain += 0.01;
-    if (monitorOpen) drain += 0.01;
+    if (game.doorLeft) drain += 0.018;
+    if (game.doorRight) drain += 0.018;
+    if (monitorOpen) drain += 0.013;
     game.power = Math.max(0, game.power - drain);
 
     // Ambient audio tension: volume increases as power decreases
@@ -79,40 +53,24 @@ function tickGame() {
         // Dim camera toggle — cameras are dead
         var ctBtnPO = document.getElementById('cameraToggleBtn');
         if (ctBtnPO) ctBtnPO.classList.add('disabled');
-        // Dim door/light buttons — no power
-        document.querySelectorAll('.office-btn').forEach(function(b) {
-            b.classList.remove('active');
-            b.classList.add('disabled');
-        });
         var po = document.getElementById('powerOutAudio');
         if (po) po.play().catch(function() {});
+        var lightHumPO = document.getElementById('lightHumAudio');
+        if (lightHumPO) { lightHumPO.pause();
+            lightHumPO.currentTime = 0; }
+        // Immediately black out the screen
+        var darkOverlay = document.getElementById('powerDarkOverlay');
+        if (darkOverlay) darkOverlay.classList.add('show');
     }
 
-    // Freddy power outage sequence:
-    // Phase 1 (0–10s): total darkness
-    // Phase 2 (10s+): Freddy appears in doorway with jingle
-    // Phase 3 (delay elapsed): jumpscare
+    // Freddy power outage sequence: screen goes dark, then jumpscare after ~1s
     if (game.powerOutage && game.powerOutageTime) {
         var elapsed = game.time - game.powerOutageTime;
         if (!game.powerOutageDelay) {
-            game.powerOutageDelay = 15 + Math.random() * 10;
+            game.powerOutageDelay = 0.8 + Math.random() * 0.5;
         }
-        var freddyOverlay = document.getElementById('freddyPowerOut');
-        // Phase 2: Show Freddy's face + play jingle after ~10s
-        if (elapsed >= 10 && !game.freddyJingleStarted) {
-            game.freddyJingleStarted = true;
-            if (freddyOverlay) freddyOverlay.classList.add('show');
-            var jingle = document.getElementById('freddyJingleAudio');
-            if (jingle) jingle.play().catch(function() {});
-        }
-        // Phase 3: Jumpscare after full delay
+        // Jumpscare after short delay
         if (elapsed >= game.powerOutageDelay) {
-            if (freddyOverlay) freddyOverlay.classList.remove('show');
-            var jingle2 = document.getElementById('freddyJingleAudio');
-            if (jingle2) {
-                jingle2.pause();
-                jingle2.currentTime = 0;
-            }
             triggerGameOver('FREDDY_POWER');
             return;
         }
@@ -182,6 +140,13 @@ function startGame(night) {
         a.ai = 0;
         a.moveTick = 0;
         a._n4roll = 0;
+        a.cornerTicks = 0;
+        a.doorEntryTimer = 0;
+        a.doorLinger = undefined;
+        a.lingerCount = 0;
+        a.doorOpenGrace = 0;
+        a.prevDoorRight = false;
+        a.prevDoorBlocked = false;
         if (a.timer !== undefined) a.timer = 0;
         // Reset Foxy-specific fields
         a.ignoreTicks = 0;
@@ -189,27 +154,6 @@ function startGame(night) {
         a.wasWatchingCam1c = false;
         a.wasMonitorOpen = false;
     });
-
-    var doorBtnLeft = document.querySelector('.office-btn-door-left');
-    var doorBtnRight = document.querySelector('.office-btn-door-right');
-    var lightBtnLeft = document.querySelector('.office-btn-light-left');
-    var lightBtnRight = document.querySelector('.office-btn-light-right');
-    if (doorBtnLeft) {
-        doorBtnLeft.classList.remove('active');
-        doorBtnLeft.classList.remove('disabled');
-    }
-    if (doorBtnRight) {
-        doorBtnRight.classList.remove('active');
-        doorBtnRight.classList.remove('disabled');
-    }
-    if (lightBtnLeft) {
-        lightBtnLeft.classList.remove('active');
-        lightBtnLeft.classList.remove('disabled');
-    }
-    if (lightBtnRight) {
-        lightBtnRight.classList.remove('active');
-        lightBtnRight.classList.remove('disabled');
-    }
 
     monitorOpen = false;
     var grid = document.getElementById('cameraGrid');
@@ -343,6 +287,9 @@ function triggerGameOver(msg) {
         ambient.pause();
         ambient.currentTime = 0;
     }
+    var lightHumGO = document.getElementById('lightHumAudio');
+    if (lightHumGO) { lightHumGO.pause();
+        lightHumGO.currentTime = 0; }
 
     var scare = document.getElementById('jumpScare');
     if (scare) {
@@ -369,6 +316,15 @@ function triggerGameOver(msg) {
         audio.play().catch(function() {});
     }
 
+    // Duration matched to each asset's animation length + generous hold
+    var scareDuration = 2800;
+    if (msg.indexOf('GOLDEN') >= 0) scareDuration = 4500;
+    else if (msg.indexOf('FREDDY_POWER') >= 0) scareDuration = 2400;
+    else if (msg.indexOf('BONNIE') >= 0) scareDuration = 1400;
+    else if (msg.indexOf('CHICA') >= 0) scareDuration = 1800;
+    else if (msg.indexOf('FOXY') >= 0) scareDuration = 2000;
+    else if (msg.indexOf('FREDDY') >= 0) scareDuration = 2800;
+
     setTimeout(function() {
         if (scare) {
             scare.classList.remove('show');
@@ -386,7 +342,7 @@ function triggerGameOver(msg) {
             else if (msg.indexOf('FOXY') >= 0) goMsg.textContent = 'FOXY BREACHED THE HALL!';
             else goMsg.textContent = msg;
         }
-    }, 2000);
+    }, scareDuration);
 }
 
 function returnToStart() {
@@ -399,6 +355,8 @@ function returnToStart() {
     // Clean up overlays
     var fpo = document.getElementById('freddyPowerOut');
     if (fpo) fpo.classList.remove('show');
+    var pdo = document.getElementById('powerDarkOverlay');
+    if (pdo) pdo.classList.remove('show');
     var gfo = document.getElementById('goldenFreddyOverlay');
     if (gfo) gfo.classList.remove('show');
     goldenFreddyActive = false;
@@ -448,10 +406,6 @@ function returnToStart() {
         ctBtn.classList.remove('active');
         ctBtn.classList.remove('disabled');
     }
-    // Re-enable office buttons that may have been disabled by power outage
-    document.querySelectorAll('.office-btn').forEach(function(b) {
-        b.classList.remove('disabled');
-    });
     updateNightButtons();
     updateStars();
 }

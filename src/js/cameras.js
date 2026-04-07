@@ -698,17 +698,32 @@ function drawCamera() {
         { x: w * 0.75, y: h * 0.65, scale: 1.0 },
         { x: w * 0.50, y: h * 0.55, scale: 0.75 }
     ];
-    var slotIdx = 0;
-    Object.values(animatronics).forEach(function(anim) {
-        // Skip Foxy on pirate cove — drawn by the special curtain-stage code in drawCamBg
-        if (anim.name === 'Foxy' && game.currentCam === 'pirate') return;
-        // Skip drawing on Kitchen — audio-only cam in FNAF1, always static noise
-        if (game.currentCam === 'kitchen') return;
-        if (anim.path && anim.path[anim.pos] === game.currentCam && slotIdx < slots.length) {
-            drawAnimatronic(anim, slots[slotIdx].x, slots[slotIdx].y, slots[slotIdx].scale);
-            slotIdx++;
-        }
-    });
+    // Stage cam: fixed positions — Bonnie left, Freddy centre, Chica right
+    if (game.currentCam === 'stage') {
+        var stageSlots = [
+            { key: 'bonnie', x: w * 0.22 },
+            { key: 'freddy', x: w * 0.50 },
+            { key: 'chica', x: w * 0.78 }
+        ];
+        stageSlots.forEach(function(sp) {
+            var a = animatronics[sp.key];
+            if (a && a.path[a.pos] === 'stage') {
+                drawAnimatronic(a, sp.x, h * 0.65, 1.0);
+            }
+        });
+    } else {
+        var slotIdx = 0;
+        Object.values(animatronics).forEach(function(anim) {
+            // Skip Foxy on pirate cove — drawn by the special curtain-stage code in drawCamBg
+            if (anim.name === 'Foxy' && game.currentCam === 'pirate') return;
+            // Skip drawing on Kitchen — audio-only cam in FNAF1, always static noise
+            if (game.currentCam === 'kitchen') return;
+            if (anim.path && anim.path[anim.pos] === game.currentCam && slotIdx < slots.length) {
+                drawAnimatronic(anim, slots[slotIdx].x, slots[slotIdx].y, slots[slotIdx].scale);
+                slotIdx++;
+            }
+        });
+    }
 
     var fontSize = Math.max(12, Math.floor(h * 0.045));
     camCtx.font = 'bold ' + fontSize + 'px Courier New';
@@ -860,6 +875,12 @@ function toggleMonitor() {
     } else {
         game.currentCam = 'office';
         if (camCtx && camCanvas) camCtx.clearRect(0, 0, camCanvas.width, camCanvas.height);
+        // Stop the camera static audio immediately when monitor closes
+        var camSfxStop = document.getElementById('camStaticAudio');
+        if (camSfxStop && !camSfxStop.paused) {
+            camSfxStop.pause();
+            camSfxStop.currentTime = 0;
+        }
         // Show office when monitor closes
         var officeEl2 = document.getElementById('officeArea');
         if (officeEl2) officeEl2.style.display = 'flex';

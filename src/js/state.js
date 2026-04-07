@@ -21,12 +21,12 @@ var game = {
 // Base AI values at midnight — sourced from decompiled FNAF1 game code (wiki Night 7 page)
 // In-night increments are applied in ai.js: Bonnie +1 at 2/3/4AM, Chica+Foxy +1 at 3/4AM, Freddy fixed
 var NIGHT_AI = {
-    1: { freddy: 0, bonnie: 0, chica: 0, foxy: 0 },
-    2: { freddy: 0, bonnie: 3, chica: 1, foxy: 1 },
-    3: { freddy: 1, bonnie: 0, chica: 5, foxy: 2 },
-    4: { freddy: 1, bonnie: 2, chica: 4, foxy: 6 }, // wiki: freddy is 1 or 2 randomized
-    5: { freddy: 3, bonnie: 5, chica: 7, foxy: 5 },
-    6: { freddy: 4, bonnie: 10, chica: 12, foxy: 6 },
+    1: { freddy: 0, bonnie: 1, chica: 1, foxy: 2 },
+    2: { freddy: 0, bonnie: 3, chica: 2, foxy: 3 },
+    3: { freddy: 1, bonnie: 2, chica: 5, foxy: 4 },
+    4: { freddy: 1, bonnie: 4, chica: 6, foxy: 8 }, // wiki: freddy is 1 or 2 randomized
+    5: { freddy: 3, bonnie: 7, chica: 9, foxy: 8 },
+    6: { freddy: 4, bonnie: 10, chica: 12, foxy: 10 },
     7: { freddy: 0, bonnie: 0, chica: 0, foxy: 0 } // Custom Night — overridden by sliders
 };
 
@@ -35,7 +35,7 @@ var animatronics = {
         name: 'Freddy',
         color: '#c8843a',
         pos: 0,
-        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE', 'hallE_corner', 'office'],
+        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE', 'hallE_corner', 'doorE', 'office'],
         ai: 0,
         moveTick: 0
     },
@@ -43,7 +43,7 @@ var animatronics = {
         name: 'Bonnie',
         color: '#9b59b6',
         pos: 0,
-        path: ['stage', 'backstage', 'dining', 'stage_left', 'hallW', 'hallW_corner', 'office'],
+        path: ['stage', 'backstage', 'dining', 'stage_left', 'hallW', 'hallW_corner', 'doorW', 'office'],
         ai: 0,
         moveTick: 0
     },
@@ -51,7 +51,7 @@ var animatronics = {
         name: 'Chica',
         color: '#f1c40f',
         pos: 0,
-        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE', 'hallE_corner', 'office'],
+        path: ['stage', 'dining', 'stage_right', 'kitchen', 'hallE', 'hallE_corner', 'doorE', 'office'],
         ai: 0,
         moveTick: 0
     },
@@ -59,8 +59,8 @@ var animatronics = {
         name: 'Foxy',
         color: '#e74c3c',
         pos: 0,
-        // Stages 0-2 = pirate cove phases, 3 = West Hall sprint, 4 = office attack
-        path: ['pirate', 'pirate', 'pirate', 'hallW', 'office'],
+        // Stages 0-2 = pirate cove phases, 3 = West Hall sprint, 4 = doorway, 5 = office
+        path: ['pirate', 'pirate', 'pirate', 'hallW', 'doorW', 'office'],
         ai: 0,
         ignoreTicks: 0,
         preventionTimer: 0, // grace ticks after monitor lowered (50-1050 ticks)

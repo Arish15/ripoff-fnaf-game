@@ -65,13 +65,24 @@
     <audio id="foxySprintAudio">
         <source src="src/assets/foxy_sprint.mp3" type="audio/mpeg">
     </audio>
+    <audio id="lightAudio">
+        <source src="src/assets/light.mp3" type="audio/mpeg">
+        <source src="src/assets/light.ogg" type="audio/ogg">
+    </audio>
+    <audio id="lightHumAudio" loop>
+        <source src="src/assets/ACTUAL_LIGHT_SOUND.mp3" type="audio/mpeg">
+    </audio>
     <audio id="goldenFreddyScareAudio">
         <source src="src/assets/golden_freddy.ogg" type="audio/ogg">
     </audio>
 
     <!-- Phone Guy Messages Overlay -->
     <div id="phoneGuyOverlay" class="phone-guy-overlay">
-        <div class="phone-guy-icon">&#9742;</div>
+        <div class="phone-guy-header">
+            <div class="phone-guy-icon">&#9742;</div>
+            <span class="phone-guy-caller">Phone Guy — Incoming Call</span>
+            <button class="phone-guy-mute" onclick="window.hidePhoneGuy && window.hidePhoneGuy()" title="End Call">&#x1F507; MUTE</button>
+        </div>
         <div class="phone-guy-text" id="phoneGuyText"></div>
     </div>
 
@@ -92,6 +103,7 @@
             <button class="nightBtn" onclick="window.startGame && window.startGame(6)">Night 6</button>
         </div>
         <button class="nightBtn customNightBtn" onclick="window.showCustomNight && window.showCustomNight()">Custom Night</button>
+        <button class="nightBtn deathModeBtn" onclick="window.startDeathMode && window.startDeathMode()">&#9760; DEATH MODE &#9760;</button>
         <div class="star-display" id="starDisplay"></div>
 
         <!-- Custom Night Setup Screen -->
@@ -145,14 +157,6 @@
     <div id="officeArea">
         <!-- Three.js renders here; office3d.js populates this div -->
         <div id="officeScene"></div>
-
-        <!-- Door buttons (left) -->
-        <button class="office-btn office-btn-door-left" onclick="window.toggleDoor && window.toggleDoor('left')">DOOR</button>
-        <button class="office-btn office-btn-light-left" onclick="window.toggleLight && window.toggleLight('left')">LIGHT</button>
-
-        <!-- Door buttons (right) -->
-        <button class="office-btn office-btn-door-right" onclick="window.toggleDoor && window.toggleDoor('right')">DOOR</button>
-        <button class="office-btn office-btn-light-right" onclick="window.toggleLight && window.toggleLight('right')">LIGHT</button>
 
         <!-- Vignette overlay -->
         <div class="office-vignette"></div>
@@ -241,6 +245,9 @@
         <div id="nightIntroText">Night 1</div>
     </div>
 
+    <!-- Power outage darkness overlay -->
+    <div id="powerDarkOverlay"></div>
+
     <!-- Freddy Power Outage Overlay (doorway silhouette) -->
     <div id="freddyPowerOut">
         <div id="freddyPowerOutFace">
@@ -293,15 +300,15 @@
         </div>
     </div>
 
-    <script src="src/js/sounds.js?v=20260402"></script>
-    <script src="src/js/office3d.js?v=20260302"></script>
-    <script src="src/js/state.js?v=20260302"></script>
-    <script src="src/js/assets.js?v=20260302"></script>
-    <script src="src/js/office.js?v=20260302"></script>
-    <script src="src/js/cameras.js?v=20260302"></script>
-    <script src="src/js/ai.js?v=20260302"></script>
-    <script src="src/js/extras.js?v=20260302"></script>
-    <script src="src/js/game.js?v=20260302"></script>
+    <script src="src/js/sounds.js?v=20260405"></script>
+    <script src="src/js/office3d.js?v=20260405"></script>
+    <script src="src/js/state.js?v=20260405"></script>
+    <script src="src/js/assets.js?v=20260405"></script>
+    <script src="src/js/office.js?v=20260408"></script>
+    <script src="src/js/cameras.js?v=20260405"></script>
+    <script src="src/js/ai.js?v=20260408"></script>
+    <script src="src/js/extras.js?v=20260405"></script>
+    <script src="src/js/game.js?v=20260408"></script>
 
 </body>
 
