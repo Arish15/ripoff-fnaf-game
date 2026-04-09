@@ -56,8 +56,10 @@ function tickGame() {
         var po = document.getElementById('powerOutAudio');
         if (po) po.play().catch(function() {});
         var lightHumPO = document.getElementById('lightHumAudio');
-        if (lightHumPO) { lightHumPO.pause();
-            lightHumPO.currentTime = 0; }
+        if (lightHumPO) {
+            lightHumPO.pause();
+            lightHumPO.currentTime = 0;
+        }
         // Immediately black out the screen
         var darkOverlay = document.getElementById('powerDarkOverlay');
         if (darkOverlay) darkOverlay.classList.add('show');
@@ -113,6 +115,11 @@ function startGame(night) {
     if (unlockedNights.indexOf(night) < 0) return;
 
     game.running = true;
+    gameOverTriggered = false;
+    if (gameOverTimeout) { clearTimeout(gameOverTimeout);
+        gameOverTimeout = null; }
+    var goScreen0 = document.getElementById('gameOverScreen');
+    if (goScreen0) goScreen0.classList.remove('show');
     game.currentNight = night;
     game.time = 0;
     game.hour = 0;
@@ -276,7 +283,8 @@ function nextNight() {
 }
 
 function triggerGameOver(msg) {
-    if (!game.running) return;
+    if (!game.running || gameOverTriggered) return;
+    gameOverTriggered = true;
     game.running = false;
     if (gameLoop) {
         clearInterval(gameLoop);
@@ -288,8 +296,10 @@ function triggerGameOver(msg) {
         ambient.currentTime = 0;
     }
     var lightHumGO = document.getElementById('lightHumAudio');
-    if (lightHumGO) { lightHumGO.pause();
-        lightHumGO.currentTime = 0; }
+    if (lightHumGO) {
+        lightHumGO.pause();
+        lightHumGO.currentTime = 0;
+    }
 
     var scare = document.getElementById('jumpScare');
     if (scare) {
@@ -325,7 +335,9 @@ function triggerGameOver(msg) {
     else if (msg.indexOf('FOXY') >= 0) scareDuration = 2000;
     else if (msg.indexOf('FREDDY') >= 0) scareDuration = 2800;
 
-    setTimeout(function() {
+    if (gameOverTimeout) { clearTimeout(gameOverTimeout); }
+    gameOverTimeout = setTimeout(function() {
+        gameOverTimeout = null;
         if (scare) {
             scare.classList.remove('show');
             scare.className = '';
@@ -347,6 +359,9 @@ function triggerGameOver(msg) {
 
 function returnToStart() {
     game.running = false;
+    gameOverTriggered = false;
+    if (gameOverTimeout) { clearTimeout(gameOverTimeout);
+        gameOverTimeout = null; }
     monitorOpen = false;
     if (gameLoop) {
         clearInterval(gameLoop);

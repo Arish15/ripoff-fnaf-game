@@ -113,6 +113,8 @@ function updateStars() {
 //  PHONE GUY
 // ─────────────────────────────────────────────
 var _pgTypewriter = null; // setInterval handle for typewriter
+var _pgAudio = null; // currently playing phone-call audio element
+var _pgEndHandler = null; // 'ended' listener so we can remove it cleanly
 
 function showPhoneGuy(night) {
     var msg = PHONE_MESSAGES[night];
@@ -127,16 +129,27 @@ function showPhoneGuy(night) {
     textEl.textContent = '';
     overlay.classList.add('show');
 
+    // Start the matching audio recording if the file is present
+    var audio = document.getElementById('phoneGuyAudio' + night);
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(function() {});
+        _pgAudio = audio;
+    }
+
     // Typewriter: ~28ms per character ≈ 35 chars/sec
     var i = 0;
     _pgTypewriter = setInterval(function() {
         if (i >= msg.length) {
             clearInterval(_pgTypewriter);
             _pgTypewriter = null;
-            // Auto-dismiss 8s after typing finishes
-            phoneGuyTimer = setTimeout(function() {
-                if (overlay) overlay.classList.remove('show');
-            }, 8000);
+            // If audio is still playing, dismiss when audio ends; otherwise 8 s fallback
+            if (_pgAudio && !_pgAudio.paused && !_pgAudio.ended) {
+                _pgEndHandler = function() { hidePhoneGuy(); };
+                _pgAudio.addEventListener('ended', _pgEndHandler, { once: true });
+            } else {
+                phoneGuyTimer = setTimeout(function() { hidePhoneGuy(); }, 8000);
+            }
             return;
         }
         textEl.textContent += msg[i];
@@ -156,6 +169,15 @@ function hidePhoneGuy() {
     if (phoneGuyTimer) {
         clearTimeout(phoneGuyTimer);
         phoneGuyTimer = 0;
+    }
+    if (_pgAudio) {
+        if (_pgEndHandler) {
+            _pgAudio.removeEventListener('ended', _pgEndHandler);
+            _pgEndHandler = null;
+        }
+        _pgAudio.pause();
+        _pgAudio.currentTime = 0;
+        _pgAudio = null;
     }
     var textEl = document.getElementById('phoneGuyText');
     if (textEl) textEl.textContent = '';

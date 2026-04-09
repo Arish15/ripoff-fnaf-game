@@ -75,6 +75,23 @@
     <audio id="goldenFreddyScareAudio">
         <source src="src/assets/golden_freddy.ogg" type="audio/ogg">
     </audio>
+    <!-- Phone Guy call recordings — drop phoneguy_night1.mp3 … phoneguy_night4.mp3 into src/assets/ -->
+    <audio id="phoneGuyAudio1">
+        <source src="src/assets/phoneguy_night1.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night1.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio2">
+        <source src="src/assets/phoneguy_night2.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night2.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio3">
+        <source src="src/assets/phoneguy_night3.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night3.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio4">
+        <source src="src/assets/phoneguy_night4.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night4.ogg" type="audio/ogg">
+    </audio>
 
     <!-- Phone Guy Messages Overlay -->
     <div id="phoneGuyOverlay" class="phone-guy-overlay">
@@ -183,44 +200,43 @@
          - Corners (2B, 4B) near office at bottom
          - YOU marker at bottom-center -->
     <div id="cameraGrid">
-        <!-- Invisible clickable overlays positioned on map label boxes -->
-        <!-- All buttons: uniform 13% × 10%, centered in rooms, no overlaps -->
+        <!-- Invisible clickable overlays aligned to label-box positions in camera_map.png (400×400 → 360×360) -->
 
-        <!-- Show Stage (CAM 1A) — top center -->
-        <button class="camBtn" data-cam="stage" style="left:27.5%;top:4%;width:13%;height:10%"></button>
+        <!-- Show Stage (CAM 1A) — top center bump room -->
+        <button class="camBtn" data-cam="stage" style="left:27%;top:1%;width:15%;height:8%"></button>
 
-        <!-- Dining Area (CAM 1B) — center, below stage -->
-        <button class="camBtn" data-cam="dining" style="left:27.5%;top:19%;width:13%;height:10%"></button>
+        <!-- Dining Area (CAM 1B) — large central room -->
+        <button class="camBtn" data-cam="dining" style="left:22%;top:12%;width:15%;height:9%"></button>
 
         <!-- Backstage (CAM 5) — far left -->
-        <button class="camBtn" data-cam="backstage" style="left:1.5%;top:25%;width:13%;height:10%"></button>
+        <button class="camBtn" data-cam="backstage" style="left:0%;top:11%;width:13%;height:9%"></button>
 
-        <!-- Restrooms (CAM 7) — far right -->
-        <button class="camBtn" data-cam="stage_right" style="left:79.5%;top:22%;width:13%;height:10%"></button>
+        <!-- Restrooms (CAM 7) — far right upper -->
+        <button class="camBtn" data-cam="stage_right" style="left:72%;top:9%;width:15%;height:9%"></button>
 
-        <!-- Pirate Cove (CAM 1C) — left, middle -->
-        <button class="camBtn" data-cam="pirate" style="left:10.5%;top:38%;width:13%;height:10%"></button>
+        <!-- Pirate Cove (CAM 1C) — center-left (staggered from backstage/supply) -->
+        <button class="camBtn" data-cam="pirate" style="left:10%;top:30%;width:15%;height:9%"></button>
 
-        <!-- Supply Closet (CAM 3) — left, lower-middle -->
-        <button class="camBtn" data-cam="stage_left" style="left:6.5%;top:60%;width:13%;height:10%"></button>
+        <!-- Kitchen (CAM 6) — far right lower -->
+        <button class="camBtn" data-cam="kitchen" style="left:72%;top:41%;width:15%;height:9%"></button>
 
-        <!-- Kitchen (CAM 6) — far right, middle -->
-        <button class="camBtn" data-cam="kitchen" style="left:79.5%;top:56%;width:13%;height:10%"></button>
+        <!-- Supply Closet (CAM 3) — far left lower -->
+        <button class="camBtn" data-cam="stage_left" style="left:1%;top:52%;width:14%;height:9%"></button>
 
-        <!-- W. Hall (CAM 2A) — center-left, lower area -->
-        <button class="camBtn" data-cam="hallW" style="left:25.5%;top:67%;width:13%;height:10%"></button>
+        <!-- W. Hall (CAM 2A) — center-left corridor upper -->
+        <button class="camBtn" data-cam="hallW" style="left:22%;top:60%;width:16%;height:9%"></button>
 
-        <!-- E. Hall (CAM 4A) — center-right, lower area -->
-        <button class="camBtn" data-cam="hallE" style="left:48.5%;top:67%;width:13%;height:10%"></button>
+        <!-- E. Hall (CAM 4A) — center-right corridor upper -->
+        <button class="camBtn" data-cam="hallE" style="left:46%;top:60%;width:16%;height:9%"></button>
 
-        <!-- W. Hall Corner (CAM 2B) — center-left, near bottom -->
-        <button class="camBtn" data-cam="hallW_corner" style="left:25.5%;top:79%;width:13%;height:10%"></button>
+        <!-- W. Hall Corner (CAM 2B) — center-left corridor lower -->
+        <button class="camBtn" data-cam="hallW_corner" style="left:22%;top:71%;width:16%;height:9%"></button>
 
-        <!-- E. Hall Corner (CAM 4B) — center-right, near bottom -->
-        <button class="camBtn" data-cam="hallE_corner" style="left:48.5%;top:79%;width:13%;height:10%"></button>
+        <!-- E. Hall Corner (CAM 4B) — center-right corridor lower -->
+        <button class="camBtn" data-cam="hallE_corner" style="left:46%;top:71%;width:16%;height:9%"></button>
 
-        <!-- YOU marker — center bottom (the office) -->
-        <div class="cam-you" style="left:35.5%;top:91%;width:13%;height:7%;padding:2px">YOU<span class="cam-you-dot"></span></div>
+        <!-- YOU marker — office at bottom center -->
+        <div class="cam-you" style="left:31%;top:83%;width:16%;height:8%;padding:2px">YOU<span class="cam-you-dot"></span></div>
     </div>
 
     <!-- Power & Usage Display - Bottom Left Fixed (FNAF1 style) -->
@@ -301,12 +317,12 @@
     </div>
 
     <script src="src/js/sounds.js?v=20260405"></script>
-    <script src="src/js/office3d.js?v=20260405"></script>
+    <script src="src/js/office3d.js?v=20260408b"></script>
     <script src="src/js/state.js?v=20260405"></script>
     <script src="src/js/assets.js?v=20260405"></script>
     <script src="src/js/office.js?v=20260408"></script>
-    <script src="src/js/cameras.js?v=20260405"></script>
-    <script src="src/js/ai.js?v=20260408"></script>
+    <script src="src/js/cameras.js?v=20260413"></script>
+    <script src="src/js/ai.js?v=20260410"></script>
     <script src="src/js/extras.js?v=20260405"></script>
     <script src="src/js/game.js?v=20260408"></script>
 

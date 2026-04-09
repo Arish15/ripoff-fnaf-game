@@ -159,7 +159,7 @@ function tickFreddy(a) {
             a.prevDoorRight = game.doorRight;
         }
 
-        // Door just opened → give player one full cycle (5 s Bonnie/Chica, 3 s Freddy) grace
+        // Door just opened → give player one full cycle grace
         if (!game.doorRight && a.prevDoorRight) {
             a.doorOpenGrace = 1;
         }
@@ -173,9 +173,9 @@ function tickFreddy(a) {
         // Linger over — attempt entry or begin retreat
         if (game.doorRight) {
             a.cornerTicks = (a.cornerTicks || 0) + 1;
-            if (a.cornerTicks >= 5) {
+            if (a.cornerTicks >= 2) {
                 a.cornerTicks = 0;
-                a.pos = Math.max(0, a.pos - 2);
+                a.pos = Math.max(0, a.pos - (1 + Math.floor(Math.random() * 2))); // retreat 1-2 steps
                 a.doorLinger = undefined;
             }
         } else {
@@ -242,9 +242,9 @@ function tickOther(key, a) {
         // Linger over — attempt entry or begin retreat
         if (doorBlocks) {
             a.cornerTicks = (a.cornerTicks || 0) + 1;
-            if (a.cornerTicks >= 5) {
+            if (a.cornerTicks >= 2) {
                 a.cornerTicks = 0;
-                a.pos = Math.max(0, a.pos - 2);
+                a.pos = Math.max(0, a.pos - (1 + Math.floor(Math.random() * 2))); // retreat 1-2 steps
                 a.doorLinger = undefined;
             }
         } else {

@@ -1159,16 +1159,28 @@
             bwStripe.rotation.y = Math.PI;
             stripeTex.repeat.set(7, 1);
             scene.add(bwStripe);
-            // Clone texture for sides (different repeat)
+            // Clone texture for sides — split into two segments to skip door gap (z=-sZ..+sZ)
             function wallStripe(x, ry) {
-                var tex2 = new THREE.CanvasTexture(cv);
-                tex2.wrapS = tex2.wrapT = THREE.RepeatWrapping;
-                tex2.repeat.set(6, 1);
-                var m = new THREE.Mesh(new THREE.PlaneGeometry(18, 1.8),
-                    new THREE.MeshLambertMaterial({ map: tex2 }));
-                m.position.set(x, 0.9, 0);
-                m.rotation.y = ry;
-                scene.add(m);
+                var segLen = HD - sZ; // 7 units per segment
+                var segRep = segLen / 18 * 6; // same tile density as original (≈2.33)
+                // Back segment: z = -(HD+sZ)/2 = -5.5
+                var texA = new THREE.CanvasTexture(cv);
+                texA.wrapS = texA.wrapT = THREE.RepeatWrapping;
+                texA.repeat.set(segRep, 1);
+                var mA = new THREE.Mesh(new THREE.PlaneGeometry(segLen, 1.8),
+                    new THREE.MeshLambertMaterial({ map: texA }));
+                mA.position.set(x, 0.9, -(HD + sZ) / 2);
+                mA.rotation.y = ry;
+                scene.add(mA);
+                // Front segment: z = +(HD+sZ)/2 = +5.5
+                var texB = new THREE.CanvasTexture(cv);
+                texB.wrapS = texB.wrapT = THREE.RepeatWrapping;
+                texB.repeat.set(segRep, 1);
+                var mB = new THREE.Mesh(new THREE.PlaneGeometry(segLen, 1.8),
+                    new THREE.MeshLambertMaterial({ map: texB }));
+                mB.position.set(x, 0.9, (HD + sZ) / 2);
+                mB.rotation.y = ry;
+                scene.add(mB);
             }
             wallStripe(-HW + 0.38, Math.PI / 2);
             wallStripe(HW - 0.38, -Math.PI / 2);
@@ -1615,67 +1627,103 @@
         var b = wallBtns[id];
         if (!b) return;
         var ctx = b.ctx,
-            w = b.canvas.width,
-            h = b.canvas.height;
-        // Background panel
-        ctx.fillStyle = b.active ? '#0b1d10' : '#111115';
-        ctx.fillRect(0, 0, w, h);
-        // Outer border
-        ctx.strokeStyle = '#444';
-        ctx.lineWidth = 5;
-        ctx.strokeRect(3, 3, w - 6, h - 6);
-        // Inner bevel
-        ctx.strokeStyle = '#222';
-        ctx.lineWidth = 2;
-        ctx.strokeRect(9, 9, w - 18, h - 18);
-        // Green fill overlay when active
-        if (b.active) {
-            ctx.fillStyle = 'rgba(0,200,80,0.06)';
-            ctx.fillRect(10, 10, w - 20, h - 20);
-        }
-        // Indicator bulb
-        var bx = w - 34,
-            by = 30,
-            br = 15;
-        var grad = ctx.createRadialGradient(bx, by - 4, 2, bx, by, br);
-        if (b.active) {
-            grad.addColorStop(0, '#ccffdd');
-            grad.addColorStop(0.45, '#22dd55');
-            grad.addColorStop(1, '#004411');
-        } else {
-            grad.addColorStop(0, '#cc5555');
-            grad.addColorStop(0.45, '#881111');
-            grad.addColorStop(1, '#330000');
-        }
-        ctx.beginPath();
-        ctx.arc(bx, by, br, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
-        ctx.strokeStyle = b.active ? '#44aa66' : '#552222';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        // Label text
-        ctx.fillStyle = b.active ? '#88ffaa' : '#999999';
-        ctx.font = 'bold ' + Math.floor(h * 0.32) + 'px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(b.label, w / 2, h * 0.65);
-        // Corner rivet dots
-        var rv = [
-            [14, 14],
-            [w - 14, 14],
-            [14, h - 14],
-            [w - 14, h - 14]
-        ];
-        rv.forEach(function(p) {
-            ctx.fillStyle = '#333';
+            W = b.canvas.width,
+            H = b.canvas.height;
+
+        // ── Outer housing — dark charcoal wall plate ──
+        ctx.fillStyle = '#1c1c20';
+        ctx.fillRect(0, 0, W, H);
+
+        // Mounting-plate screw holes (four corners)
+        [
+            [10, 10],
+            [W - 10, 10],
+            [10, H - 10],
+            [W - 10, H - 10]
+        ].forEach(function(p) {
+            ctx.fillStyle = '#2e2e34';
             ctx.beginPath();
-            ctx.arc(p[0], p[1], 5, 0, Math.PI * 2);
+            ctx.arc(p[0], p[1], 6, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = '#555';
+            ctx.strokeStyle = '#111';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(p[0], p[1], 6, 0, Math.PI * 2);
+            ctx.stroke();
+            // Philips-head groove hint
+            ctx.strokeStyle = '#181818';
             ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(p[0] - 3, p[1]);
+            ctx.lineTo(p[0] + 3, p[1]);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(p[0], p[1] - 3);
+            ctx.lineTo(p[0], p[1] + 3);
             ctx.stroke();
         });
+
+        // ── Recessed backing recess ──
+        var rx = 20,
+            ry = 20,
+            rw = W - 40,
+            rh = H - 40;
+        ctx.fillStyle = '#141418';
+        ctx.fillRect(rx, ry, rw, rh);
+
+        // ── Button face — raised rectangular paddle ──
+        var fx = rx + 12,
+            fy = ry + 10,
+            fw = rw - 24,
+            fh = rh - 20;
+        // Face base colour: off-white/cream normally; pale green tint when active
+        ctx.fillStyle = b.active ? '#c8e8d0' : '#d4cfc0';
+        ctx.fillRect(fx, fy, fw, fh);
+
+        // Raised-edge bevel: bright top/left, dark bottom/right
+        ctx.fillStyle = 'rgba(255,255,255,0.45)';
+        ctx.fillRect(fx, fy, fw, 3); // top highlight
+        ctx.fillRect(fx, fy, 3, fh); // left highlight
+        ctx.fillStyle = 'rgba(0,0,0,0.40)';
+        ctx.fillRect(fx, fy + fh - 3, fw, 3); // bottom shadow
+        ctx.fillRect(fx + fw - 3, fy, 3, fh); // right shadow
+
+        // Active glow wash
+        if (b.active) {
+            var glow = ctx.createRadialGradient(fx + fw / 2, fy + fh / 2, 0, fx + fw / 2, fy + fh / 2, fw * 0.7);
+            glow.addColorStop(0, 'rgba(60,220,100,0.28)');
+            glow.addColorStop(1, 'rgba(60,220,100,0)');
+            ctx.fillStyle = glow;
+            ctx.fillRect(fx, fy, fw, fh);
+        }
+
+        // ── Small indicator LED (top-right of face) ──
+        var lx = fx + fw - 14,
+            ly = fy + 12,
+            lr = 7;
+        var lg = ctx.createRadialGradient(lx, ly - 2, 1, lx, ly, lr);
+        if (b.active) {
+            lg.addColorStop(0, '#ddffee');
+            lg.addColorStop(0.5, '#22cc55');
+            lg.addColorStop(1, '#003a10');
+        } else {
+            lg.addColorStop(0, '#553333');
+            lg.addColorStop(0.5, '#220000');
+            lg.addColorStop(1, '#110000');
+        }
+        ctx.beginPath();
+        ctx.arc(lx, ly, lr, 0, Math.PI * 2);
+        ctx.fillStyle = lg;
+        ctx.fill();
+
+        // ── Label ──
+        var isDoor = (b.label === 'DOOR');
+        ctx.fillStyle = b.active ? '#1a4a28' : '#3a3428';
+        ctx.font = 'bold ' + Math.floor(fh * 0.42) + 'px Arial Black, Arial, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(b.label, fx + fw / 2, fy + fh * 0.60);
+
         b.tex.needsUpdate = true;
     }
 

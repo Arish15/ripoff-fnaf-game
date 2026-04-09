@@ -71,6 +71,8 @@ var animatronics = {
 
 var unlockedNights = [1];
 var gameLoop = null;
+var gameOverTimeout = null;
+var gameOverTriggered = false;
 var monitorOpen = false;
 var mouseNormX = 0.5;
 var lastAiTick = 0;
@@ -84,25 +86,52 @@ var phoneGuyTimer = 0; // ticks until phone guy message disappears
 
 // ─────────────────────────────────────────────
 //  PROGRESS PERSISTENCE
+//  Primary:  localStorage  (device storage, NOT browser cache)
+//  Backup:   cookie with 1-year expiry
+//  On load:  tries localStorage first → falls back to cookie
+//  On save:  always writes BOTH so either source survives a clear
 // ─────────────────────────────────────────────
 
+function _cookieGet(name) {
+    var match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
+    return match ? decodeURIComponent(match[1]) : null;
+}
+
+function _cookieSet(name, value) {
+    var expires = new Date();
+    expires.setFullYear(expires.getFullYear() + 1);
+    document.cookie = name + '=' + encodeURIComponent(value) +
+        '; expires=' + expires.toUTCString() + '; path=/; SameSite=Strict';
+}
+
 function loadProgress() {
-    try {
-        var raw = localStorage.getItem('fnafProgress');
-        if (raw) {
+    var raw = null;
+
+    // 1. Try localStorage (primary — device storage, not cache)
+    try { raw = localStorage.getItem('fnafProgress'); } catch (e) {}
+
+    // 2. Fall back to cookie if localStorage is empty or unavailable
+    if (!raw) {
+        try { raw = _cookieGet('fnafProgress'); } catch (e) {}
+    }
+
+    if (raw) {
+        try {
             var arr = JSON.parse(raw);
             if (Array.isArray(arr) && arr.length) {
                 unlockedNights = arr.filter(function(n) { return n >= 1 && n <= 7; });
-                if (!unlockedNights.length) unlockedNights = [1];
-                return;
+                if (unlockedNights.length) return;
             }
-        }
-    } catch (e) {}
+        } catch (e) {}
+    }
     unlockedNights = [1];
 }
 
 function saveProgress() {
-    try { localStorage.setItem('fnafProgress', JSON.stringify(unlockedNights)); } catch (e) {}
+    var data = JSON.stringify(unlockedNights);
+    // Write to BOTH so progress survives clearing either one independently
+    try { localStorage.setItem('fnafProgress', data); } catch (e) {}
+    try { _cookieSet('fnafProgress', data); } catch (e) {}
 }
 
 window.gameState = game;
