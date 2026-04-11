@@ -1,7 +1,13 @@
 /**
  * FNAF Game — Main Controller
+ * Handles: game loop, power drain, HUD updates, UI state, game-over triggers
  */
 
+/**
+ * Main game tick — runs every 100ms (10 times per second)
+ * Handles: time progression, power drain, AI ticks, collision checks, HUD updates
+ * Called by: setInterval(tickGame, 100) in startGame()
+ */
 function tickGame() {
     if (!game.running) return;
 
@@ -69,8 +75,10 @@ function tickGame() {
             var fpo = document.getElementById('freddyPowerOut');
             if (fpo) fpo.classList.add('show');
             var jingle = document.getElementById('freddyJingleAudio');
-            if (jingle) { jingle.currentTime = 0;
-                jingle.play().catch(function() {}); }
+            if (jingle) {
+                jingle.currentTime = 0;
+                jingle.play().catch(function() {});
+            }
         }, 500);
     }
 
@@ -120,6 +128,13 @@ function tickGame() {
     if (game.hour >= 6 || game.time >= 540) endNight();
 }
 
+/**
+ * Initialize and start a night
+ * @param {number} night - Night to start (1-7, where 7 is Custom Night)
+ * Resets all game state, animatronics, and displays the office
+ * Sets up the 100ms game loop and ambient audio
+ * Called by: HTML onclick (startGame button), nextNight()
+ */
 function startGame(night) {
     if (unlockedNights.indexOf(night) < 0) return;
 
@@ -246,6 +261,11 @@ function startGame(night) {
     updateHUD();
 }
 
+/**
+ * End the current night and display completion screen
+ * Unlocks next night if not already unlocked
+ * Called by: tickGame() when hour >= 6 (6 AM reached)
+ */
 function endNight() {
     game.running = false;
     if (gameLoop) {
@@ -286,6 +306,10 @@ function endNight() {
     }
 }
 
+/**
+ * Proceed to next night or return to start screen
+ * Called by: HTML onclick (nextNight button after endNight screen)
+ */
 function nextNight() {
     document.getElementById('nightCompleteScreen').classList.remove('show');
     if (game.currentNight >= 7) returnToStart();
@@ -293,6 +317,13 @@ function nextNight() {
     else startGame(game.currentNight + 1);
 }
 
+/**
+ * Trigger game-over sequence (jumpscare + end screen)
+ * @param {string} msg - Animatronic name/event triggering jumpscare
+ *                      (e.g., 'FREDDY', 'BONNIE', 'FOXY', 'GOLDEN FREDDY', 'FREDDY_POWER')
+ * Used for: animatronic collision, power outage, golden freddy timeout
+ * Called by: checkCollisions(), tickGame() (power outage), game.js
+ */
 function triggerGameOver(msg) {
     if (!game.running || gameOverTriggered) return;
     gameOverTriggered = true;
@@ -312,8 +343,10 @@ function triggerGameOver(msg) {
         lightHumGO.currentTime = 0;
     }
     var jingleGO = document.getElementById('freddyJingleAudio');
-    if (jingleGO) { jingleGO.pause();
-        jingleGO.currentTime = 0; }
+    if (jingleGO) {
+        jingleGO.pause();
+        jingleGO.currentTime = 0;
+    }
     var fpoGO = document.getElementById('freddyPowerOut');
     if (fpoGO) fpoGO.classList.remove('show');
 
@@ -373,6 +406,11 @@ function triggerGameOver(msg) {
     }, scareDuration);
 }
 
+/**
+ * Return to start screen — clean up all game state and overlays
+ * Stops game loop, clears animatronics, and resets UI
+ * Called by: HTML onclick (restart button), nextNight() on final nights
+ */
 function returnToStart() {
     game.running = false;
     gameOverTriggered = false;
@@ -476,11 +514,6 @@ document.addEventListener('DOMContentLoaded', function() {
             var cam = this.getAttribute('data-cam');
             if (cam) switchCam(cam);
         });
-    });
-
-    document.querySelectorAll('.nightBtn').forEach(function(btn, i) {
-        var night = i + 1;
-        btn.addEventListener('click', function() { startGame(night); });
     });
 
     document.querySelectorAll('.retryBtn').forEach(function(btn, i) {

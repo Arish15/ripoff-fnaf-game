@@ -1,7 +1,22 @@
 /**
  * FNAF Game — State & Constants
+ * @typedef {Object} GameState
+ * @property {boolean} running - Is the game currently active?
+ * @property {number} currentNight - Current night (1-7, where 7 is Custom Night)
+ * @property {number} time - Game time in ticks (0-540; 100ms per tick at 100ms tickGame)
+ * @property {number} hour - Parsed hour (0-5 for 12AM-5AM)
+ * @property {number} minute - Parsed minute (0-59)
+ * @property {number} power - Remaining power percentage (0-100)
+ * @property {boolean} doorLeft - Left hall door closed?
+ * @property {boolean} doorRight - Right hall door closed?
+ * @property {boolean} lightLeft - Left hall light on?
+ * @property {boolean} lightRight - Right hall light on?
+ * @property {string} currentCam - Current camera key (one of CAM_LABELS keys)
+ * @property {string} lastCam - Previous camera key for UI updates
+ * @property {boolean} powerOutage - Power cut out (6 AM sequence active)?
  */
 
+/** @type {GameState} */
 var game = {
     running: false,
     currentNight: 1,
@@ -20,6 +35,16 @@ var game = {
 
 // Base AI values at midnight — sourced from decompiled FNAF1 game code (wiki Night 7 page)
 // In-night increments are applied in ai.js: Bonnie +1 at 2/3/4AM, Chica+Foxy +1 at 3/4AM, Freddy fixed
+
+/**
+ * @typedef {Object} AILevel
+ * @property {number} freddy - Freddy AI difficulty (0-20)
+ * @property {number} bonnie - Bonnie AI difficulty (0-20)
+ * @property {number} chica - Chica AI difficulty (0-20)
+ * @property {number} foxy - Foxy AI difficulty (0-20)
+ */
+
+/** @type {Object<number, AILevel>} */
 var NIGHT_AI = {
     1: { freddy: 0, bonnie: 1, chica: 1, foxy: 2 },
     2: { freddy: 0, bonnie: 3, chica: 2, foxy: 3 },
@@ -31,6 +56,15 @@ var NIGHT_AI = {
 };
 
 var animatronics = {
+    /**
+     * @typedef {Object} Animatronic
+     * @property {string} name - Display name ('Freddy', 'Bonnie', 'Chica', 'Foxy')
+     * @property {string} color - Hex color for 3D silhouette (#c8843a, #9b59b6, #f1c40f, #e74c3c)
+     * @property {number} pos - Current position index in path[] (0 = start, path.length-1 = office)
+     * @property {string[]} path - Array of camera keys representing progression route
+     * @property {number} ai - Current effective AI level after in-night increments (0-20)
+     * @property {number} moveTick - Counter for 50-tick AI windows (0 = ready to roll)
+     */
     freddy: {
         name: 'Freddy',
         color: '#c8843a',
@@ -92,11 +126,23 @@ var phoneGuyTimer = 0; // ticks until phone guy message disappears
 //  On save:  always writes BOTH so either source survives a clear
 // ─────────────────────────────────────────────
 
+/**
+ * Get a cookie value by name
+ * @param {string} name - Cookie name
+ * @returns {string|null} Cookie value or null if not found
+ * @private
+ */
 function _cookieGet(name) {
     var match = document.cookie.match('(?:^|; )' + name + '=([^;]*)');
     return match ? decodeURIComponent(match[1]) : null;
 }
 
+/**
+ * Set a cookie with 1-year expiry
+ * @param {string} name - Cookie name
+ * @param {string} value - Cookie value
+ * @private
+ */
 function _cookieSet(name, value) {
     var expires = new Date();
     expires.setFullYear(expires.getFullYear() + 1);
@@ -104,6 +150,10 @@ function _cookieSet(name, value) {
         '; expires=' + expires.toUTCString() + '; path=/; SameSite=Strict';
 }
 
+/**
+ * Load unlocked nights from localStorage (primary) or cookie (fallback)
+ * Sets unlockedNights = [1] if neither source has valid data
+ */
 function loadProgress() {
     var raw = null;
 
@@ -127,6 +177,10 @@ function loadProgress() {
     unlockedNights = [1];
 }
 
+/**
+ * Save unlocked nights to BOTH localStorage and cookie
+ * This ensures progress survives clearing either storage independently
+ */
 function saveProgress() {
     var data = JSON.stringify(unlockedNights);
     // Write to BOTH so progress survives clearing either one independently

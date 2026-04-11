@@ -12,6 +12,12 @@
  */
 
 // ── Garble sound: plays when an animatronic moves while camera is open ──
+
+/**
+ * Play a random garble sound (static/distortion) when animatronic moves on camera
+ * Only plays if monitorOpen === true
+ * @private
+ */
 function _playGarble() {
     if (!monitorOpen) return;
     var id = Math.random() < 0.5 ? 'garble1Audio' : 'garble2Audio';
@@ -22,6 +28,11 @@ function _playGarble() {
     }
 }
 
+/**
+ * Main AI tick for all animatronics each game loop
+ * Applies in-night AI increments, then ticks each animatronic
+ * @param {AILevel} ai - Base AI levels for the current night (from NIGHT_AI)
+ */
 function tickAnimatronics(ai) {
     // Apply in-night AI increments on top of base values
     // Custom Night (7): no increments — use slider values directly
@@ -64,6 +75,11 @@ function tickAnimatronics(ai) {
 //   • Viewing CAM 1C (pirate) on the FIRST frame pushes Foxy back one stage.
 //   • 4 stages total: pirate×3 (curtain phases) → hallW (sprint) → office.
 // ---------------------------------------------------------------------------
+
+/**
+ * Foxy AI tick — unique mechanics (monitor-dependent progression)
+ * @param {Animatronic} a - Foxy animatronic state object
+ */
 function tickFoxy(a) {
     var watchingCam1c = (monitorOpen && game.currentCam === 'pirate');
     var justStartedWatchingCam1c = watchingCam1c && !a.wasWatchingCam1c;

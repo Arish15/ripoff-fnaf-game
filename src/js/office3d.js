@@ -1,7 +1,21 @@
 ﻿/**
  * office3d.js - Three.js 3D office for FNAF
  * Requires Three.js loaded via CDN before this file.
- * Exposes window.office3d = { init, setDoorLeft, setDoorRight, setMouse, show, hide, resize }
+ * 
+ * Public API exposed as window.office3d:
+ * @typedef {Object} Office3D
+ * @property {function} init - Initialize Three.js scene and renderer
+ * @property {function(boolean)} setDoorLeft - Close/open left hall door
+ * @property {function(boolean)} setDoorRight - Close/open right hall door
+ * @property {function(number)} setMouse - Update camera head rotation (0..1 → normalized X position)
+ * @property {function(boolean)} setLightLeft - Toggle left hall light visibility
+ * @property {function(boolean)} setLightRight - Toggle right hall light visibility
+ * @property {function(string|null)} setHallLeft - Set left hall animatronic silhouette color (hex) or null to clear
+ * @property {function(string|null)} setHallRight - Set right hall animatronic silhouette color (hex) or null to clear
+ * @property {function():number} getRotation - Get current camera Y rotation in radians
+ * @property {function} show - Make office visible
+ * @property {function} hide - Hide office
+ * @property {function} resize - Recalculate canvas/viewport on window resize
  *
  * Room layout (units):
  *   Width  X: -11 to +11  (22 wide)
@@ -1497,6 +1511,7 @@
 
     function animate() {
         animId = requestAnimationFrame(animate);
+        if (!renderer || !scene || !camera) return;
 
         var edge = 0.28,
             target;

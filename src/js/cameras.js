@@ -1,11 +1,18 @@
 /**
  * FNAF Game — Camera System
+ * Handles camera feed rendering, display switching, and overlay effects
  */
 
+/** @type {CanvasRenderingContext2D} */
 var camCanvas, camCtx;
 var camStaticTimer = 0;
 var monitorCloseTimeout = null;
 
+/**
+ * Camera key → display label mapping
+ * Each key corresponds to a camera feed drawable via drawCamBg()
+ * @type {Object<string, string>}
+ */
 var CAM_LABELS = {
     stage: 'CAM 1A - SHOW STAGE',
     dining: 'CAM 1B - DINING AREA',
@@ -24,6 +31,12 @@ var CAM_LABELS = {
 // CCTV overlay — applied after every camera background.
 // Adds scanlines, radial vignette, green tint, and subtle grain.
 // ---------------------------------------------------------------------------
+
+/**
+ * Draw surveillance monitor overlay effects: scanlines, vignette, grain, glitch bars
+ * @param {number} w - Canvas width
+ * @param {number} h - Canvas height
+ */
 function drawCamOverlay(w, h) {
     var c = camCtx;
 
@@ -77,6 +90,19 @@ function drawCamOverlay(w, h) {
 // x1L/x1R: left and right x at the NEAR edge (botY).
 // numRows/numCols: tile grid density.
 // ---------------------------------------------------------------------------
+
+/**
+ * Draw perspective-correct checkerboard on a trapezoid floor (e.g., hallway)
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {number} x0L - Left x at far edge (top)
+ * @param {number} x0R - Right x at far edge (top)
+ * @param {number} x1L - Left x at near edge (bottom)
+ * @param {number} x1R - Right x at near edge (bottom)
+ * @param {number} topY - Y coordinate of far edge
+ * @param {number} botY - Y coordinate of near edge
+ * @param {number} numRows - Number of rows (depth divisions)
+ * @param {number} numCols - Number of columns (width divisions)
+ */
 function perspTileFloor(ctx, x0L, x0R, x1L, x1R, topY, botY, numRows, numCols) {
     var fH = botY - topY;
     // Geometric row heights — far rows small (at topY), near rows large (at botY)
@@ -1326,8 +1352,10 @@ function toggleMonitor() {
             camSfx.play().catch(function() {});
         }
         // Hide office behind monitor (cancel any pending reveal)
-        if (monitorCloseTimeout) { clearTimeout(monitorCloseTimeout);
-            monitorCloseTimeout = null; }
+        if (monitorCloseTimeout) {
+            clearTimeout(monitorCloseTimeout);
+            monitorCloseTimeout = null;
+        }
         var officeEl = document.getElementById('officeArea');
         if (officeEl) officeEl.style.display = 'none';
     } else {

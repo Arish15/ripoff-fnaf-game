@@ -9,6 +9,14 @@
     'use strict';
 
     // ── WAV encoder ──────────────────────────────────────────
+
+    /**
+     * Encode Float32Array samples to WAV blob (44.1kHz, 16-bit mono)
+     * @param {Float32Array} samples - Audio sample data (-1 to 1 range)
+     * @param {number} sampleRate - Sample rate (Hz)
+     * @returns {Blob} WAV blob ready for playback
+     * @private
+     */
     function encodeWAV(samples, sampleRate) {
         var numCh = 1;
         var bitsPerSample = 16;
@@ -43,6 +51,15 @@
     }
 
     // ── Render helper: runs an OfflineAudioContext and returns Float32Array ──
+
+    /**
+     * Render audio offline using Web Audio API
+     * @param {number} duration - Duration in seconds
+     * @param {number} sampleRate - Sample rate (Hz, typically 44100)
+     * @param {function} buildGraph - Callback(ctx, destination, duration) to build audio graph
+     * @returns {Promise<Float32Array>} Promise resolving to rendered audio samples
+     * @private
+     */
     function renderSound(duration, sampleRate, buildGraph) {
         var len = Math.ceil(duration * sampleRate);
         var ctx = new OfflineAudioContext(1, len, sampleRate);

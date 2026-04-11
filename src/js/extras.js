@@ -6,6 +6,8 @@
 // ─────────────────────────────────────────────
 //  PHONE GUY MESSAGES (full canonical scripts)
 // ─────────────────────────────────────────────
+
+/** @type {Object<number, string>} Phone Guy messages for each night (1-6) */
 var PHONE_MESSAGES = {
     1: "Uh, hello? Hello, hello? Uh, I wanted to record a message for you to help you get settled in on your first night. Um, I actually worked in that office before you. I'm finishing up my last week now, as a matter of fact. So, I know it can be a bit overwhelming, but I'm here to tell you there's nothing to worry about. Uh, you'll do fine! So, let's just focus on getting you through your first week. Okay?\n\nUh, let's see, first there's an introductory greeting from the company that I'm supposed to read. Uh, it's kind of a legal thing, you know. Um, 'Welcome to Freddy Fazbear's Pizza. A magical place for kids and grown-ups alike, where fantasy and fun come to life. Fazbear Entertainment is not responsible for damage to property or person. Upon discovering that damage or death has occurred, a missing persons report will not be filed within 90 days, and a general safety and security report will not be issued.'\n\nUh, that's — that's all. So, um, let's move on! Uh, so the animatronic characters here do get a bit quirky at night. But do I blame them? No! If I were forced to sing those same stupid songs for twenty years and I never got a bath? I'd probably be a bit irritable at night too. So, remember, these characters hold a special place in the hearts of children and we need to show them a little respect, right? Okay.\n\nSo just be aware, the characters do tend to wander a bit. Uh, they're left in some kind of free-roaming mode at night. Uh, something about their servos locking up if they get turned off for too long. Uh, we can't get the parts to fix 'em. Uh, they used to be allowed to walk around during the day too. But then there was The Bite of '87. Yeah. I-It's amazing that the human body can live without the frontal lobe, you know?\n\nUh, now concerning your safety — the only real risk to you as a night watchman here, if you were to allow yourself to be seen by the animatronics in their free-roaming mode, is being stuffed into a Freddy Fazbear suit. Um, now that wouldn't be so bad if the suits were in good condition, but they're not. So, just avoid being seen or make sure that the characters don't walk into your office, okay?\n\nUm, the doors are to your left and to your right. You have two lights, uh, one for each door. There's also a fan in your office — helps with the, uh, smell in there. Um, just hang tight. I'll talk to you again tomorrow night. Okay? Bye-bye.",
 
@@ -23,16 +25,30 @@ var PHONE_MESSAGES = {
 // ─────────────────────────────────────────────
 //  CUSTOM NIGHT
 // ─────────────────────────────────────────────
+
+/**
+ * Display Custom Night difficulty setup screen
+ */
 function showCustomNight() {
     var setup = document.getElementById('customNightSetup');
     if (setup) setup.classList.add('show');
 }
 
+/**
+ * Hide Custom Night difficulty setup screen
+ */
 function hideCustomNight() {
     var setup = document.getElementById('customNightSetup');
     if (setup) setup.classList.remove('show');
 }
 
+/**
+ * Set all sliders to a preset difficulty
+ * @param {number} f - Freddy AI (0-20)
+ * @param {number} b - Bonnie AI (0-20)
+ * @param {number} c - Chica AI (0-20)
+ * @param {number} fx - Foxy AI (0-20)
+ */
 function setCustomPreset(f, b, c, fx) {
     var sf = document.getElementById('aiFreddy');
     var sb = document.getElementById('aiBonnie');
@@ -250,14 +266,26 @@ function showPhoneGuy(night) {
         textEl.scrollTop = textEl.scrollHeight;
     }, 28);
 
-    // ── Audio: file → TTS → silent fallback ──
+    // ── Audio: attempt file first, fall back to TTS if source missing/unsupported ──
     var audioEl = document.getElementById('phoneGuyAudio' + night);
-    var fileLoaded = audioEl && audioEl.readyState >= 2; // HAVE_CURRENT_DATA or better
-
-    if (fileLoaded) {
-        // Actual recording file is present — use it
+    if (audioEl && audioEl.querySelector('source')) {
         audioEl.currentTime = 0;
-        audioEl.play().catch(function() { _useTTSFallback(night); });
+        var playPromise = audioEl.play();
+        if (playPromise !== undefined) {
+            playPromise.then(function() {
+                // File is playing — hide typewriter text (the recording IS the show)
+                clearInterval(_pgTypewriter);
+                _pgTypewriter = null;
+                textEl.textContent = '';
+            }).catch(function(err) {
+                // NotSupportedError = no valid source file on disk; anything else = autoplay block etc.
+                if (err.name === 'NotSupportedError' || err.name === 'NotAllowedError') {
+                    _useTTSFallback(night);
+                } else {
+                    _useTTSFallback(night);
+                }
+            });
+        }
         _pgAudio = audioEl;
         _pgEndHandler = function() { hidePhoneGuy(); };
         audioEl.addEventListener('ended', _pgEndHandler, { once: true });
@@ -285,10 +313,14 @@ function hidePhoneGuy() {
     var overlay = document.getElementById('phoneGuyOverlay');
     if (overlay) overlay.classList.remove('show');
 
-    if (_pgTypewriter) { clearInterval(_pgTypewriter);
-        _pgTypewriter = null; }
-    if (phoneGuyTimer) { clearTimeout(phoneGuyTimer);
-        phoneGuyTimer = 0; }
+    if (_pgTypewriter) {
+        clearInterval(_pgTypewriter);
+        _pgTypewriter = null;
+    }
+    if (phoneGuyTimer) {
+        clearTimeout(phoneGuyTimer);
+        phoneGuyTimer = 0;
+    }
 
     if (_pgAudio) {
         if (_pgEndHandler) {
