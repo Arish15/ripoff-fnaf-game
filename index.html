@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <!-- Three.js r152 — served locally (CDN path for r163 doesn't exist) -->
     <script src="src/js/three.min.js"></script>
 </head>
+
 <body>
     <!-- Audio Assets — drop matching files into src/assets/ to enable sound -->
     <audio id="doorAudio">
@@ -24,10 +26,96 @@
         <source src="src/assets/powerout.mp3" type="audio/mpeg">
         <source src="src/assets/powerout.ogg" type="audio/ogg">
     </audio>
+    <audio id="freddyJingleAudio" loop>
+        <source src="src/assets/freddyjingle.mp3" type="audio/mpeg">
+        <source src="src/assets/freddyjingle.ogg" type="audio/ogg">
+    </audio>
     <audio id="successAudio">
         <source src="src/assets/success.mp3" type="audio/mpeg">
         <source src="src/assets/success.ogg" type="audio/ogg">
     </audio>
+    <audio id="ambientAudio" loop>
+        <source src="src/assets/ambient.mp3" type="audio/mpeg">
+        <source src="src/assets/ambient.ogg" type="audio/ogg">
+    </audio>
+    <audio id="foxyRunAudio">
+        <source src="src/assets/foxyrun.mp3" type="audio/mpeg">
+        <source src="src/assets/foxyrun.ogg" type="audio/ogg">
+    </audio>
+    <audio id="freddyLaughAudio">
+        <source src="src/assets/freddylaugh.mp3" type="audio/mpeg">
+        <source src="src/assets/freddylaugh.ogg" type="audio/ogg">
+    </audio>
+    <audio id="camStaticAudio">
+        <source src="src/assets/camstatic.mp3" type="audio/mpeg">
+        <source src="src/assets/camstatic.ogg" type="audio/ogg">
+    </audio>
+    <audio id="camChangeAudio">
+        <source src="src/assets/lightswitch.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="garble1Audio">
+        <source src="src/assets/garble1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="garble2Audio">
+        <source src="src/assets/garble2.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="windowScareAudio">
+        <source src="src/assets/windowscare.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="foxySprintAudio">
+        <source src="src/assets/foxy_sprint.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="lightAudio">
+        <source src="src/assets/light.mp3" type="audio/mpeg">
+        <source src="src/assets/light.ogg" type="audio/ogg">
+    </audio>
+    <audio id="lightHumAudio" loop>
+        <source src="src/assets/ACTUAL_LIGHT_SOUND.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="goldenFreddyScareAudio">
+        <source src="src/assets/golden_freddy.ogg" type="audio/ogg">
+    </audio>
+    <!-- Phone Guy call recordings — drop phoneguy_night1.mp3 … phoneguy_night6.mp3 into src/assets/
+         If no file is present for a night the game falls back to Web Speech API (browser TTS). -->
+    <audio id="phoneGuyAudio1">
+        <source src="src/assets/phoneguy_night1.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night1.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio2">
+        <source src="src/assets/phoneguy_night2.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night2.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio3">
+        <source src="src/assets/phoneguy_night3.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night3.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio4">
+        <source src="src/assets/phoneguy_night4.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night4.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio5">
+        <source src="src/assets/phoneguy_night5.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night5.ogg" type="audio/ogg">
+    </audio>
+    <audio id="phoneGuyAudio6">
+        <source src="src/assets/phoneguy_night6.mp3" type="audio/mpeg">
+        <source src="src/assets/phoneguy_night6.ogg" type="audio/ogg">
+    </audio>
+
+    <!-- Phone Guy Messages Overlay -->
+    <div id="phoneGuyOverlay" class="phone-guy-overlay">
+        <div class="phone-guy-header">
+            <div class="phone-guy-icon">&#9742;</div>
+            <span class="phone-guy-caller">Phone Guy — Incoming Call</span>
+            <button class="phone-guy-mute" onclick="window.hidePhoneGuy && window.hidePhoneGuy()" title="End Call">&#x1F507; MUTE</button>
+        </div>
+        <div class="phone-guy-text" id="phoneGuyText"></div>
+    </div>
+
+    <!-- IT'S ME Hallucination Flash -->
+    <div id="hallucinationOverlay" class="hallucination-overlay">
+        <span class="hallucination-text">IT'S ME</span>
+    </div>
 
     <div id="startScreen">
         <h1 id="title">FIVE NIGHTS<br>AT FREDDY'S</h1>
@@ -40,45 +128,54 @@
             <button class="nightBtn" onclick="window.startGame && window.startGame(5)">Night 5</button>
             <button class="nightBtn" onclick="window.startGame && window.startGame(6)">Night 6</button>
         </div>
+        <button class="nightBtn customNightBtn" onclick="window.showCustomNight && window.showCustomNight()">Custom Night</button>
+        <button class="nightBtn deathModeBtn" onclick="window.startDeathMode && window.startDeathMode()">&#9760; DEATH MODE &#9760;</button>
+        <div class="star-display" id="starDisplay"></div>
+
+        <!-- Custom Night Setup Screen -->
+        <div id="customNightSetup" class="custom-night-setup">
+            <h2 class="custom-night-title">CUSTOM NIGHT</h2>
+            <p class="custom-night-subtitle">Set AI difficulty for each animatronic (0–20)</p>
+            <div class="custom-night-sliders">
+                <div class="ai-slider-group">
+                    <label class="ai-label" style="color:#c8843a">FREDDY</label>
+                    <input type="range" min="0" max="20" value="0" class="ai-slider" id="aiFreddy">
+                    <span class="ai-value" id="aiFreddyVal">0</span>
+                </div>
+                <div class="ai-slider-group">
+                    <label class="ai-label" style="color:#9b59b6">BONNIE</label>
+                    <input type="range" min="0" max="20" value="0" class="ai-slider" id="aiBonnie">
+                    <span class="ai-value" id="aiBonnieVal">0</span>
+                </div>
+                <div class="ai-slider-group">
+                    <label class="ai-label" style="color:#f1c40f">CHICA</label>
+                    <input type="range" min="0" max="20" value="0" class="ai-slider" id="aiChica">
+                    <span class="ai-value" id="aiChicaVal">0</span>
+                </div>
+                <div class="ai-slider-group">
+                    <label class="ai-label" style="color:#e74c3c">FOXY</label>
+                    <input type="range" min="0" max="20" value="0" class="ai-slider" id="aiFoxy">
+                    <span class="ai-value" id="aiFoxyVal">0</span>
+                </div>
+            </div>
+            <div class="custom-night-presets">
+                <button class="preset-btn" onclick="window.setCustomPreset && window.setCustomPreset(20,20,20,20)">20/20/20/20</button>
+                <button class="preset-btn" onclick="window.setCustomPreset && window.setCustomPreset(0,0,0,0)">ALL ZERO</button>
+            </div>
+            <div class="custom-night-actions">
+                <button class="nightBtn" onclick="window.startCustomNight && window.startCustomNight()">START</button>
+                <button class="nightBtn" onclick="window.hideCustomNight && window.hideCustomNight()">BACK</button>
+            </div>
+        </div>
     </div>
 
     <div id="gameContainer">
-        <!-- Monitor Area with Controls and Time Display -->
-        <div id="monitorArea">
-            <!-- Time Display Top-Right -->
-            <div id="timeDisplay">12:00 AM</div>
+    </div>
 
-            <!-- Center Camera Monitor -->
-            <div id="monitorStand">
-                <canvas id="cameraCanvas"></canvas>
-            </div>
-        </div>
-
-        <!-- Control Panels - Always Visible -->
-        <div id="controlPanelArea">
-            <!-- Left Control Panel -->
-            <div id="leftPanel">
-                <button class="controlBtn door" id="btnDL" onclick="window.toggleDoor && window.toggleDoor('left')">
-                    <div class="btnLabel">DOOR</div>
-                    <div class="btnStatus" id="dlStatus">OPEN</div>
-                </button>
-                <button class="controlBtn light" id="btnLL" onclick="window.toggleLight && window.toggleLight('left')">
-                    <div class="btnLabel">LIGHT</div>
-                    <div class="btnStatus" id="llStatus">ON</div>
-                </button>
-            </div>
-
-            <!-- Right Control Panel -->
-            <div id="rightPanel">
-                <button class="controlBtn door" id="btnDR" onclick="window.toggleDoor && window.toggleDoor('right')">
-                    <div class="btnLabel">DOOR</div>
-                    <div class="btnStatus" id="drStatus">OPEN</div>
-                </button>
-                <button class="controlBtn light" id="btnLR" onclick="window.toggleLight && window.toggleLight('right')">
-                    <div class="btnLabel">LIGHT</div>
-                    <div class="btnStatus" id="lrStatus">ON</div>
-                </button>
-            </div>
+    <!-- Monitor Area — outside gameContainer so z-index 70 is in the root stacking context -->
+    <div id="monitorArea">
+        <div id="monitorStand">
+            <canvas id="cameraCanvas"></canvas>
         </div>
     </div>
 
@@ -86,14 +183,6 @@
     <div id="officeArea">
         <!-- Three.js renders here; office3d.js populates this div -->
         <div id="officeScene"></div>
-
-        <!-- Door buttons (left) -->
-        <button class="office-btn office-btn-door-left" onclick="window.toggleDoor && window.toggleDoor('left')">DOOR</button>
-        <button class="office-btn office-btn-light-left" onclick="window.toggleLight && window.toggleLight('left')">LIGHT</button>
-
-        <!-- Door buttons (right) -->
-        <button class="office-btn office-btn-door-right" onclick="window.toggleDoor && window.toggleDoor('right')">DOOR</button>
-        <button class="office-btn office-btn-light-right" onclick="window.toggleLight && window.toggleLight('right')">LIGHT</button>
 
         <!-- Vignette overlay -->
         <div class="office-vignette"></div>
@@ -109,45 +198,102 @@
         </span>
     </button>
 
-    <!-- Hidden Camera Grid - Shows on button click -->
+    <!-- Hidden Camera Grid - FNAF1-style floor plan layout (matches actual game map)
+         Positions based on the actual FNAF1 restaurant schematic:
+         - Show Stage (1A) at top-center
+         - Backstage (5) far-left, Restrooms (7) far-right
+         - Dining Area (1B) center below stage
+         - Pirate Cove (1C) left-center
+         - Supply Closet (3) left, Kitchen (6) far-right
+         - Hallways (2A, 4A) converging center
+         - Corners (2B, 4B) near office at bottom
+         - YOU marker at bottom-center -->
     <div id="cameraGrid">
-        <button class="camBtn" data-cam="stage">1A</button>
-        <button class="camBtn" data-cam="stage_left">2A</button>
-        <button class="camBtn" data-cam="stage_right">2B</button>
-        <button class="camBtn" data-cam="dining">1B</button>
-        <button class="camBtn" data-cam="kitchen">4B</button>
-        <button class="camBtn" data-cam="backstage">5</button>
-        <button class="camBtn" data-cam="pirate">1C</button>
-        <button class="camBtn" data-cam="hallW">2A</button>
-        <button class="camBtn" data-cam="hallE">3</button>
-        <button class="camBtn" data-cam="hallW_corner">4A</button>
-        <button class="camBtn" data-cam="hallE_corner">4B</button>
+        <!-- Invisible clickable overlays aligned to label-box positions in camera_map.png (400×400 → 360×360) -->
+
+        <!-- Show Stage (CAM 1A) — top center bump room -->
+        <button class="camBtn" data-cam="stage" style="left:27%;top:1%;width:15%;height:8%"></button>
+
+        <!-- Dining Area (CAM 1B) — large central room -->
+        <button class="camBtn" data-cam="dining" style="left:22%;top:12%;width:15%;height:9%"></button>
+
+        <!-- Backstage (CAM 5) — far left -->
+        <button class="camBtn" data-cam="backstage" style="left:0%;top:11%;width:13%;height:9%"></button>
+
+        <!-- Restrooms (CAM 7) — far right upper -->
+        <button class="camBtn" data-cam="stage_right" style="left:72%;top:9%;width:15%;height:9%"></button>
+
+        <!-- Pirate Cove (CAM 1C) — center-left (staggered from backstage/supply) -->
+        <button class="camBtn" data-cam="pirate" style="left:10%;top:30%;width:15%;height:9%"></button>
+
+        <!-- Kitchen (CAM 6) — far right lower -->
+        <button class="camBtn" data-cam="kitchen" style="left:72%;top:41%;width:15%;height:9%"></button>
+
+        <!-- Supply Closet (CAM 3) — far left lower -->
+        <button class="camBtn" data-cam="stage_left" style="left:1%;top:52%;width:14%;height:9%"></button>
+
+        <!-- W. Hall (CAM 2A) — center-left corridor upper -->
+        <button class="camBtn" data-cam="hallW" style="left:22%;top:60%;width:16%;height:9%"></button>
+
+        <!-- E. Hall (CAM 4A) — center-right corridor upper -->
+        <button class="camBtn" data-cam="hallE" style="left:46%;top:60%;width:16%;height:9%"></button>
+
+        <!-- W. Hall Corner (CAM 2B) — center-left corridor lower -->
+        <button class="camBtn" data-cam="hallW_corner" style="left:22%;top:71%;width:16%;height:9%"></button>
+
+        <!-- E. Hall Corner (CAM 4B) — center-right corridor lower -->
+        <button class="camBtn" data-cam="hallE_corner" style="left:46%;top:71%;width:16%;height:9%"></button>
+
+        <!-- YOU marker — office at bottom center -->
+        <div class="cam-you" style="left:31%;top:83%;width:16%;height:8%;padding:2px">YOU<span class="cam-you-dot"></span></div>
     </div>
 
-    <!-- Power & Usage Display - Bottom Left Fixed -->
+    <!-- Power & Usage Display - Bottom Left Fixed (FNAF1 style) -->
     <div id="powerArea">
-        <div id="powerDisplay">100%</div>
-        <div class="usageContainer">
-            <div class="usageBar" id="barLights">
-                <div class="usageLabel">L</div>
-                <div class="usageBarBg"><div class="usageBarFill" id="usageLights"></div></div>
-            </div>
-            <div class="usageBar" id="barDoors">
-                <div class="usageLabel">D</div>
-                <div class="usageBarBg"><div class="usageBarFill" id="usageDoors"></div></div>
-            </div>
-            <div class="usageBar" id="barCamera">
-                <div class="usageLabel">C</div>
-                <div class="usageBarBg"><div class="usageBarFill" id="usageCamera"></div></div>
-            </div>
+        <div id="powerLabel">Power left: <span id="powerDisplay">100</span>%</div>
+        <div id="usageArea">
+            <span id="usageLabel">Usage:</span>
+            <span class="usage-block" id="usageBlock1"></span>
+            <span class="usage-block" id="usageBlock2"></span>
+            <span class="usage-block" id="usageBlock3"></span>
+            <span class="usage-block" id="usageBlock4"></span>
+            <span class="usage-block" id="usageBlock5"></span>
         </div>
     </div>
 
+    <!-- Time Display - always visible top-right -->
+    <div id="timeDisplay">12 AM</div>
+    <div id="nightDisplay">NIGHT 1</div>
+
+    <!-- Night Intro Overlay -->
+    <div id="nightIntro">
+        <div id="nightIntroText">Night 1</div>
+    </div>
+
+    <!-- Power outage darkness overlay -->
+    <div id="powerDarkOverlay"></div>
+
+    <!-- Freddy Power Outage Overlay (doorway silhouette) -->
+    <div id="freddyPowerOut">
+        <div id="freddyPowerOutFace">
+            <div class="freddy-eye freddy-eye-left"></div>
+            <div class="freddy-eye freddy-eye-right"></div>
+        </div>
+    </div>
+
+    <!-- Golden Freddy Overlay (slumped in office) -->
+    <div id="goldenFreddyOverlay">
+        <div class="golden-freddy-text">IT'S ME</div>
+    </div>
+
+    <!-- Jumpscare Flash (independent so it shows before game over screen) -->
+    <div id="jumpScare"></div>
+
     <!-- Game Over Screen -->
     <div id="gameOverScreen">
-        <div id="jumpScare"></div>
         <div id="gameOverContent">
             <h1>GAME OVER</h1>
+            <div id="gameOverMessage"></div>
             <button class="retryBtn" onclick="window.returnToStart && window.returnToStart()">MAIN MENU</button>
             <button class="retryBtn" onclick="window.startGame && window.startGame(window.gameState?.currentNight || 1)">RETRY</button>
         </div>
@@ -157,14 +303,38 @@
     <div id="nightCompleteScreen">
         <div id="nightCompleteContent">
             <h1>6:00 AM</h1>
-            <div id="nightCompleteMessage">YOU SURVIVED THE NIGHT.</div>
+            <div id="nightCompleteMessage">YAY!, YOU SURVIVED THE NIGHT.</div>
             <button class="nextBtn" onclick="window.nextNight && window.nextNight()">CONTINUE</button>
             <button class="nextBtn" onclick="window.returnToStart && window.returnToStart()">MAIN MENU</button>
         </div>
     </div>
 
-    <script src="src/js/office3d.js?v=20260302"></script>
-    <script src="src/js/game.js?v=20260302"></script>
+    <!-- Newspaper Ending (shows after Night 5) -->
+    <div id="newspaperScreen">
+        <div id="newspaperContent">
+            <div class="newspaper-header">FREDDY FAZBEAR'S PIZZA</div>
+            <div class="newspaper-headline">LOCAL PIZZERIA THREATENED<br>WITH SHUTDOWN OVER SANITATION</div>
+            <div class="newspaper-body">
+                Local pizzeria, Freddy Fazbear's Pizza, has been threatened again with shutdown by the health department over reports of foul odor coming from the much-loved animal mascots. "It's like they haven't been washed in 20 years" said one parent, who wished
+                to remain anonymous. Police were contacted when parents noted what appeared to be blood and mucus around the eyes and mouths of the mascots. One parent likened them to "reanimated carcasses."
+            </div>
+            <div class="newspaper-footer">
+                <em>Freddy Fazbear's Pizza will close by year's end if no buyer is found.</em>
+            </div>
+            <button class="nextBtn" onclick="document.getElementById('newspaperScreen').classList.remove('show'); window.returnToStart && window.returnToStart()">CONTINUE</button>
+        </div>
+    </div>
+
+    <script src="src/js/sounds.js?v=20260405"></script>
+    <script src="src/js/office3d.js?v=20260408b"></script>
+    <script src="src/js/state.js?v=20260405"></script>
+    <script src="src/js/assets.js?v=20260405"></script>
+    <script src="src/js/office.js?v=20260408"></script>
+    <script src="src/js/cameras.js?v=20260413"></script>
+    <script src="src/js/ai.js?v=20260410"></script>
+    <script src="src/js/extras.js?v=20260405"></script>
+    <script src="src/js/game.js?v=20260408"></script>
 
 </body>
+
 </html>

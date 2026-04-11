@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="360" height="360">
+  <defs>
+    <style>
+      .rm { fill: #1a1c1e; stroke: #3a3f44; stroke-width: 0.4; }
+      .hl { fill: #14161a; stroke: #3a3f44; stroke-width: 0.3; }
+      .lb { fill: #0c0e10; stroke: #4a5058; stroke-width: 0.35; }
+      .lt { fill: #d0d4d8; font-family: 'Courier New', monospace; font-weight: bold; font-size: 2.8px; text-anchor: middle; dominant-baseline: central; }
+      .ln { fill: #d0d4d8; font-family: 'Courier New', monospace; font-weight: bold; font-size: 4.1px; text-anchor: middle; dominant-baseline: central; }
+      .yu { fill: #18191c; stroke: #9a9ea4; stroke-width: 0.4; }
+      .yt { fill: #e8eaee; font-family: 'Courier New', monospace; font-weight: bold; font-size: 3.5px; text-anchor: middle; dominant-baseline: central; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect fill="none" x="0" y="0" width="100" height="100"/>
+
+  <!-- ═══ ROOMS ═══════════════════════════════════════════════════ -->
+
+  <!-- Show Stage — small bump at top-center -->
+  <rect class="rm" x="23" y="0"  width="22" height="11" rx="0.3"/>
+
+  <!-- Backstage — far left, flush with dining top -->
+  <rect class="rm" x="0"  y="10" width="14" height="19" rx="0.3"/>
+
+  <!-- Dining Area — large central block -->
+  <rect class="rm" x="13" y="10" width="52" height="26" rx="0.3"/>
+
+  <!-- Pirate Cove — center-left, below backstage (staggered right) -->
+  <rect class="rm" x="7"  y="27" width="24" height="21" rx="0.3"/>
+
+  <!-- Supply Closet — far left lower -->
+  <rect class="rm" x="0"  y="49" width="21" height="22" rx="0.3"/>
+
+  <!-- Restrooms — far right upper -->
+  <rect class="rm" x="63" y="10" width="28" height="22" rx="0.3"/>
+
+  <!-- Kitchen — far right lower -->
+  <rect class="rm" x="63" y="34" width="28" height="22" rx="0.3"/>
+
+  <!-- ═══ CORRIDORS ════════════════════════════════════════════════ -->
+
+  <!-- Right-side connector (Dining ↔ Restrooms/Kitchen) -->
+  <rect class="hl" x="62"  y="10" width="4"  height="47" rx="0"/>
+
+  <!-- Supply Closet ↔ West Hall thin connector -->
+  <rect class="hl" x="19"  y="55" width="4"  height="14" rx="0"/>
+
+  <!-- West Hall — vertical corridor (CAM 2A + 2B) wider -->
+  <rect class="hl" x="22"  y="35" width="16" height="47" rx="0"/>
+
+  <!-- East Hall — vertical corridor (CAM 4A + 4B) wider -->
+  <rect class="hl" x="46"  y="35" width="16" height="47" rx="0"/>
+
+  <!-- Office — bottom platform connecting both halls -->
+  <rect class="rm" x="22"  y="82" width="40" height="11" rx="0.3"/>
+
+  <!-- ═══ CAM LABEL BOXES — positions EXACTLY match camBtn % in HTML ═ -->
+
+  <!-- CAM 1A  left=27%  top=1%   w=14%  h=8%  -->
+  <rect class="lb" x="27"  y="1"  width="14" height="8"  rx="0.5"/>
+  <text class="lt" x="34"  y="3.6">CAM</text>
+  <text class="ln" x="34"  y="6.8">1A</text>
+
+  <!-- CAM 1B  left=22%  top=12%  w=14%  h=9%  -->
+  <rect class="lb" x="22"  y="12" width="14" height="9"  rx="0.5"/>
+  <text class="lt" x="29"  y="14.9">CAM</text>
+  <text class="ln" x="29"  y="18.5">1B</text>
+
+  <!-- CAM 5   left=0%   top=11%  w=13%  h=9%  -->
+  <rect class="lb" x="0"   y="11" width="13" height="9"  rx="0.5"/>
+  <text class="lt" x="6.5" y="13.9">CAM</text>
+  <text class="ln" x="6.5" y="17.5">5</text>
+
+  <!-- CAM 7   left=72%  top=9%   w=15%  h=9%  -->
+  <rect class="lb" x="72"  y="9"  width="15" height="9"  rx="0.5"/>
+  <text class="lt" x="79.5" y="11.9">CAM</text>
+  <text class="ln" x="79.5" y="15.5">7</text>
+
+  <!-- CAM 1C  left=10%  top=30%  w=15%  h=9%  -->
+  <rect class="lb" x="10"  y="30" width="15" height="9"  rx="0.5"/>
+  <text class="lt" x="17.5" y="32.9">CAM</text>
+  <text class="ln" x="17.5" y="36.5">1C</text>
+
+  <!-- CAM 3   left=1%   top=52%  w=14%  h=9%  -->
+  <rect class="lb" x="1"   y="52" width="14" height="9"  rx="0.5"/>
+  <text class="lt" x="8"   y="54.9">CAM</text>
+  <text class="ln" x="8"   y="58.5">3</text>
+
+  <!-- CAM 6   left=72%  top=41%  w=15%  h=9%  -->
+  <rect class="lb" x="72"  y="41" width="15" height="9"  rx="0.5"/>
+  <text class="lt" x="79.5" y="43.9">CAM</text>
+  <text class="ln" x="79.5" y="47.5">6</text>
+
+  <!-- CAM 2A  left=22%  top=60%  w=16%  h=9%  -->
+  <rect class="lb" x="22"  y="60" width="16" height="9"  rx="0.5"/>
+  <text class="lt" x="30"  y="62.9">CAM</text>
+  <text class="ln" x="30"  y="66.5">2A</text>
+
+  <!-- CAM 4A  left=46%  top=60%  w=16%  h=9%  -->
+  <rect class="lb" x="46"  y="60" width="16" height="9"  rx="0.5"/>
+  <text class="lt" x="54"  y="62.9">CAM</text>
+  <text class="ln" x="54"  y="66.5">4A</text>
+
+  <!-- CAM 2B  left=22%  top=71%  w=16%  h=9%  -->
+  <rect class="lb" x="22"  y="71" width="16" height="9"  rx="0.5"/>
+  <text class="lt" x="30"  y="73.9">CAM</text>
+  <text class="ln" x="30"  y="77.5">2B</text>
+
+  <!-- CAM 4B  left=46%  top=71%  w=16%  h=9%  -->
+  <rect class="lb" x="46"  y="71" width="16" height="9"  rx="0.5"/>
+  <text class="lt" x="54"  y="73.9">CAM</text>
+  <text class="ln" x="54"  y="77.5">4B</text>
+
+  <!-- YOU marker  left=31%  top=83%  w=16%  h=8% -->
+  <rect class="yu" x="31"  y="83" width="16" height="8"  rx="0.5"/>
+  <text class="yt" x="39"  y="87.2">YOU</text>
+  <circle cx="39" cy="90.2" r="0.85" fill="#9a9ea4"/>
+</svg>

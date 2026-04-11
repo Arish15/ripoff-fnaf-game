@@ -1,0 +1,11 @@
+{
+  "lspServers": {
+    "javascript": {
+      "command": "typescript-language-server",
+      "args": ["--stdio"],
+      "fileExtensions": {
+        ".js": "javascript"
+      }
+    }
+  }
+}

@@ -1,4 +1,5 @@
 /* ============ GLOBAL STYLES ============ */
+
 * {
     margin: 0;
     padding: 0;
@@ -14,13 +15,12 @@ body {
     background-attachment: fixed;
 }
 
+
 /* ============ START SCREEN ============ */
+
 #startScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: linear-gradient(135deg, #1a0a00 0%, #0a0a0a 50%, #1a0a1a 100%);
     display: flex;
     align-items: center;
@@ -33,27 +33,17 @@ body {
 #startScreen::before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.15) 0px,
-        rgba(0, 0, 0, 0.15) 1px,
-        transparent 1px,
-        transparent 2px
-    );
+    inset: 0;
+    background-image: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.15) 0px, rgba(0, 0, 0, 0.15) 1px, transparent 1px, transparent 2px);
     opacity: 0.1;
     pointer-events: none;
-    animation: scanlines 8s linear infinite;
+    will-change: transform;
 }
 
 @keyframes scanlines {
     0% {
         transform: translateY(0);
     }
-
     100% {
         transform: translateY(2px);
     }
@@ -74,17 +64,16 @@ body {
     position: relative;
     z-index: 1;
     font-family: 'Arial Black', sans-serif;
+    will-change: opacity;
 }
 
 @keyframes glow {
-    0%, 100% {
-        text-shadow: 0 0 40px #ff0000, 0 0 80px #aa0000;
-        transform: scale(1);
+    0%,
+    100% {
+        opacity: 0.88;
     }
-
     50% {
-        text-shadow: 0 0 80px #ff3333, 0 0 160px #ff0000;
-        transform: scale(1.02);
+        opacity: 1;
     }
 }
 
@@ -141,7 +130,9 @@ body {
     box-shadow: none;
 }
 
+
 /* ============ GAME CONTAINER ============ */
+
 #gameContainer {
     width: 100%;
     height: 100%;
@@ -152,53 +143,56 @@ body {
     z-index: 50;
 }
 
-#gameContainer.show {
+#gameContainer.show,
+#controlPanel.show,
+#gameOverScreen.show,
+#nightCompleteScreen.show,
+#nightIntro.show,
+#freddyPowerOut.show,
+#newspaperScreen.show,
+.custom-night-setup.show {
     display: flex;
 }
 
+
 /* Monitor Area - fills screen when camera is up */
+
 #monitorArea {
-    flex: 1;
-    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 70;
     background: linear-gradient(135deg, #8B7355 0%, #6B5344 100%);
     padding: 20px;
     gap: 15px;
     border-bottom: 4px solid #555;
     box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
-    position: relative;
     align-items: center;
     justify-content: center;
+    display: flex;
+    visibility: hidden;
+    transform: translateY(100%);
+    transition: transform 0.25s ease-in-out, visibility 0s 0.25s;
 }
 
 #monitorArea.visible {
-    display: flex;
+    visibility: visible;
+    transform: translateY(0);
+    transition: transform 0.25s ease-in-out, visibility 0s;
 }
 
-/* Control Panel Area - Always Visible */
-#controlPanelArea {
-    flex: 0.35;
-    display: flex;
-    background: linear-gradient(135deg, #8B7355 0%, #6B5344 100%);
-    padding: 20px;
-    gap: 15px;
-    border-bottom: 4px solid #555;
-    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8);
-    position: relative;
-    align-items: center;
-    justify-content: space-between;
-    z-index: 100;
-}
+
+/* Control Panel Area - Removed (controls now in office view only) */
+
 
 /* Monitor Stand - Center */
+
 #monitorStand {
     width: 100%;
     height: 100%;
     background: transparent;
     border: 8px solid #1a1a1a;
     border-radius: 2px;
-    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05),
-        0 10px 30px rgba(0, 0, 0, 0.8),
-        0 0 50px rgba(0, 150, 200, 0.15);
+    box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 150, 200, 0.15);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,17 +203,8 @@ body {
 #monitorStand::after {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: repeating-linear-gradient(
-        0deg,
-        rgba(0, 0, 0, 0.08) 0px,
-        rgba(0, 0, 0, 0.08) 1px,
-        transparent 1px,
-        transparent 2px
-    );
+    inset: 0;
+    background-image: repeating-linear-gradient( 0deg, rgba(0, 0, 0, 0.08) 0px, rgba(0, 0, 0, 0.08) 1px, transparent 1px, transparent 2px);
     pointer-events: none;
     border-radius: 2px;
     animation: scanlines 8s linear infinite;
@@ -237,98 +222,8 @@ body {
     box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
 }
 
-/* Control Panels */
-#leftPanel {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
 
-#rightPanel {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-}
-
-/* Control Buttons */
-.controlBtn {
-    width: 65px;
-    height: 65px;
-    background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
-    border: 3px solid #555;
-    border-radius: 2px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-weight: bold;
-    font-size: 9px;
-    color: #aaa;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5),
-        inset 0 1px 2px rgba(255, 255, 255, 0.1);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.controlBtn:hover {
-    border-color: #777;
-    color: #ccc;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.6),
-        inset 0 1px 2px rgba(255, 255, 255, 0.15);
-}
-
-.controlBtn.active {
-    background: linear-gradient(145deg, #004d00 0%, #003300 100%);
-    color: #00ff00;
-    border-color: #00ff00;
-    box-shadow: 0 0 25px rgba(0, 255, 0, 0.4),
-        inset 0 0 10px rgba(0, 255, 0, 0.1),
-        0 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.controlBtn.pressed {
-    background: #a00 !important;
-    color: #fff !important;
-    border-color: #a00 !important;
-    box-shadow: 0 0 16px #a00a, 0 4px 10px rgba(0,0,0,0.5);
-}
-
-.controlBtn.light.active {
-    background: linear-gradient(145deg, #664400 0%, #442200 100%);
-    color: #ffdd00;
-    border-color: #ffdd00;
-    box-shadow: 0 0 25px rgba(255, 200, 0, 0.4),
-        inset 0 0 10px rgba(255, 200, 0, 0.1),
-        0 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-.btnLabel {
-    font-size: 8px;
-    margin-bottom: 2px;
-    letter-spacing: 0.5px;
-}
-
-.btnStatus {
-    font-size: 8px;
-    opacity: 0.8;
-    font-weight: bold;
-}
-
-/* Office Area - fills available space above camera button */
-#officeArea {
-    flex: 1;
-    background: transparent;
-    border-top: none;
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    overflow: hidden;
-    margin-bottom: 54px; /* leave space for camera toggle button */
-}
+/* Control Panels - Removed (integrated into office view) */
 
 #officeCanvas {
     display: block;
@@ -337,7 +232,9 @@ body {
     max-width: 100%;
 }
 
+
 /* ============ TIME & POWER DISPLAY ============ */
+
 #timeDisplay {
     position: fixed;
     top: 20px;
@@ -353,15 +250,27 @@ body {
     padding: 12px 18px;
     border: 4px solid #222;
     border-radius: 2px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    text-align: center;
+}
+
+#nightDisplay {
+    position: fixed;
+    top: 85px;
+    right: 20px;
+    font-size: 16px;
+    font-weight: bold;
+    color: #ffffff;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+    z-index: 100;
     text-align: center;
 }
 
 #powerArea {
     position: fixed;
-    bottom: 20px;
-    left: 20px;
+    bottom: 25px;
+    left: 12px;
     background: rgba(10, 10, 10, 0.95);
     border: 4px solid #222;
     padding: 8px 12px;
@@ -369,13 +278,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 5px;
-    z-index: 110;
+    z-index: 130;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.95);
     font-family: 'Courier New', monospace;
 }
 
-#powerDisplay {
-    font-size: 18px;
+#powerLabel {
+    font-size: 16px;
     color: #ffffff;
     font-weight: bold;
     letter-spacing: 1px;
@@ -383,78 +292,73 @@ body {
     text-shadow: 0 0 8px rgba(0, 150, 0, 0.4);
 }
 
-#powerBar {
-    width: 140px;
-    height: 22px;
-    background: #000;
-    border: 2px solid #333;
-    border-radius: 1px;
-    overflow: hidden;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.9);
+#powerDisplay {
+    color: #ffffff;
 }
 
-#powerBarFill {
-    height: 100%;
-    background: linear-gradient(90deg, #00AA00 0%, #FFAA00 50%, #FF0000 100%);
-    width: 100%;
-    transition: width 0.1s linear;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
-}
-
-.usageContainer {
+#usageArea {
     display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.usageBar {
-    display: none;
     align-items: center;
     gap: 4px;
+    margin-top: 2px;
 }
 
-.usageBar.active {
-    display: flex;
-}
-
-.usageLabel {
-    font-size: 10px;
-    color: #666;
+#usageLabel {
+    font-size: 13px;
+    color: #aaa;
     font-weight: bold;
-    width: 12px;
-    text-align: center;
-    text-transform: uppercase;
+    margin-right: 4px;
 }
 
-.usageBarBg {
-    width: 80px;
-    height: 6px;
-    background: #000;
-    border: 1px solid #333;
+.usage-block {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: #111;
+    border: 1px solid #444;
     border-radius: 1px;
-    overflow: hidden;
-    box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.9);
 }
 
-.usageBarFill {
-    height: 100%;
-    background: linear-gradient(90deg, #00AA00 0%, #FFAA00 50%, #FF0000 100%);
-    width: 100%;
-    transition: width 0.1s linear;
-    box-shadow: inset 0 0 2px rgba(0, 0, 0, 0.5);
+.usage-block.active {
+    background: #00cc00;
+    border-color: #00aa00;
+    box-shadow: 0 0 4px rgba(0, 200, 0, 0.5);
 }
+
+
+/* Power critical warning flash */
+
+#powerArea.power-critical {
+    animation: powerFlash 0.8s ease-in-out infinite;
+}
+
+#powerArea.power-critical #powerDisplay {
+    color: #ff3333;
+}
+
+@keyframes powerFlash {
+    0%,
+    100% {
+        border-color: #222;
+    }
+    50% {
+        border-color: #ff3333;
+        box-shadow: 0 0 15px rgba(255, 50, 50, 0.4), 0 6px 20px rgba(0, 0, 0, 0.95);
+    }
+}
+
 
 /* ============ CAMERA CONTROLS ============ */
+
 #cameraToggleBtn {
     position: fixed;
-    left: 160px;
+    left: 190px;
     right: 0;
     bottom: 0;
-    width: calc(100vw - 160px);
+    width: auto;
     height: 54px;
     background: #222 linear-gradient(90deg, #222 0%, #333 100%);
     border: 2px solid #888;
-    border-radius: 8px 0 0 0;
     box-shadow: 0 2px 12px #000a, 0 0 0 2px #111 inset;
     display: flex;
     align-items: center;
@@ -490,8 +394,7 @@ body {
     border-color: #888;
     color: #000;
     transform: scaleY(1.03);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.15);
 }
 
 .cameraBtnText {
@@ -508,64 +411,99 @@ body {
     color: #00ff00;
     border-color: #00ff00;
     opacity: 1;
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.6),
-        inset 0 1px 0 rgba(0, 255, 0, 0.3),
-        0 6px 20px rgba(0, 0, 0, 0.9);
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.6), inset 0 1px 0 rgba(0, 255, 0, 0.3), 0 6px 20px rgba(0, 0, 0, 0.9);
+}
+
+#cameraToggleBtn.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    border-color: #444;
 }
 
 #cameraGrid {
     position: fixed;
-    bottom: 95px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 58px;
+    right: 8px;
+    width: 360px;
+    height: 360px;
     display: none;
-    grid-template-columns: repeat(11, 55px);
-    gap: 6px;
-    background: #0a0a0a;
-    padding: 15px;
-    border: 4px solid #222;
+    background: url('../assets/camera_map.svg') center/contain no-repeat;
+    background-color: rgba(10, 12, 15, 0.55);
+    border: none;
     border-radius: 2px;
-    z-index: 90;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.95),
-        inset 0 1px 0 rgba(255, 255, 255, 0.02);
+    z-index: 115;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+#cameraGrid::before {
+    display: none;
 }
 
 #cameraGrid.show {
-    display: grid !important;
+    display: block !important;
 }
 
 .camBtn {
-    width: 55px;
-    height: 45px;
-    background: linear-gradient(145deg, #0a0a0a 0%, #000000 100%);
-    border: 2px solid #333;
-    color: #666;
-    font-size: 11px;
-    font-weight: bold;
+    position: absolute;
+    background: transparent;
+    border: 2px solid transparent;
+    color: transparent;
+    font-size: 0;
     cursor: pointer;
     transition: all 0.15s ease;
     border-radius: 1px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-family: 'Courier New', monospace;
+    z-index: 120;
+    padding: 0;
+    pointer-events: auto;
+    box-shadow: none;
 }
 
 .camBtn:hover {
-    border-color: #00ff00;
-    color: #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
-    background: linear-gradient(145deg, #001a00 0%, #000a00 100%);
+    border-color: rgba(0, 204, 0, 0.6);
+    background: rgba(0, 40, 0, 0.4);
+    box-shadow: 0 0 10px rgba(0, 204, 0, 0.3);
 }
 
 .camBtn.active {
-    background: linear-gradient(145deg, #003300 0%, #001a00 100%);
-    color: #00ff00;
+    background: rgba(0, 60, 0, 0.5);
     border-color: #00ff00;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5),
-        inset 0 0 10px rgba(0, 255, 0, 0.2);
+    box-shadow: 0 0 14px rgba(0, 255, 0, 0.5), inset 0 0 6px rgba(0, 255, 0, 0.15);
 }
 
+.cam-you {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 9px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    border: 1.5px solid #dddddd;
+    background: rgba(0, 0, 0, 0.85);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
+    z-index: 120;
+    pointer-events: none;
+    line-height: 1.2;
+    border-radius: 2px;
+}
+
+.cam-you-dot {
+    display: block;
+    width: 4px;
+    height: 4px;
+    background: #f5f5f5;
+    border-radius: 50%;
+    margin-top: 2px;
+}
+
+
 /* ============ CONTROL PANEL ============ */
+
 #controlPanel {
     display: none;
     flex-direction: column;
@@ -574,10 +512,6 @@ body {
     padding: 15px 0;
     background: rgba(0, 0, 0, 0.7);
     border-top: 3px solid #444;
-}
-
-#controlPanel.show {
-    display: flex;
 }
 
 .controlGroup {
@@ -601,58 +535,83 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* Remove conflicting cameraGridContainer styles - using #cameraGrid instead */
-/* .cameraGridContainer {
-    display: none;
-}
-
-.cameraGridContainer.show {
-    display: flex;
-    flex-direction: column;
-} */
 
 /* ============ GAME OVER SCREEN ============ */
+
 #gameOverScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: radial-gradient(circle, #1a0000 0%, #000 100%);
     display: none;
-    z-index: 2000;
+    z-index: 10000;
     align-items: center;
     justify-content: center;
     flex-direction: column;
 }
 
-#gameOverScreen.show {
-    display: flex;
-}
-
 #jumpScare {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background: #f00;
+    position: fixed;
+    inset: 0;
     display: none;
-    z-index: 1999;
-    animation: scare 0.1s 8;
+    z-index: 9999;
 }
 
 #jumpScare.show {
     display: block;
 }
 
-@keyframes scare {
-    0%, 100% {
-        background: #f00;
-        opacity: 1;
-    }
 
+/* Per-animatronic jumpscare — iteration count matches each asset's exact duration */
+
+#jumpScare.scare-freddy {
+    /* 30 × 70ms = 2100ms — longer shake, image holds after */
+    animation: scare-shake 0.07s 30;
+    background: url('../assets/freddy_jumpscare.webp') center/cover no-repeat;
+}
+
+#jumpScare.scare-freddy-power {
+    /* 20 × 70ms = 1400ms */
+    animation: scare-shake 0.07s 20;
+    background: url('../assets/freddy_jumpscare_power.gif') center/cover no-repeat;
+}
+
+#jumpScare.scare-bonnie {
+    /* 10 × 70ms = 700ms */
+    animation: scare-shake 0.07s 10;
+    background: url('../assets/bonnie_jumpscare.webp') center/cover no-repeat;
+}
+
+#jumpScare.scare-chica {
+    /* 14 × 70ms = 980ms */
+    animation: scare-shake 0.07s 14;
+    background: url('../assets/chica_jumpscare.webp') center/cover no-repeat;
+}
+
+#jumpScare.scare-foxy {
+    /* 18 × 70ms = 1260ms */
+    animation: scare-shake 0.07s 18;
+    background: url('../assets/foxy_jumpscare.gif') center/cover no-repeat;
+}
+
+#jumpScare.scare-golden {
+    /* 30 × 70ms = 2100ms — long shake for static image impact */
+    animation: scare-shake 0.07s 30;
+    background: url('../assets/golden_freddy.webp') center/cover no-repeat;
+}
+
+@keyframes scare-shake {
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+    25% {
+        transform: translate(-4px, 3px);
+    }
     50% {
-        background: #fff;
-        opacity: 0.8;
+        transform: translate(4px, -3px);
+    }
+    75% {
+        transform: translate(-3px, -4px);
     }
 }
 
@@ -693,23 +652,18 @@ body {
     box-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
 }
 
+
 /* ============ NIGHT COMPLETE SCREEN ============ */
+
 #nightCompleteScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: radial-gradient(circle, #001a00 0%, #000 100%);
     display: none;
     z-index: 2000;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-}
-
-#nightCompleteScreen.show {
-    display: flex;
 }
 
 #nightCompleteContent h1 {
@@ -743,7 +697,669 @@ body {
     box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
 }
 
+
+/* ============ NIGHT INTRO OVERLAY ============ */
+
+#nightIntro {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 2500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+#nightIntroText {
+    font-size: 48px;
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    color: #fff;
+    letter-spacing: 4px;
+    text-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    opacity: 0;
+    animation: nightFadeIn 2s ease forwards;
+}
+
+@keyframes nightFadeIn {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+
+/* Static noise overlay on the night intro */
+
+#nightIntro::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient( 0deg, rgba(255, 255, 255, 0.03) 0px, rgba(255, 255, 255, 0.03) 1px, transparent 1px, transparent 2px);
+    pointer-events: none;
+    animation: scanlines 8s linear infinite;
+}
+
+
+/* ============ POWER DARK OVERLAY ============ */
+
+#powerDarkOverlay {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 83;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+#powerDarkOverlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+/* ============ FREDDY POWER OUTAGE OVERLAY ============ */
+
+#freddyPowerOut {
+    position: fixed;
+    inset: 0;
+    background: #000;
+    z-index: 85;
+    display: none;
+    align-items: center;
+    justify-content: flex-start;
+    padding-left: 15%;
+}
+
+#freddyPowerOutFace {
+    position: relative;
+    width: 120px;
+    height: 140px;
+}
+
+.freddy-eye {
+    position: absolute;
+    width: 16px;
+    height: 22px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(150, 200, 255, 0.3);
+    animation: eyeFlicker 4s ease-in-out infinite;
+}
+
+.freddy-eye-left {
+    left: 28px;
+    top: 50px;
+}
+
+.freddy-eye-right {
+    right: 28px;
+    top: 50px;
+}
+
+@keyframes eyeFlicker {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    48% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0;
+    }
+    52% {
+        opacity: 1;
+    }
+    90% {
+        opacity: 1;
+    }
+    92% {
+        opacity: 0.3;
+    }
+    94% {
+        opacity: 1;
+    }
+}
+
+
 /* ============ AUDIO ============ */
+
 audio {
     display: none;
+}
+
+
+/* ============ NEWSPAPER ENDING SCREEN ============ */
+
+#newspaperScreen {
+    position: fixed;
+    inset: 0;
+    background: #181510;
+    z-index: 2500;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+#newspaperContent {
+    max-width: 520px;
+    background: #d4c9a0;
+    border: 3px solid #8a7e5a;
+    padding: 36px 32px;
+    text-align: center;
+    box-shadow: 0 8px 40px rgba(0, 0, 0, 0.8), inset 0 0 60px rgba(100, 80, 30, 0.2);
+    position: relative;
+}
+
+#newspaperContent::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient( 0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.03) 3px, rgba(0, 0, 0, 0.03) 4px);
+    pointer-events: none;
+}
+
+.newspaper-header,
+.newspaper-headline,
+.newspaper-body,
+.newspaper-footer {
+    font-family: 'Times New Roman', serif;
+}
+
+.newspaper-header {
+    font-size: 14px;
+    color: #5a4a2a;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #5a4a2a;
+    padding-bottom: 6px;
+}
+
+.newspaper-headline {
+    font-size: 22px;
+    font-weight: 900;
+    color: #1a1208;
+    line-height: 1.3;
+    margin-bottom: 16px;
+}
+
+.newspaper-body {
+    font-size: 13px;
+    color: #2a2010;
+    line-height: 1.7;
+    text-align: justify;
+    margin-bottom: 16px;
+    column-count: 2;
+    column-gap: 18px;
+}
+
+.newspaper-footer {
+    font-size: 11px;
+    color: #5a4a2a;
+    margin-bottom: 16px;
+    border-top: 1px solid #8a7e5a;
+    padding-top: 8px;
+}
+
+#newspaperScreen .nextBtn {
+    background: #2a2010;
+    border-color: #5a4a2a;
+    color: #d4c9a0;
+}
+
+#newspaperScreen .nextBtn:hover {
+    border-color: #aa9a6a;
+    box-shadow: 0 0 12px rgba(180, 160, 100, 0.3);
+}
+
+
+/* ============ CUSTOM NIGHT SETUP ============ */
+
+.customNightBtn {
+    margin-top: 20px;
+    grid-column: 1 / -1;
+    width: 200px;
+    justify-self: center;
+}
+
+.deathModeBtn {
+    margin-top: 8px;
+    width: 220px;
+    justify-self: center;
+    background: linear-gradient(180deg, #3a0000 0%, #1a0000 100%);
+    border-color: #880000;
+    color: #ff4444;
+    text-shadow: 0 0 8px #ff0000, 0 0 20px #aa0000;
+    box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
+    letter-spacing: 3px;
+    font-size: 12px;
+    animation: deathPulse 2.4s ease-in-out infinite;
+}
+
+.deathModeBtn:hover {
+    background: linear-gradient(180deg, #660000 0%, #330000 100%);
+    border-color: #ff0000;
+    box-shadow: 0 0 28px rgba(255, 0, 0, 0.7);
+    transform: scale(1.06);
+}
+
+@keyframes deathPulse {
+    0%,
+    100% {
+        box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 28px rgba(255, 0, 0, 0.75), 0 0 50px rgba(180, 0, 0, 0.4);
+    }
+}
+
+.custom-night-setup {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, #1a0a00 0%, #0a0a0a 50%, #1a0a1a 100%);
+    z-index: 10;
+    padding: 40px 20px;
+    overflow-y: auto;
+}
+
+.custom-night-title {
+    font-size: 42px;
+    color: #ff0000;
+    text-shadow: 0 0 30px #ff0000, 0 0 60px #aa0000;
+    font-family: 'Arial Black', sans-serif;
+    letter-spacing: 6px;
+    margin-bottom: 8px;
+}
+
+.custom-night-subtitle {
+    font-size: 14px;
+    color: #888;
+    letter-spacing: 2px;
+    margin-bottom: 30px;
+}
+
+.custom-night-sliders {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 360px;
+    max-width: 90vw;
+}
+
+.ai-slider-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ai-label {
+    width: 80px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    font-family: 'Courier New', monospace;
+    text-align: right;
+}
+
+.ai-slider {
+    flex: 1;
+    -webkit-appearance: none;
+    appearance: none;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+    outline: none;
+}
+
+.ai-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: #cc0000;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #ff3333;
+    box-shadow: 0 0 6px rgba(255, 0, 0, 0.5);
+}
+
+.ai-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: #cc0000;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #ff3333;
+}
+
+.ai-value {
+    width: 28px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #ff3333;
+    font-family: 'Courier New', monospace;
+    text-align: center;
+}
+
+.custom-night-presets {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.preset-btn {
+    padding: 8px 16px;
+    background: #1a0a0a;
+    border: 2px solid #555;
+    color: #aaa;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+}
+
+.preset-btn:hover {
+    border-color: #ff3333;
+    color: #ff3333;
+}
+
+.custom-night-actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 24px;
+}
+
+.custom-night-actions .nightBtn {
+    width: 120px;
+}
+
+
+/* ============ STARS DISPLAY ============ */
+
+.star-display {
+    display: flex;
+    gap: 8px;
+    margin-top: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.star {
+    font-size: 28px;
+    color: #ffd700;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    animation: starPulse 3s ease-in-out infinite;
+}
+
+.star:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.star:nth-child(3) {
+    animation-delay: 1.0s;
+}
+
+@keyframes starPulse {
+    0%,
+    100% {
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.6);
+    }
+    50% {
+        text-shadow: 0 0 20px rgba(255, 215, 0, 1);
+    }
+}
+
+
+/* ============ PHONE GUY OVERLAY ============ */
+
+.phone-guy-overlay {
+    position: fixed;
+    top: 90px;
+    left: 20px;
+    width: 320px;
+    background: rgba(8, 8, 8, 0.95);
+    border: 1px solid #2a4a2a;
+    border-radius: 4px;
+    z-index: 95;
+    display: none;
+    flex-direction: column;
+    font-family: 'Courier New', monospace;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.9), 0 0 8px rgba(40, 160, 40, 0.15);
+    overflow: hidden;
+}
+
+.phone-guy-overlay.show {
+    display: flex;
+    animation: phoneSlideIn 0.4s ease-out;
+}
+
+@keyframes phoneSlideIn {
+    from {
+        transform: translateX(-110%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+
+/* header row: icon + caller name + mute button */
+
+.phone-guy-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px 6px;
+    background: rgba(20, 40, 20, 0.9);
+    border-bottom: 1px solid #1e3a1e;
+    flex-shrink: 0;
+}
+
+.phone-guy-icon {
+    font-size: 18px;
+    color: #44cc44;
+    flex-shrink: 0;
+    animation: phoneRing 0.45s ease-in-out 4;
+}
+
+@keyframes phoneRing {
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+    25% {
+        transform: rotate(-16deg);
+    }
+    75% {
+        transform: rotate(16deg);
+    }
+}
+
+.phone-guy-caller {
+    flex: 1;
+    font-size: 10px;
+    color: #88ee88;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.phone-guy-mute {
+    background: #6a1010;
+    border: 1px solid #aa2020;
+    color: #ffaaaa;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    padding: 3px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    transition: background 0.15s, color 0.15s;
+    flex-shrink: 0;
+}
+
+.phone-guy-mute:hover {
+    background: #aa1818;
+    color: #fff;
+}
+
+
+/* scrolling transcript box */
+
+.phone-guy-text {
+    font-size: 11px;
+    color: #9aaa88;
+    line-height: 1.6;
+    letter-spacing: 0.25px;
+    padding: 10px 12px;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+
+/* thin custom scrollbar */
+
+.phone-guy-text::-webkit-scrollbar {
+    width: 4px;
+}
+
+.phone-guy-text::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.phone-guy-text::-webkit-scrollbar-thumb {
+    background: #2a4a2a;
+    border-radius: 2px;
+}
+
+
+/* ============ IT'S ME HALLUCINATION ============ */
+
+.hallucination-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 86;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+}
+
+.hallucination-overlay.show {
+    display: flex;
+    animation: halluFlash 0.3s ease-out forwards;
+}
+
+@keyframes halluFlash {
+    0% {
+        opacity: 1;
+    }
+    70% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.hallucination-text {
+    font-size: 100px;
+    font-weight: 900;
+    color: #fff;
+    font-family: 'Arial Black', sans-serif;
+    text-shadow: 0 0 40px #fff, 0 0 80px rgba(255, 0, 0, 0.5);
+    animation: halluGlitch 0.3s steps(3) infinite;
+}
+
+@keyframes halluGlitch {
+    0% {
+        transform: translate(0, 0) skewX(0deg);
+    }
+    33% {
+        transform: translate(-5px, 3px) skewX(-5deg);
+    }
+    66% {
+        transform: translate(5px, -3px) skewX(5deg);
+    }
+    100% {
+        transform: translate(0, 0) skewX(0deg);
+    }
+}
+
+
+/* ============ RESPONSIVE — scale UI to screen size ============ */
+
+
+/* Small screens (phones, ≤600px) */
+
+@media (max-height: 600px),
+(max-width: 600px) {
+    #cameraGrid {
+        width: 200px;
+        height: 200px;
+        bottom: 44px;
+        right: 4px;
+    }
+    #cameraToggleBtn {
+        height: 40px;
+        left: 110px;
+    }
+    #powerArea {
+        padding: 4px 8px;
+    }
+    #powerLabel {
+        font-size: 12px;
+    }
+    #timeDisplay {
+        font-size: 22px;
+        padding: 8px 12px;
+    }
+    #nightDisplay {
+        font-size: 10px;
+        top: 65px;
+    }
+}
+
+
+/* Medium screens (tablets / small laptops, 601–900px) */
+
+@media (min-width: 601px) and (max-width: 900px),
+(min-height: 601px) and (max-height: 750px) {
+    #cameraGrid {
+        width: 280px;
+        height: 280px;
+        bottom: 58px;
+    }
+}
+
+
+/* Large screens (≥1400px wide and ≥900px tall) */
+
+@media (min-width: 1400px) and (min-height: 900px) {
+    #cameraGrid {
+        width: 420px;
+        height: 420px;
+        bottom: 58px;
+    }
 }
