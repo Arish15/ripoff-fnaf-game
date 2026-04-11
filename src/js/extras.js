@@ -111,10 +111,116 @@ function updateStars() {
 
 // ─────────────────────────────────────────────
 //  PHONE GUY
+//  Audio source priority:
+//    1. HTML <audio> element if file is actually loaded (readyState >= 2)
+//    2. Web Speech API (browser TTS) as a copyright-free fallback
+//  A subtle phone-line static hiss is always layered underneath via
+//  Web Audio API for atmosphere.
 // ─────────────────────────────────────────────
 var _pgTypewriter = null; // setInterval handle for typewriter
-var _pgAudio = null; // currently playing phone-call audio element
+var _pgAudio = null; // currently playing HTML <audio> element
 var _pgEndHandler = null; // 'ended' listener so we can remove it cleanly
+var _pgUtterance = null; // SpeechSynthesisUtterance (TTS path)
+var _pgStaticNode = null; // Web Audio noise source for phone hiss
+var _pgStaticCtx = null; // Web Audio context for the static
+
+// ── TTS-friendly versions of the Night 5 (dying call) & Night 6 (silence) messages ──
+// Stage directions like [static] are stripped so the synthesiser doesn't read them aloud.
+var PHONE_TTS = {
+    5: "I'm still here. I'm okay. Um. I... they... Hello? Is anyone there? Stay back. Hey... stay... NO!",
+    6: null // Night 6 is dead air — no TTS, just static + fallback timer
+};
+
+function _startPhoneStatic() {
+    _stopPhoneStatic();
+    try {
+        _pgStaticCtx = new(window.AudioContext || window.webkitAudioContext)();
+        // One-second noise buffer, looped
+        var sr = _pgStaticCtx.sampleRate;
+        var buf = _pgStaticCtx.createBuffer(1, sr, sr);
+        var data = buf.getChannelData(0);
+        for (var i = 0; i < sr; i++) data[i] = Math.random() * 2 - 1;
+
+        _pgStaticNode = _pgStaticCtx.createBufferSource();
+        _pgStaticNode.buffer = buf;
+        _pgStaticNode.loop = true;
+
+        // Bandpass 300–3400 Hz — classic telephone frequency response
+        var bp = _pgStaticCtx.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 1600;
+        bp.Q.value = 0.6;
+
+        var gain = _pgStaticCtx.createGain();
+        gain.gain.value = 0.035; // barely audible hiss underneath voice
+
+        _pgStaticNode.connect(bp);
+        bp.connect(gain);
+        gain.connect(_pgStaticCtx.destination);
+        _pgStaticNode.start();
+    } catch (e) { /* Web Audio not available — safe to ignore */ }
+}
+
+function _stopPhoneStatic() {
+    if (_pgStaticNode) {
+        try { _pgStaticNode.stop(); } catch (e) {}
+        _pgStaticNode = null;
+    }
+    if (_pgStaticCtx) {
+        try { _pgStaticCtx.close(); } catch (e) {}
+        _pgStaticCtx = null;
+    }
+}
+
+function _startTTS(msg) {
+    if (!window.speechSynthesis) {
+        phoneGuyTimer = setTimeout(hidePhoneGuy, 10000);
+        return;
+    }
+    window.speechSynthesis.cancel();
+
+    function speak() {
+        var utt = new SpeechSynthesisUtterance(msg);
+        utt.rate = 0.88; // deliberate, slightly slower pace
+        utt.pitch = 0.82; // lower pitch — male phone-filter effect
+        utt.volume = 1.0;
+
+        // Prefer an English male voice when available
+        var voices = window.speechSynthesis.getVoices();
+        var picked = null;
+        for (var i = 0; i < voices.length; i++) {
+            var v = voices[i];
+            if (!/^en/i.test(v.lang)) continue;
+            if (/male|david|mark|james|daniel|alex|google uk english male/i.test(v.name)) {
+                picked = v;
+                break;
+            }
+            if (!picked) picked = v; // first English voice as fallback
+        }
+        if (picked) utt.voice = picked;
+
+        utt.onend = function() { hidePhoneGuy(); };
+        utt.onerror = function() { phoneGuyTimer = setTimeout(hidePhoneGuy, 5000); };
+
+        _pgUtterance = utt;
+        window.speechSynthesis.speak(utt);
+    }
+
+    // Voices may load asynchronously on first call
+    var voices = window.speechSynthesis.getVoices();
+    if (voices.length > 0) {
+        speak();
+    } else {
+        window.speechSynthesis.onvoiceschanged = function() {
+            window.speechSynthesis.onvoiceschanged = null;
+            speak();
+        };
+        // Safety fallback if voiceschanged never fires (some browsers)
+        phoneGuyTimer = setTimeout(function() {
+            if (!_pgUtterance) speak();
+        }, 600);
+    }
+}
 
 function showPhoneGuy(night) {
     var msg = PHONE_MESSAGES[night];
@@ -123,53 +229,67 @@ function showPhoneGuy(night) {
     var textEl = document.getElementById('phoneGuyText');
     if (!overlay || !textEl) return;
 
-    // Clear any previous call
-    hidePhoneGuy();
+    hidePhoneGuy(); // clean up any previous call
 
     textEl.textContent = '';
     overlay.classList.add('show');
 
-    // Start the matching audio recording if the file is present
-    var audio = document.getElementById('phoneGuyAudio' + night);
-    if (audio) {
-        audio.currentTime = 0;
-        audio.play().catch(function() {});
-        _pgAudio = audio;
-    }
+    // Always start the phone-line static hiss
+    _startPhoneStatic();
 
-    // Typewriter: ~28ms per character ≈ 35 chars/sec
+    // Typewriter: ~28 ms per character ≈ 35 chars/sec
     var i = 0;
     _pgTypewriter = setInterval(function() {
         if (i >= msg.length) {
             clearInterval(_pgTypewriter);
             _pgTypewriter = null;
-            // If audio is still playing, dismiss when audio ends; otherwise 8 s fallback
-            if (_pgAudio && !_pgAudio.paused && !_pgAudio.ended) {
-                _pgEndHandler = function() { hidePhoneGuy(); };
-                _pgAudio.addEventListener('ended', _pgEndHandler, { once: true });
-            } else {
-                phoneGuyTimer = setTimeout(function() { hidePhoneGuy(); }, 8000);
-            }
             return;
         }
         textEl.textContent += msg[i];
         i++;
-        // Auto-scroll to bottom of text box
         textEl.scrollTop = textEl.scrollHeight;
     }, 28);
+
+    // ── Audio: file → TTS → silent fallback ──
+    var audioEl = document.getElementById('phoneGuyAudio' + night);
+    var fileLoaded = audioEl && audioEl.readyState >= 2; // HAVE_CURRENT_DATA or better
+
+    if (fileLoaded) {
+        // Actual recording file is present — use it
+        audioEl.currentTime = 0;
+        audioEl.play().catch(function() { _useTTSFallback(night); });
+        _pgAudio = audioEl;
+        _pgEndHandler = function() { hidePhoneGuy(); };
+        audioEl.addEventListener('ended', _pgEndHandler, { once: true });
+    } else {
+        _useTTSFallback(night);
+    }
+}
+
+function _useTTSFallback(night) {
+    if (night === 6) {
+        // Night 6 is dead air — minimal static + 7 s timer
+        phoneGuyTimer = setTimeout(hidePhoneGuy, 7000);
+        return;
+    }
+    // Night 5 uses a cleaned script without stage-direction brackets
+    var ttsText = PHONE_TTS[night] !== undefined ? PHONE_TTS[night] : PHONE_MESSAGES[night];
+    if (!ttsText) {
+        phoneGuyTimer = setTimeout(hidePhoneGuy, 8000);
+        return;
+    }
+    _startTTS(ttsText);
 }
 
 function hidePhoneGuy() {
     var overlay = document.getElementById('phoneGuyOverlay');
     if (overlay) overlay.classList.remove('show');
-    if (_pgTypewriter) {
-        clearInterval(_pgTypewriter);
-        _pgTypewriter = null;
-    }
-    if (phoneGuyTimer) {
-        clearTimeout(phoneGuyTimer);
-        phoneGuyTimer = 0;
-    }
+
+    if (_pgTypewriter) { clearInterval(_pgTypewriter);
+        _pgTypewriter = null; }
+    if (phoneGuyTimer) { clearTimeout(phoneGuyTimer);
+        phoneGuyTimer = 0; }
+
     if (_pgAudio) {
         if (_pgEndHandler) {
             _pgAudio.removeEventListener('ended', _pgEndHandler);
@@ -179,6 +299,14 @@ function hidePhoneGuy() {
         _pgAudio.currentTime = 0;
         _pgAudio = null;
     }
+
+    if (_pgUtterance) {
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+        _pgUtterance = null;
+    }
+
+    _stopPhoneStatic();
+
     var textEl = document.getElementById('phoneGuyText');
     if (textEl) textEl.textContent = '';
 }

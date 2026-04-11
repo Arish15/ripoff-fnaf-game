@@ -3,7 +3,9 @@ const fs = require('fs');
 const path = require('path');
 
 const server = http.createServer((req, res) => {
-    let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
+    // Strip query string (e.g. ?v=cache-buster) before resolving the file path
+    const urlPath = req.url.split('?')[0];
+    let filePath = path.join(__dirname, urlPath === '/' ? 'index.html' : urlPath);
 
     fs.readFile(filePath, (err, data) => {
         if (err) {

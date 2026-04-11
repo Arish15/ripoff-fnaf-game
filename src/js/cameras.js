@@ -4,6 +4,7 @@
 
 var camCanvas, camCtx;
 var camStaticTimer = 0;
+var monitorCloseTimeout = null;
 
 var CAM_LABELS = {
     stage: 'CAM 1A - SHOW STAGE',
@@ -1324,7 +1325,9 @@ function toggleMonitor() {
             camSfx.currentTime = 0;
             camSfx.play().catch(function() {});
         }
-        // Hide office behind monitor
+        // Hide office behind monitor (cancel any pending reveal)
+        if (monitorCloseTimeout) { clearTimeout(monitorCloseTimeout);
+            monitorCloseTimeout = null; }
         var officeEl = document.getElementById('officeArea');
         if (officeEl) officeEl.style.display = 'none';
     } else {
@@ -1336,9 +1339,12 @@ function toggleMonitor() {
             camSfxStop.pause();
             camSfxStop.currentTime = 0;
         }
-        // Show office when monitor closes
-        var officeEl2 = document.getElementById('officeArea');
-        if (officeEl2) officeEl2.style.display = 'flex';
+        // Delay office reveal to match monitor slide-down transition (250ms)
+        monitorCloseTimeout = setTimeout(function() {
+            monitorCloseTimeout = null;
+            var officeEl2 = document.getElementById('officeArea');
+            if (officeEl2) officeEl2.style.display = 'flex';
+        }, 250);
     }
 }
 

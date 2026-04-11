@@ -63,13 +63,22 @@ function tickGame() {
         // Immediately black out the screen
         var darkOverlay = document.getElementById('powerDarkOverlay');
         if (darkOverlay) darkOverlay.classList.add('show');
+        // After brief pause: show Freddy's eyes in the doorway + play jingle
+        setTimeout(function() {
+            if (!game.powerOutage) return; // game may have restarted
+            var fpo = document.getElementById('freddyPowerOut');
+            if (fpo) fpo.classList.add('show');
+            var jingle = document.getElementById('freddyJingleAudio');
+            if (jingle) { jingle.currentTime = 0;
+                jingle.play().catch(function() {}); }
+        }, 500);
     }
 
-    // Freddy power outage sequence: screen goes dark, then jumpscare after ~1s
+    // Freddy power outage sequence: eyes in darkness, then jumpscare after jingle (~5-6s)
     if (game.powerOutage && game.powerOutageTime) {
         var elapsed = game.time - game.powerOutageTime;
         if (!game.powerOutageDelay) {
-            game.powerOutageDelay = 0.8 + Math.random() * 0.5;
+            game.powerOutageDelay = 5.5 + Math.random() * 1.0;
         }
         // Jumpscare after short delay
         if (elapsed >= game.powerOutageDelay) {
@@ -116,8 +125,10 @@ function startGame(night) {
 
     game.running = true;
     gameOverTriggered = false;
-    if (gameOverTimeout) { clearTimeout(gameOverTimeout);
-        gameOverTimeout = null; }
+    if (gameOverTimeout) {
+        clearTimeout(gameOverTimeout);
+        gameOverTimeout = null;
+    }
     var goScreen0 = document.getElementById('gameOverScreen');
     if (goScreen0) goScreen0.classList.remove('show');
     game.currentNight = night;
@@ -300,6 +311,11 @@ function triggerGameOver(msg) {
         lightHumGO.pause();
         lightHumGO.currentTime = 0;
     }
+    var jingleGO = document.getElementById('freddyJingleAudio');
+    if (jingleGO) { jingleGO.pause();
+        jingleGO.currentTime = 0; }
+    var fpoGO = document.getElementById('freddyPowerOut');
+    if (fpoGO) fpoGO.classList.remove('show');
 
     var scare = document.getElementById('jumpScare');
     if (scare) {
@@ -360,8 +376,10 @@ function triggerGameOver(msg) {
 function returnToStart() {
     game.running = false;
     gameOverTriggered = false;
-    if (gameOverTimeout) { clearTimeout(gameOverTimeout);
-        gameOverTimeout = null; }
+    if (gameOverTimeout) {
+        clearTimeout(gameOverTimeout);
+        gameOverTimeout = null;
+    }
     monitorOpen = false;
     if (gameLoop) {
         clearInterval(gameLoop);
