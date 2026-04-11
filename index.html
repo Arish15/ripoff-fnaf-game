@@ -16,39 +16,30 @@
     <!-- Audio Assets — drop matching files into src/assets/ to enable sound -->
     <audio id="doorAudio">
         <source src="src/assets/door.mp3" type="audio/mpeg">
-        <source src="src/assets/door.ogg" type="audio/ogg">
     </audio>
     <audio id="jumpScareAudio">
         <source src="src/assets/jumpscare.mp3" type="audio/mpeg">
-        <source src="src/assets/jumpscare.ogg" type="audio/ogg">
     </audio>
     <audio id="powerOutAudio">
         <source src="src/assets/powerout.mp3" type="audio/mpeg">
-        <source src="src/assets/powerout.ogg" type="audio/ogg">
     </audio>
     <audio id="freddyJingleAudio" loop>
         <source src="src/assets/freddyjingle.mp3" type="audio/mpeg">
-        <source src="src/assets/freddyjingle.ogg" type="audio/ogg">
     </audio>
     <audio id="successAudio">
         <source src="src/assets/success.mp3" type="audio/mpeg">
-        <source src="src/assets/success.ogg" type="audio/ogg">
     </audio>
     <audio id="ambientAudio" loop>
         <source src="src/assets/ambient.mp3" type="audio/mpeg">
-        <source src="src/assets/ambient.ogg" type="audio/ogg">
     </audio>
     <audio id="foxyRunAudio">
         <source src="src/assets/foxyrun.mp3" type="audio/mpeg">
-        <source src="src/assets/foxyrun.ogg" type="audio/ogg">
     </audio>
     <audio id="freddyLaughAudio">
         <source src="src/assets/freddylaugh.mp3" type="audio/mpeg">
-        <source src="src/assets/freddylaugh.ogg" type="audio/ogg">
     </audio>
     <audio id="camStaticAudio">
         <source src="src/assets/camstatic.mp3" type="audio/mpeg">
-        <source src="src/assets/camstatic.ogg" type="audio/ogg">
     </audio>
     <audio id="camChangeAudio">
         <source src="src/assets/lightswitch.mp3" type="audio/mpeg">
@@ -74,30 +65,21 @@
     <audio id="goldenFreddyScareAudio">
         <source src="src/assets/golden_freddy.ogg" type="audio/ogg">
     </audio>
-    <!-- Phone Guy call recordings — drop phoneguy_night1.mp3 … phoneguy_night6.mp3 into src/assets/
-         If no file is present for a night the game falls back to Web Speech API (browser TTS). -->
+    <!-- Phone Guy call recordings — if a night has no source, game falls back to browser TTS. -->
     <audio id="phoneGuyAudio1" preload="auto">
         <source src="src/assets/phoneguy_night1.ogg" type="audio/ogg">
-        <source src="src/assets/phoneguy_night1.mp3" type="audio/mpeg">
     </audio>
     <audio id="phoneGuyAudio2" preload="auto">
         <source src="src/assets/phoneguy_night2.ogg" type="audio/ogg">
-        <source src="src/assets/phoneguy_night2.mp3" type="audio/mpeg">
     </audio>
     <audio id="phoneGuyAudio3" preload="auto">
         <source src="src/assets/phoneguy_night3.ogg" type="audio/ogg">
-        <source src="src/assets/phoneguy_night3.mp3" type="audio/mpeg">
     </audio>
     <audio id="phoneGuyAudio4" preload="auto">
         <source src="src/assets/phoneguy_night4.ogg" type="audio/ogg">
-        <source src="src/assets/phoneguy_night4.mp3" type="audio/mpeg">
     </audio>
-    <audio id="phoneGuyAudio5">
-        <source src="src/assets/phoneguy_night5.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="phoneGuyAudio6">
-        <source src="src/assets/phoneguy_night6.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="phoneGuyAudio5"></audio>
+    <audio id="phoneGuyAudio6"></audio>
 
     <!-- Phone Guy Messages Overlay -->
     <div id="phoneGuyOverlay" class="phone-guy-overlay">

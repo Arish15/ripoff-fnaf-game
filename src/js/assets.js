@@ -1,7 +1,7 @@
 /**
  * FNAF Game — Assets Loader
- * Loads PNG/JPG/JPEG/SVG images for office states and camera feeds
- * Falls back through extensions in order: .png → .jpg → .jpeg → .svg
+ * Loads SVG/PNG/JPG/JPEG images for office states and camera feeds
+ * Falls back through extensions in order: .svg → .png → .jpg → .jpeg
  */
 
 /** @type {Object<string, Image|null>} */
