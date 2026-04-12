@@ -8,8 +8,14 @@
     <title>Five Nights at Freddy's</title>
     <link rel="stylesheet" href="src/css/styles.css">
     <link rel="stylesheet" href="src/css/office.css">
-    <!-- Three.js r152 — served locally (CDN path for r163 doesn't exist) -->
-    <script src="src/js/three.min.js"></script>
+    <!-- Three.js r170 — ES Module served locally -->
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "./src/js/three.module.min.js"
+        }
+    }
+    </script>
 </head>
 
 <body>
@@ -305,7 +311,7 @@
     </div>
 
     <script src="src/js/sounds.js?v=20260405"></script>
-    <script src="src/js/office3d.js?v=20260408b"></script>
+    <script type="module" src="src/js/office3d.js?v=20260412"></script>
     <script src="src/js/state.js?v=20260405"></script>
     <script src="src/js/assets.js?v=20260405"></script>
     <script src="src/js/office.js?v=20260408"></script>

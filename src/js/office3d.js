@@ -1,6 +1,6 @@
 ﻿/**
  * office3d.js - Three.js 3D office for FNAF
- * Requires Three.js loaded via CDN before this file.
+ * ES Module — imports Three.js via importmap.
  * 
  * Public API exposed as window.office3d:
  * @typedef {Object} Office3D
@@ -26,6 +26,8 @@
  * Lighting: AmbientLight 0.38 + DirectionalLights (no shadows for performance)
  * Fog: THREE.Fog linear 18-32 (gentle, does not kill the back wall)
  */
+import * as THREE from 'three';
+
 (function() {
     'use strict';
 
@@ -63,6 +65,7 @@
     var MAT_DOOR_OPEN, MAT_DOOR_CLOSED;
 
     var wallBtns = {};
+    var wallBtnPanels = { left: null, right: null };
     var raycaster3D;
 
     window.office3d = {
@@ -83,20 +86,36 @@
     function init() {
         var container = document.getElementById('officeScene');
         if (!container) { console.warn('[office3d] #officeScene not found'); return; }
-        if (typeof THREE === 'undefined') { console.warn('[office3d] Three.js not loaded'); return; }
+        if (!THREE) { console.warn('[office3d] Three.js import failed'); return; }
 
+        // Cancel any running animation before reinitializing
         if (animId) {
             cancelAnimationFrame(animId);
             animId = null;
         }
+        // Clean up any existing renderer/context before rebuilding.
+        if (renderer) {
+            if (typeof renderer.dispose === 'function') renderer.dispose();
+            if (typeof renderer.forceContextLoss === 'function') renderer.forceContextLoss();
+            renderer = null;
+        }
         container.innerHTML = '';
+
+        // Force layout recomputation to get accurate dimensions
+        var w = container.clientWidth || window.innerWidth;
+        var h = container.clientHeight || window.innerHeight;
+        
+        // If dimensions are still too small, wait and retry
+        if (w < 10 || h < 10) {
+            console.warn('[office3d] container too small (' + w + 'x' + h + '), retrying in 50ms');
+            setTimeout(init, 50);
+            return;
+        }
 
         scene = new THREE.Scene();
         scene.background = new THREE.Color(0x0e0c08);
         scene.fog = new THREE.Fog(0x0e0c08, 14, 26);
 
-        var w = container.clientWidth || window.innerWidth;
-        var h = container.clientHeight || window.innerHeight;
         camera = new THREE.PerspectiveCamera(72, w / h, 0.1, 60);
         camera.position.set(0, 4.0, 7.5);
         camera.rotation.order = 'YXZ';
@@ -106,7 +125,14 @@
         renderer.setSize(w, h);
         renderer.shadowMap.enabled = false;
         renderer.toneMapping = THREE.NoToneMapping;
+        
+        // Append canvas to container BEFORE building scene
         container.appendChild(renderer.domElement);
+        
+        // Force the canvas to fill the container
+        renderer.domElement.style.display = 'block';
+        renderer.domElement.style.width = '100%';
+        renderer.domElement.style.height = '100%';
 
         buildMaterials();
         buildRoom();
@@ -151,6 +177,7 @@
             renderer.domElement.style.cursor = hits.length > 0 ? 'pointer' : 'default';
         });
 
+        window.removeEventListener('resize', onResize);
         window.addEventListener('resize', onResize);
         animate();
         console.log('[office3d] initialized ' + w + 'x' + h + ' | bg=' + scene.background.getHexString() + ' | lights=' + scene.children.filter(function(c) { return c.isLight; }).length);
@@ -787,7 +814,8 @@
     function buildDecorations() {
         var RH = 11,
             HD = 9,
-            HW = 11;
+            HW = 11,
+            sZ = 2; // door half-width (dW=4 in buildRoom)
 
         // ── Procedural texture helpers ────────────────────────────────────
         function ceilTex() {
@@ -1510,8 +1538,8 @@
     }
 
     function animate() {
-        animId = requestAnimationFrame(animate);
         if (!renderer || !scene || !camera) return;
+        animId = requestAnimationFrame(animate);
 
         var edge = 0.28,
             target;
@@ -1533,7 +1561,11 @@
 
         if (fanPivot) fanPivot.rotation.z += 0.06;
 
-        renderer.render(scene, camera);
+        try {
+            renderer.render(scene, camera);
+        } catch (e) {
+            console.error('[office3d animate] render error:', e);
+        }
     }
 
     function setDoorLeft(closed) {
@@ -1615,8 +1647,15 @@
 
     function show() {
         var c = document.getElementById('officeScene');
-        if (c) c.style.display = '';
-        if (!animId) animate();
+        if (c) {
+            c.style.display = '';
+            // Force immediate re-layout
+            void c.offsetHeight;
+        }
+        // Ensure animation loop is running
+        if (!animId && renderer && scene && camera) {
+            animate();
+        }
     }
 
     function hide() {
@@ -1627,153 +1666,237 @@
     function onResize() {
         var c = document.getElementById('officeScene');
         if (!c || !renderer || !camera) return;
+        
         var w = c.clientWidth || window.innerWidth;
         var h = c.clientHeight || window.innerHeight;
-        if (w < 10 || h < 10) return;
-        camera.aspect = w / h;
-        camera.updateProjectionMatrix();
-        renderer.setSize(w, h);
+        
+        // Safeguard against zero-sized containers
+        if (w < 10 || h < 10) {
+            console.warn('[office3d resize] skipping resize: container too small (' + w + 'x' + h + ')');
+            return;
+        }
+        
+        var newAspect = w / h;
+        var oldAspect = camera.aspect;
+        
+        // Only update if aspect ratio changed significantly (>1% difference)
+        if (Math.abs(newAspect - oldAspect) > 0.01 || renderer.domElement.width !== w || renderer.domElement.height !== h) {
+            camera.aspect = newAspect;
+            camera.updateProjectionMatrix();
+            renderer.setSize(w, h);
+            console.log('[office3d resize] resized to ' + w + 'x' + h + ' (aspect ' + newAspect.toFixed(2) + ')');
+        }
     }
 
     // =========================================================
     // WALL BUTTON PANELS — 3D clickable panels on office walls
     // =========================================================
+    function _roundRect(ctx, x, y, w, h, r) {
+        var rr = Math.max(0, Math.min(r, Math.min(w, h) / 2));
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.lineTo(x + w - rr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+        ctx.lineTo(x + w, y + h - rr);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+        ctx.lineTo(x + rr, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+        ctx.lineTo(x, y + rr);
+        ctx.quadraticCurveTo(x, y, x + rr, y);
+        ctx.closePath();
+    }
+
+    function _refreshBtnPanel(side) {
+        var panel = wallBtnPanels[side];
+        if (!panel) return;
+
+        var doorId = side === 'left' ? 'doorLeft' : 'doorRight';
+        var lightId = side === 'left' ? 'lightLeft' : 'lightRight';
+        var doorOn = !!(wallBtns[doorId] && wallBtns[doorId].active);
+        var lightOn = !!(wallBtns[lightId] && wallBtns[lightId].active);
+
+        var ctx = panel.ctx,
+            W = panel.canvas.width,
+            H = panel.canvas.height;
+        ctx.clearRect(0, 0, W, H);
+
+        // Holder shadow
+        ctx.fillStyle = 'rgba(0,0,0,0.38)';
+        _roundRect(ctx, 8, 10, W - 16, H - 20, 16);
+        ctx.fill();
+
+        // Main black glossy holder
+        var gMain = ctx.createLinearGradient(0, 0, 0, H);
+        gMain.addColorStop(0, '#171717');
+        gMain.addColorStop(0.55, '#070707');
+        gMain.addColorStop(1, '#030303');
+        ctx.fillStyle = gMain;
+        _roundRect(ctx, 12, 14, W - 24, H - 28, 14);
+        ctx.fill();
+
+        // Inner recess
+        ctx.fillStyle = '#040404';
+        _roundRect(ctx, 24, 30, W - 48, H - 60, 10);
+        ctx.fill();
+
+        // Holder edge lighting
+        ctx.fillStyle = 'rgba(255,255,255,0.12)';
+        ctx.fillRect(24, 30, 3, H - 60);
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(W - 27, 30, 3, H - 60);
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillRect(24, 30, W - 48, 2);
+
+        // Soft center sheen
+        var gSheen = ctx.createLinearGradient(0, 0, W, 0);
+        gSheen.addColorStop(0, 'rgba(255,255,255,0)');
+        gSheen.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+        gSheen.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = gSheen;
+        _roundRect(ctx, 30, 36, W - 60, H - 72, 8);
+        ctx.fill();
+
+        var btnSize = Math.round(W * 0.44);
+        var bx = Math.round((W - btnSize) / 2);
+        var doorY = 58;
+        var lightY = 260;
+
+        function drawSquareButton(y, on, isDoor) {
+            var bg = ctx.createLinearGradient(0, y, 0, y + btnSize);
+            if (isDoor) {
+                bg.addColorStop(0, on ? '#ff4a4a' : '#c52626');
+                bg.addColorStop(0.62, on ? '#d12020' : '#961515');
+                bg.addColorStop(1, on ? '#9f1313' : '#630d0d');
+            } else {
+                bg.addColorStop(0, on ? '#fff6d6' : '#efefef');
+                bg.addColorStop(0.62, on ? '#f0e7be' : '#cfcfcf');
+                bg.addColorStop(1, on ? '#d6cca1' : '#9f9f9f');
+            }
+
+            // Button body
+            ctx.fillStyle = bg;
+            ctx.fillRect(bx, y, btnSize, btnSize);
+
+            // Bevel + border
+            ctx.fillStyle = 'rgba(255,255,255,0.40)';
+            ctx.fillRect(bx, y, btnSize, 3);
+            ctx.fillRect(bx, y, 3, btnSize);
+            ctx.fillStyle = 'rgba(0,0,0,0.45)';
+            ctx.fillRect(bx, y + btnSize - 3, btnSize, 3);
+            ctx.fillRect(bx + btnSize - 3, y, 3, btnSize);
+            ctx.strokeStyle = '#131313';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(bx - 1.5, y - 1.5, btnSize + 3, btnSize + 3);
+
+            // Active glow
+            if (on) {
+                var glow = ctx.createRadialGradient(
+                    bx + btnSize / 2,
+                    y + btnSize / 2,
+                    0,
+                    bx + btnSize / 2,
+                    y + btnSize / 2,
+                    btnSize * 0.9
+                );
+                if (isDoor) {
+                    glow.addColorStop(0, 'rgba(255,80,80,0.32)');
+                    glow.addColorStop(1, 'rgba(255,80,80,0)');
+                } else {
+                    glow.addColorStop(0, 'rgba(255,245,185,0.34)');
+                    glow.addColorStop(1, 'rgba(255,245,185,0)');
+                }
+                ctx.fillStyle = glow;
+                ctx.fillRect(bx - btnSize * 0.25, y - btnSize * 0.25, btnSize * 1.5, btnSize * 1.5);
+            }
+        }
+
+        drawSquareButton(doorY, doorOn, true);
+        drawSquareButton(lightY, lightOn, false);
+
+        // Labels
+        ctx.fillStyle = '#f3f3f3';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.font = 'bold 72px Arial Black, Arial, sans-serif';
+        ctx.fillText('DOOR', W / 2, 238);
+        ctx.fillText('LIGHT', W / 2, 446);
+
+        // Slight text shadow for retro look
+        ctx.strokeStyle = 'rgba(0,0,0,0.55)';
+        ctx.lineWidth = 2;
+        ctx.strokeText('DOOR', W / 2, 238);
+        ctx.strokeText('LIGHT', W / 2, 446);
+
+        panel.tex.needsUpdate = true;
+    }
+
     function _refreshBtn(id) {
         var b = wallBtns[id];
         if (!b) return;
-        var ctx = b.ctx,
-            W = b.canvas.width,
-            H = b.canvas.height;
-
-        // ── Outer housing — dark charcoal wall plate ──
-        ctx.fillStyle = '#1c1c20';
-        ctx.fillRect(0, 0, W, H);
-
-        // Mounting-plate screw holes (four corners)
-        [
-            [10, 10],
-            [W - 10, 10],
-            [10, H - 10],
-            [W - 10, H - 10]
-        ].forEach(function(p) {
-            ctx.fillStyle = '#2e2e34';
-            ctx.beginPath();
-            ctx.arc(p[0], p[1], 6, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#111';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.arc(p[0], p[1], 6, 0, Math.PI * 2);
-            ctx.stroke();
-            // Philips-head groove hint
-            ctx.strokeStyle = '#181818';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(p[0] - 3, p[1]);
-            ctx.lineTo(p[0] + 3, p[1]);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(p[0], p[1] - 3);
-            ctx.lineTo(p[0], p[1] + 3);
-            ctx.stroke();
-        });
-
-        // ── Recessed backing recess ──
-        var rx = 20,
-            ry = 20,
-            rw = W - 40,
-            rh = H - 40;
-        ctx.fillStyle = '#141418';
-        ctx.fillRect(rx, ry, rw, rh);
-
-        // ── Button face — raised rectangular paddle ──
-        var fx = rx + 12,
-            fy = ry + 10,
-            fw = rw - 24,
-            fh = rh - 20;
-        // Face base colour: off-white/cream normally; pale green tint when active
-        ctx.fillStyle = b.active ? '#c8e8d0' : '#d4cfc0';
-        ctx.fillRect(fx, fy, fw, fh);
-
-        // Raised-edge bevel: bright top/left, dark bottom/right
-        ctx.fillStyle = 'rgba(255,255,255,0.45)';
-        ctx.fillRect(fx, fy, fw, 3); // top highlight
-        ctx.fillRect(fx, fy, 3, fh); // left highlight
-        ctx.fillStyle = 'rgba(0,0,0,0.40)';
-        ctx.fillRect(fx, fy + fh - 3, fw, 3); // bottom shadow
-        ctx.fillRect(fx + fw - 3, fy, 3, fh); // right shadow
-
-        // Active glow wash
-        if (b.active) {
-            var glow = ctx.createRadialGradient(fx + fw / 2, fy + fh / 2, 0, fx + fw / 2, fy + fh / 2, fw * 0.7);
-            glow.addColorStop(0, 'rgba(60,220,100,0.28)');
-            glow.addColorStop(1, 'rgba(60,220,100,0)');
-            ctx.fillStyle = glow;
-            ctx.fillRect(fx, fy, fw, fh);
-        }
-
-        // ── Small indicator LED (top-right of face) ──
-        var lx = fx + fw - 14,
-            ly = fy + 12,
-            lr = 7;
-        var lg = ctx.createRadialGradient(lx, ly - 2, 1, lx, ly, lr);
-        if (b.active) {
-            lg.addColorStop(0, '#ddffee');
-            lg.addColorStop(0.5, '#22cc55');
-            lg.addColorStop(1, '#003a10');
-        } else {
-            lg.addColorStop(0, '#553333');
-            lg.addColorStop(0.5, '#220000');
-            lg.addColorStop(1, '#110000');
-        }
-        ctx.beginPath();
-        ctx.arc(lx, ly, lr, 0, Math.PI * 2);
-        ctx.fillStyle = lg;
-        ctx.fill();
-
-        // ── Label ──
-        var isDoor = (b.label === 'DOOR');
-        ctx.fillStyle = b.active ? '#1a4a28' : '#3a3428';
-        ctx.font = 'bold ' + Math.floor(fh * 0.42) + 'px Arial Black, Arial, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(b.label, fx + fw / 2, fy + fh * 0.60);
-
-        b.tex.needsUpdate = true;
+        _refreshBtnPanel(b.side);
     }
 
     function buildWallButtons() {
-        // Buttons sit on the camera-facing wall strips beside each doorway.
-        // Z=2.3 places them near the door-frame edge — at ~64° horizontal from
-        // camera forward, visible when panned ~80% left/right (within max ±35° pan + 36° half-FOV).
-        var BW = 3.0,
-            BH = 1.8;
+        // FNAF1-style holder: one vertical panel per side with DOOR (red, top)
+        // and LIGHT (white, bottom). Separate transparent hitboxes handle clicks.
+        var PANEL_W = 2.55,
+            PANEL_H = 4.9;
+        var HIT_W = 1.08,
+            HIT_H = 1.08;
         var TW = 256,
-            TH = Math.round(256 * BH / BW);
-        var defs = [
-            { id: 'doorLeft', label: 'DOOR', x: -10.61, y: 4.6, z: 2.3, ry: Math.PI / 2 },
-            { id: 'lightLeft', label: 'LIGHT', x: -10.61, y: 2.7, z: 2.3, ry: Math.PI / 2 },
-            { id: 'doorRight', label: 'DOOR', x: 10.61, y: 4.6, z: 2.3, ry: -Math.PI / 2 },
-            { id: 'lightRight', label: 'LIGHT', x: 10.61, y: 2.7, z: 2.3, ry: -Math.PI / 2 }
+            TH = 512;
+        var sides = [
+            { side: 'left', x: -10.61, y: 3.65, z: 2.3, ry: Math.PI / 2, nx: 0.03 },
+            { side: 'right', x: 10.61, y: 3.65, z: 2.3, ry: -Math.PI / 2, nx: -0.03 }
         ];
+
         wallBtns = {};
-        defs.forEach(function(d) {
+        wallBtnPanels = { left: null, right: null };
+
+        sides.forEach(function(s) {
+            // Visible holder panel
             var cv = document.createElement('canvas');
             cv.width = TW;
             cv.height = TH;
             var ctx = cv.getContext('2d');
             var tex = new THREE.CanvasTexture(cv);
-            var mat = new THREE.MeshBasicMaterial({ map: tex, depthWrite: true });
-            var geo = new THREE.PlaneGeometry(BW, BH);
-            var m = new THREE.Mesh(geo, mat);
-            m.position.set(d.x, d.y, d.z);
-            m.rotation.y = d.ry;
-            m.renderOrder = 1;
-            m.userData.btnId = d.id;
-            scene.add(m);
-            wallBtns[d.id] = { mesh: m, canvas: cv, ctx: ctx, tex: tex, label: d.label, active: false };
-            _refreshBtn(d.id);
+            tex.minFilter = THREE.LinearFilter;
+            tex.magFilter = THREE.LinearFilter;
+            var panelMat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: true });
+            var panelGeo = new THREE.PlaneGeometry(PANEL_W, PANEL_H);
+            var panelMesh = new THREE.Mesh(panelGeo, panelMat);
+            panelMesh.position.set(s.x, s.y, s.z);
+            panelMesh.rotation.y = s.ry;
+            panelMesh.renderOrder = 1;
+            scene.add(panelMesh);
+            wallBtnPanels[s.side] = { mesh: panelMesh, canvas: cv, ctx: ctx, tex: tex };
+
+            // Invisible clickable hitboxes over the two square buttons
+            var hitMatDoor = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+            var hitMatLight = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false });
+            var hitGeo = new THREE.PlaneGeometry(HIT_W, HIT_H);
+
+            var doorId = s.side === 'left' ? 'doorLeft' : 'doorRight';
+            var lightId = s.side === 'left' ? 'lightLeft' : 'lightRight';
+
+            var doorHit = new THREE.Mesh(hitGeo, hitMatDoor);
+            doorHit.position.set(s.x + s.nx, s.y + 1.10, s.z);
+            doorHit.rotation.y = s.ry;
+            doorHit.userData.btnId = doorId;
+            scene.add(doorHit);
+
+            var lightHit = new THREE.Mesh(hitGeo, hitMatLight);
+            lightHit.position.set(s.x + s.nx, s.y - 0.82, s.z);
+            lightHit.rotation.y = s.ry;
+            lightHit.userData.btnId = lightId;
+            scene.add(lightHit);
+
+            wallBtns[doorId] = { mesh: doorHit, side: s.side, kind: 'door', active: false };
+            wallBtns[lightId] = { mesh: lightHit, side: s.side, kind: 'light', active: false };
         });
+
+        _refreshBtnPanel('left');
+        _refreshBtnPanel('right');
         raycaster3D = new THREE.Raycaster();
     }
 
