@@ -298,8 +298,8 @@ function updateHallAnimatronics() {
     if (rightAnim !== _prevRightHallAnim && rightAnim && game.lightRight) _checkWindowScare('right');
     _prevLeftHallAnim = leftAnim;
     _prevRightHallAnim = rightAnim;
-    window.office3d.setHallLeft(leftAnim ? leftAnim.color : null);
-    window.office3d.setHallRight(rightAnim ? rightAnim.color : null);
+    window.office3d.setHallLeft(leftAnim || null);
+    window.office3d.setHallRight(rightAnim || null);
 }
 
 function checkCollisions() {

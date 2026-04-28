@@ -229,130 +229,7 @@ function drawCamBg(cam, w, h) {
         c.font = 'bold ' + Math.floor(h * 0.06) + 'px Arial';
         c.textAlign = 'center';
         c.fillText("FREDDY FAZBEAR'S PIZZA", w * 0.5, h * 0.185);
-        // ── Animatronics on stage ───────────────────────────────────────
-        // Bonnie — left, purple rabbit
-        (function() {
-            var bx = w * 0.2,
-                by = h * 0.45,
-                bh = h * 0.34;
-            // Body
-            c.fillStyle = '#4a2880';
-            c.fillRect(bx - bh * 0.22, by + bh * 0.38, bh * 0.44, bh * 0.55);
-            // Head
-            c.fillStyle = '#5c3494';
-            c.beginPath();
-            c.arc(bx, by + bh * 0.3, bh * 0.24, 0, Math.PI * 2);
-            c.fill();
-            // Ears (tall)
-            c.fillStyle = '#5c3494';
-            c.fillRect(bx - bh * 0.22, by - bh * 0.1, bh * 0.1, bh * 0.38);
-            c.fillRect(bx + bh * 0.12, by - bh * 0.1, bh * 0.1, bh * 0.38);
-            c.fillStyle = '#c070e0';
-            c.fillRect(bx - bh * 0.17, by - bh * 0.06, bh * 0.04, bh * 0.3);
-            c.fillRect(bx + bh * 0.14, by - bh * 0.06, bh * 0.04, bh * 0.3);
-            // Eyes
-            c.fillStyle = '#aa00cc';
-            c.beginPath();
-            c.arc(bx - bh * 0.09, by + bh * 0.26, bh * 0.04, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(bx + bh * 0.09, by + bh * 0.26, bh * 0.04, 0, Math.PI * 2);
-            c.fill();
-            // Guitar (simplified rectangle)
-            c.fillStyle = '#8b4513';
-            c.fillRect(bx + bh * 0.22, by + bh * 0.42, bh * 0.07, bh * 0.4);
-            c.beginPath();
-            c.ellipse(bx + bh * 0.25, by + bh * 0.55, bh * 0.1, bh * 0.08, 0, 0, Math.PI * 2);
-            c.fill();
-        })();
-        // Freddy — centre, brown bear with top hat
-        (function() {
-            var fx = w * 0.5,
-                fy = h * 0.42,
-                fh = h * 0.36;
-            // Body
-            c.fillStyle = '#7a501e';
-            c.fillRect(fx - fh * 0.24, fy + fh * 0.36, fh * 0.48, fh * 0.57);
-            // Head
-            c.fillStyle = '#8b5c28';
-            c.beginPath();
-            c.arc(fx, fy + fh * 0.28, fh * 0.26, 0, Math.PI * 2);
-            c.fill();
-            // Ears (round)
-            c.beginPath();
-            c.arc(fx - fh * 0.24, fy + fh * 0.08, fh * 0.1, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(fx + fh * 0.24, fy + fh * 0.08, fh * 0.1, 0, Math.PI * 2);
-            c.fill();
-            // Top hat
-            c.fillStyle = '#111018';
-            c.fillRect(fx - fh * 0.18, fy - fh * 0.06, fh * 0.36, fh * 0.26);
-            c.fillRect(fx - fh * 0.24, fy + fh * 0.19, fh * 0.48, fh * 0.06);
-            c.fillStyle = '#8b0000'; // hat band
-            c.fillRect(fx - fh * 0.18, fy + fh * 0.14, fh * 0.36, fh * 0.05);
-            // Eyes
-            c.fillStyle = '#200c00';
-            c.beginPath();
-            c.arc(fx - fh * 0.1, fy + fh * 0.24, fh * 0.05, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(fx + fh * 0.1, fy + fh * 0.24, fh * 0.05, 0, Math.PI * 2);
-            c.fill();
-            // Microphone
-            c.fillStyle = '#888';
-            c.fillRect(fx + fh * 0.22, fy + fh * 0.48, fh * 0.04, fh * 0.35);
-            c.beginPath();
-            c.ellipse(fx + fh * 0.24, fy + fh * 0.46, fh * 0.08, fh * 0.06, 0, 0, Math.PI * 2);
-            c.fill();
-        })();
-        // Chica — right, yellow chicken
-        (function() {
-            var cx = w * 0.8,
-                cy = h * 0.45,
-                ch = h * 0.34;
-            // Body
-            c.fillStyle = '#d4a800';
-            c.fillRect(cx - ch * 0.22, cy + ch * 0.38, ch * 0.44, ch * 0.55);
-            // Head
-            c.fillStyle = '#e8bc18';
-            c.beginPath();
-            c.arc(cx, cy + ch * 0.28, ch * 0.24, 0, Math.PI * 2);
-            c.fill();
-            // Beak
-            c.fillStyle = '#e07000';
-            c.beginPath();
-            c.moveTo(cx - ch * 0.1, cy + ch * 0.3);
-            c.lineTo(cx + ch * 0.1, cy + ch * 0.3);
-            c.lineTo(cx, cy + ch * 0.42);
-            c.closePath();
-            c.fill();
-            // Eyes
-            c.fillStyle = '#201000';
-            c.beginPath();
-            c.arc(cx - ch * 0.09, cy + ch * 0.23, ch * 0.04, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(cx + ch * 0.09, cy + ch * 0.23, ch * 0.04, 0, Math.PI * 2);
-            c.fill();
-            // Bibs/chest lighter patch
-            c.fillStyle = '#f8e880';
-            c.beginPath();
-            c.ellipse(cx, cy + ch * 0.52, ch * 0.14, ch * 0.18, 0, 0, Math.PI * 2);
-            c.fill();
-            // "LET'S EAT" bib text (tiny)
-            c.fillStyle = '#cc2200';
-            c.font = 'bold ' + Math.floor(ch * 0.07) + 'px Arial';
-            c.textAlign = 'center';
-            c.fillText("LET'S EAT", cx, cy + ch * 0.56);
-            // Cupcake (small)
-            c.fillStyle = '#c06818';
-            c.fillRect(cx - ch * 0.28, cy + ch * 0.55, ch * 0.11, ch * 0.14);
-            c.fillStyle = '#ee2244';
-            c.beginPath();
-            c.arc(cx - ch * 0.225, cy + ch * 0.54, ch * 0.065, 0, Math.PI * 2);
-            c.fill();
-        })();
+
         // Stage lighting (warm cones from above)
         [w * 0.2, w * 0.5, w * 0.8].forEach(function(lx) {
             c.fillStyle = 'rgba(255,220,120,0.07)';
@@ -448,7 +325,6 @@ function drawCamBg(cam, w, h) {
                 c.fillRect(tx + row.tw * 0.52, row.y + row.th * 0.1, row.tw * 0.18, row.th * 0.7);
             });
         });
-
     } else if (cam === 'pirate') {
         // ── CAM 1C: Pirate's Cove ───────────────────────────────────────
         var foxyStage = (animatronics && animatronics.foxy) ? Math.min(3, animatronics.foxy.pos) : 0;
@@ -1258,71 +1134,151 @@ function drawCamera() {
 
 function drawAnimatronic(anim, cx, cy, scale) {
     var c = camCtx;
+    var name = anim.name.toLowerCase();
     var hw = Math.floor(camCanvas.height * 0.18 * (scale || 1));
+    var h2 = hw * 2.0;
 
     c.save();
-    c.translate(cx, cy);
 
+    // Shadow
     c.fillStyle = 'rgba(0,0,0,0.4)';
     c.beginPath();
-    c.ellipse(0, hw * 0.1, hw * 1.1, hw * 0.2, 0, 0, Math.PI * 2);
+    c.ellipse(cx, cy + h2 * 0.5, hw * 1.1, hw * 0.2, 0, 0, Math.PI * 2);
     c.fill();
 
-    c.fillStyle = anim.color;
-    c.fillRect(-hw * 0.5, -hw * 1.4, hw, hw * 1.4);
+    if (name === 'bonnie') {
+        var bx = cx,
+            by = cy - hw * 0.3,
+            bh = h2;
+        // Body
+        c.fillStyle = '#4a2880';
+        c.fillRect(bx - bh * 0.22, by, bh * 0.44, bh * 0.55);
+        // Head
+        c.fillStyle = '#5c3494';
+        c.beginPath();
+        c.arc(bx, by - bh * 0.08, bh * 0.24, 0, Math.PI * 2);
+        c.fill();
+        // Ears
+        c.fillStyle = '#5c3494';
+        c.fillRect(bx - bh * 0.22, by - bh * 0.48, bh * 0.1, bh * 0.38);
+        c.fillRect(bx + bh * 0.12, by - bh * 0.48, bh * 0.1, bh * 0.38);
+        c.fillStyle = '#c070e0';
+        c.fillRect(bx - bh * 0.17, by - bh * 0.44, bh * 0.04, bh * 0.3);
+        c.fillRect(bx + bh * 0.14, by - bh * 0.44, bh * 0.04, bh * 0.3);
+        // Eyes
+        c.fillStyle = '#aa00cc';
+        c.beginPath();
+        c.arc(bx - bh * 0.09, by - bh * 0.12, bh * 0.04, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.arc(bx + bh * 0.09, by - bh * 0.12, bh * 0.04, 0, Math.PI * 2);
+        c.fill();
+        // Guitar
+        c.fillStyle = '#8b4513';
+        c.fillRect(bx + bh * 0.22, by + bh * 0.04, bh * 0.07, bh * 0.4);
+        c.beginPath();
+        c.ellipse(bx + bh * 0.25, by + bh * 0.17, bh * 0.1, bh * 0.08, 0, 0, Math.PI * 2);
+        c.fill();
 
-    c.fillStyle = anim.color;
-    c.beginPath();
-    c.arc(0, -hw * 1.6, hw * 0.55, 0, Math.PI * 2);
-    c.fill();
+    } else if (name === 'freddy') {
+        var fx = cx,
+            fy = cy - hw * 0.3,
+            fh = h2;
+        // Body
+        c.fillStyle = '#7a501e';
+        c.fillRect(fx - fh * 0.24, fy - fh * 0.06, fh * 0.48, fh * 0.57);
+        // Head
+        c.fillStyle = '#8b5c28';
+        c.beginPath();
+        c.arc(fx, fy - fh * 0.14, fh * 0.26, 0, Math.PI * 2);
+        c.fill();
+        // Ears
+        c.beginPath();
+        c.arc(fx - fh * 0.24, fy - fh * 0.34, fh * 0.1, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.arc(fx + fh * 0.24, fy - fh * 0.34, fh * 0.1, 0, Math.PI * 2);
+        c.fill();
+        // Top hat
+        c.fillStyle = '#111018';
+        c.fillRect(fx - fh * 0.18, fy - fh * 0.48, fh * 0.36, fh * 0.26);
+        c.fillRect(fx - fh * 0.24, fy - fh * 0.23, fh * 0.48, fh * 0.06);
+        c.fillStyle = '#8b0000'; // hat band
+        c.fillRect(fx - fh * 0.18, fy - fh * 0.28, fh * 0.36, fh * 0.05);
+        // Eyes
+        c.fillStyle = '#200c00';
+        c.beginPath();
+        c.arc(fx - fh * 0.1, fy - fh * 0.18, fh * 0.05, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.arc(fx + fh * 0.1, fy - fh * 0.18, fh * 0.05, 0, Math.PI * 2);
+        c.fill();
+        // Microphone
+        c.fillStyle = '#888';
+        c.fillRect(fx + fh * 0.22, fy + fh * 0.06, fh * 0.04, fh * 0.35);
+        c.beginPath();
+        c.ellipse(fx + fh * 0.24, fy + fh * 0.04, fh * 0.08, fh * 0.06, 0, 0, Math.PI * 2);
+        c.fill();
 
-    c.fillStyle = '#fff';
-    c.beginPath();
-    c.arc(-hw * 0.22, -hw * 1.72, hw * 0.18, 0, Math.PI * 2);
-    c.fill();
-    c.beginPath();
-    c.arc(hw * 0.22, -hw * 1.72, hw * 0.18, 0, Math.PI * 2);
-    c.fill();
-    c.fillStyle = '#111';
-    c.beginPath();
-    c.arc(-hw * 0.22, -hw * 1.72, hw * 0.09, 0, Math.PI * 2);
-    c.fill();
-    c.beginPath();
-    c.arc(hw * 0.22, -hw * 1.72, hw * 0.09, 0, Math.PI * 2);
-    c.fill();
+    } else if (name === 'chica') {
+        var chx = cx,
+            chy = cy - hw * 0.3,
+            chh = h2;
+        // Body
+        c.fillStyle = '#d4a800';
+        c.fillRect(chx - chh * 0.22, chy, chh * 0.44, chh * 0.55);
+        // Head
+        c.fillStyle = '#e8bc18';
+        c.beginPath();
+        c.arc(chx, chy - chh * 0.1, chh * 0.24, 0, Math.PI * 2);
+        c.fill();
+        // Beak
+        c.fillStyle = '#e07000';
+        c.beginPath();
+        c.moveTo(chx - chh * 0.1, chy - chh * 0.08);
+        c.lineTo(chx + chh * 0.1, chy - chh * 0.08);
+        c.lineTo(chx, chy + chh * 0.04);
+        c.closePath();
+        c.fill();
+        // Eyes
+        c.fillStyle = '#201000';
+        c.beginPath();
+        c.arc(chx - chh * 0.09, chy - chh * 0.15, chh * 0.04, 0, Math.PI * 2);
+        c.fill();
+        c.beginPath();
+        c.arc(chx + chh * 0.09, chy - chh * 0.15, chh * 0.04, 0, Math.PI * 2);
+        c.fill();
+        // Bib
+        c.fillStyle = '#f8e880';
+        c.beginPath();
+        c.ellipse(chx, chy + chh * 0.14, chh * 0.14, chh * 0.18, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#cc2200';
+        c.font = 'bold ' + Math.floor(chh * 0.07) + 'px Arial';
+        c.textAlign = 'center';
+        c.fillText("LET'S EAT", chx, chy + chh * 0.18);
+        // Cupcake
+        c.fillStyle = '#c06818';
+        c.fillRect(chx - chh * 0.28, chy + chh * 0.17, chh * 0.11, chh * 0.14);
+        c.fillStyle = '#ee2244';
+        c.beginPath();
+        c.arc(chx - chh * 0.225, chy + chh * 0.16, chh * 0.065, 0, Math.PI * 2);
+        c.fill();
 
-    c.strokeStyle = '#333';
-    c.lineWidth = hw * 0.08;
-    c.beginPath();
-    c.arc(0, -hw * 1.4, hw * 0.3, 0.2, Math.PI - 0.2);
-    c.stroke();
-
-    c.strokeStyle = anim.color;
-    c.lineWidth = hw * 0.22;
-    c.lineCap = 'round';
-    c.beginPath();
-    c.moveTo(-hw * 0.5, -hw * 1.1);
-    c.lineTo(-hw * 1.0, -hw * 0.55);
-    c.stroke();
-    c.beginPath();
-    c.moveTo(hw * 0.5, -hw * 1.1);
-    c.lineTo(hw * 1.0, -hw * 0.55);
-    c.stroke();
-
-    c.lineWidth = hw * 0.2;
-    c.beginPath();
-    c.moveTo(-hw * 0.25, 0);
-    c.lineTo(-hw * 0.3, hw * 0.8);
-    c.stroke();
-    c.beginPath();
-    c.moveTo(hw * 0.25, 0);
-    c.lineTo(hw * 0.3, hw * 0.8);
-    c.stroke();
-
-    c.fillStyle = '#fff';
-    c.font = 'bold ' + Math.max(9, Math.floor(hw * 0.45)) + 'px Arial';
-    c.textAlign = 'center';
-    c.fillText(anim.name, 0, hw * 1.0);
+    } else {
+        // Fallback for others (e.g. Foxy or Endo)
+        c.translate(cx, cy);
+        var hw2 = hw;
+        c.fillStyle = anim.color;
+        c.fillRect(-hw2 * 0.5, -hw2 * 1.4, hw2, hw2 * 1.4);
+        c.beginPath();
+        c.arc(0, -hw2 * 1.6, hw2 * 0.55, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = '#fff';
+        c.font = 'bold ' + Math.max(9, Math.floor(hw2 * 0.45)) + 'px Arial';
+        c.textAlign = 'center';
+        c.fillText(anim.name, 0, hw2 * 1.0);
+    }
 
     c.restore();
 }
@@ -1344,14 +1300,28 @@ function toggleMonitor() {
         document.querySelectorAll('.camBtn').forEach(function(b) {
             b.classList.toggle('active', b.getAttribute('data-cam') === game.currentCam);
         });
-        sizeCanvas();
-        drawCamera();
+        // Delay canvas sizing until after CSS transition completes (0.25s)
+        setTimeout(function() {
+            sizeCanvas();
+            drawCamera();
+        }, 260);
         var camSfx = document.getElementById('camStaticAudio');
         if (camSfx) {
             camSfx.currentTime = 0;
             camSfx.play().catch(function() {});
         }
-        // Hide office behind monitor (cancel any pending reveal)
+        // Canon FNAF1 behavior: raising the monitor instantly kills hall lights.
+        if (window.forceOfficeLightsOff) {
+            window.forceOfficeLightsOff();
+        } else {
+            game.lightLeft = false;
+            game.lightRight = false;
+            if (window.office3d) {
+                window.office3d.setLightLeft(false);
+                window.office3d.setLightRight(false);
+            }
+        }
+        // Hide office behind monitor immediately
         if (monitorCloseTimeout) {
             clearTimeout(monitorCloseTimeout);
             monitorCloseTimeout = null;
@@ -1367,11 +1337,21 @@ function toggleMonitor() {
             camSfxStop.pause();
             camSfxStop.currentTime = 0;
         }
-        // Delay office reveal to match monitor slide-down transition (250ms)
+        // Reveal office with slight delay to match monitor slide-down CSS transition (~250ms)
+        // Use setInterval check to ensure game is still running before showing
+        if (monitorCloseTimeout) clearTimeout(monitorCloseTimeout);
         monitorCloseTimeout = setTimeout(function() {
             monitorCloseTimeout = null;
-            var officeEl2 = document.getElementById('officeArea');
-            if (officeEl2) officeEl2.style.display = 'flex';
+            if (game.running && !monitorOpen) {
+                var officeEl2 = document.getElementById('officeArea');
+                if (officeEl2) {
+                    officeEl2.style.display = 'flex';
+                    // Trigger any pending renders
+                    if (window.office3d && window.office3d.show) {
+                        window.office3d.show();
+                    }
+                }
+            }
         }, 250);
     }
 }
@@ -1386,6 +1366,7 @@ function startCameraLoop() {
 
 function switchCam(cam) {
     if (!game.running) return;
+    if (window.forceOfficeLightsOff) window.forceOfficeLightsOff();
     game.currentCam = cam;
     game.lastCam = cam;
     monitorOpen = true;
@@ -1397,8 +1378,11 @@ function switchCam(cam) {
     document.querySelectorAll('.camBtn').forEach(function(b) {
         b.classList.toggle('active', b.getAttribute('data-cam') === cam);
     });
-    sizeCanvas();
-    drawCamera();
+    // Delay canvas sizing until after CSS transition completes (0.25s)
+    setTimeout(function() {
+        sizeCanvas();
+        drawCamera();
+    }, 260);
     var camBlip = document.getElementById('camChangeAudio');
     if (camBlip) {
         camBlip.currentTime = 0;

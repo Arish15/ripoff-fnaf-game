@@ -1,4 +1,4 @@
-﻿/**
+/**
  * office3d.js - Three.js 3D office for FNAF
  * ES Module — imports Three.js via importmap.
  * 
@@ -41,6 +41,10 @@ import * as THREE from 'three';
         hallDecorRight = [];
     var hallAnimLeftGroup, hallAnimRightGroup;
     var hallAnimLeftMat, hallAnimRightMat;
+    var hallAnimLeftAnim = null,
+        hallAnimRightAnim = null;
+    var doorOverlayCanvas = null,
+        doorOverlayCtx = null;
     var hallLeftLightOn = false,
         hallRightLightOn = false;
     var hallLeftPresent = false,
@@ -74,8 +78,19 @@ import * as THREE from 'three';
         setDoorRight: setDoorRight,
         setLightLeft: setLightLeft,
         setLightRight: setLightRight,
-        setHallLeft: setHallLeft,
-        setHallRight: setHallRight,
+        setHallLeft: function(anim) {
+            hallAnimLeftAnim = anim;
+            hallLeftPresent = anim != null;
+            if (hallAnimLeftMat && anim != null) hallAnimLeftMat.color.setStyle(anim.color);
+            updateHallVis('left');
+        },
+        setHallRight: function(anim) {
+            hallAnimRightAnim = anim;
+            hallRightPresent = anim != null;
+            if (hallAnimRightMat && anim != null) hallAnimRightMat.color.setStyle(anim.color);
+            updateHallVis('right');
+        },
+        setAnimatronicPosition: setAnimatronicPosition,
         setMouse: setMouse,
         getRotation: function() { return currentRotY; },
         show: show,
@@ -104,7 +119,7 @@ import * as THREE from 'three';
         // Force layout recomputation to get accurate dimensions
         var w = container.clientWidth || window.innerWidth;
         var h = container.clientHeight || window.innerHeight;
-        
+
         // If dimensions are still too small, wait and retry
         if (w < 10 || h < 10) {
             console.warn('[office3d] container too small (' + w + 'x' + h + '), retrying in 50ms');
@@ -113,8 +128,8 @@ import * as THREE from 'three';
         }
 
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x0e0c08);
-        scene.fog = new THREE.Fog(0x0e0c08, 14, 26);
+        scene.background = new THREE.Color(0x1a1410);
+        scene.fog = new THREE.Fog(0x1a1410, 16, 28);
 
         camera = new THREE.PerspectiveCamera(72, w / h, 0.1, 60);
         camera.position.set(0, 4.0, 7.5);
@@ -125,14 +140,15 @@ import * as THREE from 'three';
         renderer.setSize(w, h);
         renderer.shadowMap.enabled = false;
         renderer.toneMapping = THREE.NoToneMapping;
-        
+
         // Append canvas to container BEFORE building scene
         container.appendChild(renderer.domElement);
-        
+
         // Force the canvas to fill the container
         renderer.domElement.style.display = 'block';
         renderer.domElement.style.width = '100%';
         renderer.domElement.style.height = '100%';
+        renderer.domElement.style.zIndex = '0';
 
         buildMaterials();
         buildRoom();
@@ -142,6 +158,7 @@ import * as THREE from 'three';
         buildHallDecor();
         buildHallAnimatronics();
         buildWallButtons();
+        initDoorOverlay();
 
         renderer.domElement.addEventListener('click', function(e) {
             var g = window.game;
@@ -449,11 +466,11 @@ import * as THREE from 'three';
         var HW = RW / 2;
         var HD = RD / 2;
 
-        var mBackWall = mat(0x9c9a94); // FNAF1 canonical gray wall
-        var mSideWall = mat(0x8a8880); // gray side walls
-        var mDarkWall = mat(0x282828); // dark areas beside doors
-        var mFloor = mat(0x1a1610); // dark linoleum floor
-        var mCeil = mat(0x20201a); // dark ceiling
+        var mBackWall = mat(0xc4b080); // FNAF1 canonical warm tan/beige back wall
+        var mSideWall = mat(0xb8a878); // warm tan side walls
+        var mDarkWall = mat(0x3a3228); // dark areas beside doors
+        var mFloor = mat(0x261f18); // dark linoleum floor
+        var mCeil = mat(0x28261a); // dark ceiling
         var mHall = mat(0x100c06);
         var mDesk = mat(0x3a2818);
         var mDeskFront = mat(0x1e1008);
@@ -1563,6 +1580,7 @@ import * as THREE from 'three';
 
         try {
             renderer.render(scene, camera);
+            drawDoorAnimatronics();
         } catch (e) {
             console.error('[office3d animate] render error:', e);
         }
@@ -1626,24 +1644,200 @@ import * as THREE from 'three';
         }
     }
 
-    function setHallLeft(colorCss) {
-        hallLeftPresent = colorCss != null;
-        if (hallAnimLeftMat && colorCss != null) hallAnimLeftMat.color.setStyle(colorCss);
-        updateHallVis('left');
-    }
+    /**
+     * Update animatronic hallway position based on current camera/room
+     * Maps camera location → Z position in hallway (0 = door, -9 = far back)
+     * @param {string} side - 'left' or 'right'
+     * @param {string} camKey - current camera location key
+     */
+    function setAnimatronicPosition(side, camKey) {
+        // Define which rooms trigger hallway visibility and progression
+        var leftRooms = { hallW: 0.35, hallW_corner: 0.15, doorW: -0.5, office: -2.0 };
+        var rightRooms = { kitchen: 0.35, hallE: 0.35, hallE_corner: 0.15, doorE: -0.5, office: -2.0 };
 
-    function setHallRight(colorCss) {
-        hallRightPresent = colorCss != null;
-        if (hallAnimRightMat && colorCss != null) hallAnimRightMat.color.setStyle(colorCss);
-        updateHallVis('right');
+        var group = side === 'left' ? hallAnimLeftGroup : hallAnimRightGroup;
+        var rooms = side === 'left' ? leftRooms : rightRooms;
+
+        if (!group) return;
+
+        if (camKey && rooms.hasOwnProperty(camKey)) {
+            var targetZ = rooms[camKey];
+            // Smooth lerp toward target position showing progression
+            group.position.z += (targetZ - group.position.z) * 0.08;
+        } else {
+            // Reset to far back if not in a progressive room
+            group.position.z += (0.5 - group.position.z) * 0.05;
+        }
     }
 
     function updateHallVis(side) {
-        if (side === 'left' && hallAnimLeftGroup) hallAnimLeftGroup.visible = hallLeftLightOn && hallLeftPresent;
-        if (side === 'right' && hallAnimRightGroup) hallAnimRightGroup.visible = hallRightLightOn && hallRightPresent;
+        // Keep 3D models invisible — use canvas drawing instead
+        if (side === 'left' && hallAnimLeftGroup) hallAnimLeftGroup.visible = false;
+        if (side === 'right' && hallAnimRightGroup) hallAnimRightGroup.visible = false;
     }
 
     function setMouse(normX) { mouseNorm = normX; }
+
+    function initDoorOverlay() {
+        var container = document.getElementById('officeScene');
+        if (!container) return;
+
+        doorOverlayCanvas = document.createElement('canvas');
+        doorOverlayCanvas.style.position = 'absolute';
+        doorOverlayCanvas.style.top = '0';
+        doorOverlayCanvas.style.left = '0';
+        doorOverlayCanvas.style.zIndex = '100';
+        doorOverlayCanvas.style.pointerEvents = 'none';
+        doorOverlayCanvas.style.display = 'block';
+        container.appendChild(doorOverlayCanvas);
+
+        doorOverlayCtx = doorOverlayCanvas.getContext('2d', { alpha: true });
+        onResize();
+    }
+
+    function drawDoorAnimatronics() {
+        if (!doorOverlayCanvas || !doorOverlayCtx) return;
+
+        doorOverlayCtx.clearRect(0, 0, doorOverlayCanvas.width, doorOverlayCanvas.height);
+
+        // Draw left door animatronic
+        if (hallAnimLeftAnim && hallLeftLightOn && hallLeftPresent) {
+            drawDoorAnim(hallAnimLeftAnim, doorOverlayCanvas.width * 0.15, doorOverlayCanvas.height * 0.5);
+        }
+
+        // Draw right door animatronic
+        if (hallAnimRightAnim && hallRightLightOn && hallRightPresent) {
+            drawDoorAnim(hallAnimRightAnim, doorOverlayCanvas.width * 0.85, doorOverlayCanvas.height * 0.5);
+        }
+    }
+
+    function drawDoorAnim(anim, cx, cy) {
+        var c = doorOverlayCtx;
+        var name = anim.name.toLowerCase();
+        var hw = 40;
+        var h2 = hw * 2.0;
+
+        // Shadow
+        c.fillStyle = 'rgba(0,0,0,0.3)';
+        c.beginPath();
+        c.ellipse(cx, cy + h2 * 0.5, hw * 1.1, hw * 0.2, 0, 0, Math.PI * 2);
+        c.fill();
+
+        if (name === 'bonnie') {
+            var bx = cx,
+                by = cy - hw * 0.3,
+                bh = h2;
+            // Body
+            c.fillStyle = '#4a2880';
+            c.fillRect(bx - bh * 0.22, by, bh * 0.44, bh * 0.55);
+            // Head
+            c.fillStyle = '#5c3494';
+            c.beginPath();
+            c.arc(bx, by - bh * 0.08, bh * 0.24, 0, Math.PI * 2);
+            c.fill();
+            // Ears
+            c.fillStyle = '#5c3494';
+            c.fillRect(bx - bh * 0.22, by - bh * 0.48, bh * 0.1, bh * 0.38);
+            c.fillRect(bx + bh * 0.12, by - bh * 0.48, bh * 0.1, bh * 0.38);
+            c.fillStyle = '#c070e0';
+            c.fillRect(bx - bh * 0.17, by - bh * 0.44, bh * 0.04, bh * 0.3);
+            c.fillRect(bx + bh * 0.14, by - bh * 0.44, bh * 0.04, bh * 0.3);
+            // Eyes
+            c.fillStyle = '#aa00cc';
+            c.beginPath();
+            c.arc(bx - bh * 0.09, by - bh * 0.12, bh * 0.04, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(bx + bh * 0.09, by - bh * 0.12, bh * 0.04, 0, Math.PI * 2);
+            c.fill();
+
+        } else if (name === 'freddy') {
+            var fx = cx,
+                fy = cy - hw * 0.3,
+                fh = h2;
+            // Body
+            c.fillStyle = '#7a501e';
+            c.fillRect(fx - fh * 0.24, fy - fh * 0.06, fh * 0.48, fh * 0.57);
+            // Head
+            c.fillStyle = '#8b5c28';
+            c.beginPath();
+            c.arc(fx, fy - fh * 0.14, fh * 0.26, 0, Math.PI * 2);
+            c.fill();
+            // Ears
+            c.beginPath();
+            c.arc(fx - fh * 0.24, fy - fh * 0.34, fh * 0.1, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(fx + fh * 0.24, fy - fh * 0.34, fh * 0.1, 0, Math.PI * 2);
+            c.fill();
+            // Top hat
+            c.fillStyle = '#111018';
+            c.fillRect(fx - fh * 0.18, fy - fh * 0.48, fh * 0.36, fh * 0.26);
+            c.fillRect(fx - fh * 0.24, fy - fh * 0.23, fh * 0.48, fh * 0.06);
+            c.fillStyle = '#8b0000';
+            c.fillRect(fx - fh * 0.18, fy - fh * 0.28, fh * 0.36, fh * 0.05);
+            // Eyes
+            c.fillStyle = '#200c00';
+            c.beginPath();
+            c.arc(fx - fh * 0.1, fy - fh * 0.18, fh * 0.05, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(fx + fh * 0.1, fy - fh * 0.18, fh * 0.05, 0, Math.PI * 2);
+            c.fill();
+
+        } else if (name === 'chica') {
+            var chx = cx,
+                chy = cy - hw * 0.3,
+                chh = h2;
+            // Body
+            c.fillStyle = '#d4a800';
+            c.fillRect(chx - chh * 0.22, chy, chh * 0.44, chh * 0.55);
+            // Head
+            c.fillStyle = '#e8bc18';
+            c.beginPath();
+            c.arc(chx, chy - chh * 0.1, chh * 0.24, 0, Math.PI * 2);
+            c.fill();
+            // Beak
+            c.fillStyle = '#e07000';
+            c.beginPath();
+            c.moveTo(chx - chh * 0.1, chy - chh * 0.08);
+            c.lineTo(chx + chh * 0.1, chy - chh * 0.08);
+            c.lineTo(chx, chy + chh * 0.04);
+            c.closePath();
+            c.fill();
+            // Eyes
+            c.fillStyle = '#201000';
+            c.beginPath();
+            c.arc(chx - chh * 0.09, chy - chh * 0.15, chh * 0.04, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(chx + chh * 0.09, chy - chh * 0.15, chh * 0.04, 0, Math.PI * 2);
+            c.fill();
+        } else if (name === 'foxy') {
+            var fxz = cx,
+                fyz = cy - hw * 0.3,
+                fzh = h2;
+            // Body
+            c.fillStyle = '#e74c3c';
+            c.fillRect(fxz - fzh * 0.22, fyz, fzh * 0.44, fzh * 0.55);
+            // Head
+            c.fillStyle = '#ef6352';
+            c.beginPath();
+            c.arc(fxz, fyz - fzh * 0.1, fzh * 0.24, 0, Math.PI * 2);
+            c.fill();
+            // Snout
+            c.fillStyle = '#e74c3c';
+            c.fillRect(fxz + fzh * 0.08, fyz - fzh * 0.06, fzh * 0.1, fzh * 0.08);
+            // Eyes
+            c.fillStyle = '#c0392b';
+            c.beginPath();
+            c.arc(fxz - fzh * 0.09, fyz - fzh * 0.15, fzh * 0.04, 0, Math.PI * 2);
+            c.fill();
+            c.beginPath();
+            c.arc(fxz + fzh * 0.09, fyz - fzh * 0.15, fzh * 0.04, 0, Math.PI * 2);
+            c.fill();
+        }
+    }
 
     function show() {
         var c = document.getElementById('officeScene');
@@ -1666,24 +1860,28 @@ import * as THREE from 'three';
     function onResize() {
         var c = document.getElementById('officeScene');
         if (!c || !renderer || !camera) return;
-        
+
         var w = c.clientWidth || window.innerWidth;
         var h = c.clientHeight || window.innerHeight;
-        
+
         // Safeguard against zero-sized containers
         if (w < 10 || h < 10) {
             console.warn('[office3d resize] skipping resize: container too small (' + w + 'x' + h + ')');
             return;
         }
-        
+
         var newAspect = w / h;
         var oldAspect = camera.aspect;
-        
+
         // Only update if aspect ratio changed significantly (>1% difference)
         if (Math.abs(newAspect - oldAspect) > 0.01 || renderer.domElement.width !== w || renderer.domElement.height !== h) {
             camera.aspect = newAspect;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
+            if (doorOverlayCanvas) {
+                doorOverlayCanvas.width = w;
+                doorOverlayCanvas.height = h;
+            }
             console.log('[office3d resize] resized to ' + w + 'x' + h + ' (aspect ' + newAspect.toFixed(2) + ')');
         }
     }

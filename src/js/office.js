@@ -20,8 +20,37 @@ function _checkWindowScare(side) {
     }
 }
 
+function _syncLightHum(anyLightOn) {
+    var lightHum = document.getElementById('lightHumAudio');
+    if (!lightHum) return;
+
+    if (anyLightOn) {
+        if (lightHum.paused) {
+            lightHum.currentTime = 0;
+            lightHum.play().catch(function() {});
+        }
+    } else {
+        if (!lightHum.paused) lightHum.pause();
+        lightHum.currentTime = 0;
+    }
+}
+
+function _applyLightState() {
+    if (window.office3d) {
+        window.office3d.setLightLeft(!!game.lightLeft);
+        window.office3d.setLightRight(!!game.lightRight);
+    }
+    _syncLightHum(!!game.lightLeft || !!game.lightRight);
+}
+
+function forceOfficeLightsOff() {
+    game.lightLeft = false;
+    game.lightRight = false;
+    _applyLightState();
+}
+
 function toggleDoor(side) {
-    if (!game.running || game.powerOutage) return;
+    if (!game.running || game.powerOutage || monitorOpen) return;
     if (side === 'left') {
         game.doorLeft = !game.doorLeft;
         if (window.office3d) window.office3d.setDoorLeft(game.doorLeft);
@@ -37,32 +66,25 @@ function toggleDoor(side) {
 }
 
 function toggleLight(side) {
-    if (!game.running || game.powerOutage) return;
+    if (!game.running || game.powerOutage || monitorOpen) return;
+    var turnedOn = false;
     if (side === 'left') {
         game.lightLeft = !game.lightLeft;
-        if (window.office3d) window.office3d.setLightLeft(game.lightLeft);
+        if (game.lightLeft) game.lightRight = false; // FNAF1: only one hall light channel at a time
+        turnedOn = game.lightLeft;
     } else {
         game.lightRight = !game.lightRight;
-        if (window.office3d) window.office3d.setLightRight(game.lightRight);
+        if (game.lightRight) game.lightLeft = false;
+        turnedOn = game.lightRight;
     }
+    _applyLightState();
     // Check for window scare (animatronic at door)
-    if (side === 'left' && game.lightLeft) _checkWindowScare('left');
-    if (side === 'right' && game.lightRight) _checkWindowScare('right');
+    if (side === 'left' && turnedOn) _checkWindowScare('left');
+    if (side === 'right' && turnedOn) _checkWindowScare('right');
     var lightAudio = document.getElementById('lightAudio');
     if (lightAudio) {
         lightAudio.currentTime = 0;
         lightAudio.play().catch(function() {});
-    }
-    var lightOn = (side === 'left') ? game.lightLeft : game.lightRight;
-    var lightHum = document.getElementById('lightHumAudio');
-    if (lightHum) {
-        if (lightOn) {
-            lightHum.currentTime = 0;
-            lightHum.play().catch(function() {});
-        } else {
-            lightHum.pause();
-            lightHum.currentTime = 0;
-        }
     }
 }
 
@@ -110,3 +132,4 @@ function updateNightButtons() {
 
 window.toggleDoor = toggleDoor;
 window.toggleLight = toggleLight;
+window.forceOfficeLightsOff = forceOfficeLightsOff;
