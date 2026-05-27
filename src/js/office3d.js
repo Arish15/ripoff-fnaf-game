@@ -43,8 +43,6 @@ import * as THREE from 'three';
     var hallAnimLeftMat, hallAnimRightMat;
     var hallAnimLeftAnim = null,
         hallAnimRightAnim = null;
-    var doorOverlayCanvas = null,
-        doorOverlayCtx = null;
     var hallLeftLightOn = false,
         hallRightLightOn = false;
     var hallLeftPresent = false,
@@ -81,13 +79,11 @@ import * as THREE from 'three';
         setHallLeft: function(anim) {
             hallAnimLeftAnim = anim;
             hallLeftPresent = anim != null;
-            if (hallAnimLeftMat && anim != null) hallAnimLeftMat.color.setStyle(anim.color);
             updateHallVis('left');
         },
         setHallRight: function(anim) {
             hallAnimRightAnim = anim;
             hallRightPresent = anim != null;
-            if (hallAnimRightMat && anim != null) hallAnimRightMat.color.setStyle(anim.color);
             updateHallVis('right');
         },
         setAnimatronicPosition: setAnimatronicPosition,
@@ -158,7 +154,6 @@ import * as THREE from 'three';
         buildHallDecor();
         buildHallAnimatronics();
         buildWallButtons();
-        initDoorOverlay();
 
         renderer.domElement.addEventListener('click', function(e) {
             var g = window.game;
@@ -1483,44 +1478,155 @@ import * as THREE from 'three';
     }
 
     function buildHallAnimatronics() {
-        function makeGroup(mat) {
+        function makeBonnie() {
             var g = new THREE.Group();
+            var mat = new THREE.MeshBasicMaterial({ color: 0x4a2880 });
             // Body
             var body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 4.2, 1.8), mat);
             body.position.set(0, 2.1, 0);
             g.add(body);
-            // Head
-            var head = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), mat);
-            head.position.set(0, 5.1, 0);
+            // Head (circle-ish with sphere)
+            var head = new THREE.Mesh(new THREE.SphereGeometry(0.95, 8, 8), mat);
+            head.position.set(0, 5.2, 0);
             g.add(head);
-            // White glowing eyes
-            var eyeMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-            var eyeGeo = new THREE.BoxGeometry(0.28, 0.22, 0.12);
-            var eL = new THREE.Mesh(eyeGeo, eyeMat);
-            eL.position.set(-0.38, 5.2, 0.92);
+            // Left ear
+            var ear = new THREE.Mesh(new THREE.ConeGeometry(0.5, 1.2, 8), mat);
+            ear.position.set(-0.7, 6.4, 0);
+            g.add(ear);
+            // Right ear
+            var ear2 = ear.clone();
+            ear2.position.set(0.7, 6.4, 0);
+            g.add(ear2);
+            // Eyes (white glowing)
+            var eyeMat = new THREE.MeshBasicMaterial({ color: 0xaa00cc });
+            var eL = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), eyeMat);
+            eL.position.set(-0.35, 5.3, 0.8);
             g.add(eL);
-            var eR = new THREE.Mesh(eyeGeo, eyeMat);
-            eR.position.set(0.38, 5.2, 0.92);
+            var eR = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), eyeMat);
+            eR.position.set(0.35, 5.3, 0.8);
             g.add(eR);
             g.visible = false;
             return g;
         }
-        // MeshBasicMaterial so animatronics are always clearly visible regardless of hall lighting
-        hallAnimLeftMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
-        hallAnimRightMat = new THREE.MeshBasicMaterial({ color: 0x888888 });
 
-        hallAnimLeftGroup = makeGroup(hallAnimLeftMat);
-        // x=-12: just inside corridor, directly in line with door gap from camera
-        // rotation.y = Math.PI/2 so the animatronic faces +X (toward the office / camera)
+        function makeFreddy() {
+            var g = new THREE.Group();
+            var mat = new THREE.MeshBasicMaterial({ color: 0x7a501e });
+            // Body
+            var body = new THREE.Mesh(new THREE.BoxGeometry(2.2, 4.2, 1.8), mat);
+            body.position.set(0, 2.1, 0);
+            g.add(body);
+            // Head (sphere)
+            var head = new THREE.Mesh(new THREE.SphereGeometry(1.0, 8, 8), mat);
+            head.position.set(0, 5.3, 0);
+            g.add(head);
+            // Ears
+            var ear = new THREE.Mesh(new THREE.SphereGeometry(0.55, 8, 8), mat);
+            ear.position.set(-0.75, 6.3, 0);
+            g.add(ear);
+            var ear2 = ear.clone();
+            ear2.position.set(0.75, 6.3, 0);
+            g.add(ear2);
+            // Top hat (box on head)
+            var hatMat = new THREE.MeshBasicMaterial({ color: 0x111018 });
+            var hat = new THREE.Mesh(new THREE.BoxGeometry(1.3, 0.8, 1.0), hatMat);
+            hat.position.set(0, 6.4, 0);
+            g.add(hat);
+            // Hat rim (red band)
+            var rimMat = new THREE.MeshBasicMaterial({ color: 0x8b0000 });
+            var rim = new THREE.Mesh(new THREE.BoxGeometry(1.5, 0.2, 1.2), rimMat);
+            rim.position.set(0, 6.0, 0);
+            g.add(rim);
+            // Eyes
+            var eyeMat = new THREE.MeshBasicMaterial({ color: 0x200c00 });
+            var eL = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), eyeMat);
+            eL.position.set(-0.3, 5.4, 0.8);
+            g.add(eL);
+            var eR = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), eyeMat);
+            eR.position.set(0.3, 5.4, 0.8);
+            g.add(eR);
+            g.visible = false;
+            return g;
+        }
+
+        function makeChica() {
+            var g = new THREE.Group();
+            var mat = new THREE.MeshBasicMaterial({ color: 0xd4a800 });
+            // Body
+            var body = new THREE.Mesh(new THREE.BoxGeometry(2.1, 4.2, 1.8), mat);
+            body.position.set(0, 2.1, 0);
+            g.add(body);
+            // Head (sphere)
+            var head = new THREE.Mesh(new THREE.SphereGeometry(0.95, 8, 8), mat);
+            head.position.set(0, 5.2, 0);
+            g.add(head);
+            // Beak (cone pointing forward)
+            var beakMat = new THREE.MeshBasicMaterial({ color: 0xe07000 });
+            var beak = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.8, 8), beakMat);
+            beak.position.set(0, 5.0, 0.95);
+            beak.rotation.x = Math.PI / 2;
+            g.add(beak);
+            // Eyes
+            var eyeMat = new THREE.MeshBasicMaterial({ color: 0x201000 });
+            var eL = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), eyeMat);
+            eL.position.set(-0.3, 5.4, 0.75);
+            g.add(eL);
+            var eR = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), eyeMat);
+            eR.position.set(0.3, 5.4, 0.75);
+            g.add(eR);
+            g.visible = false;
+            return g;
+        }
+
+        function makeFoxy() {
+            var g = new THREE.Group();
+            var mat = new THREE.MeshBasicMaterial({ color: 0xe74c3c });
+            // Body
+            var body = new THREE.Mesh(new THREE.BoxGeometry(2.0, 4.2, 1.8), mat);
+            body.position.set(0, 2.1, 0);
+            g.add(body);
+            // Head (sphere)
+            var head = new THREE.Mesh(new THREE.SphereGeometry(0.95, 8, 8), mat);
+            head.position.set(0, 5.2, 0);
+            g.add(head);
+            // Snout (smaller sphere in front)
+            var snoutMat = new THREE.MeshBasicMaterial({ color: 0xc87137 });
+            var snout = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), snoutMat);
+            snout.position.set(0, 5.0, 0.85);
+            g.add(snout);
+            // Eyes
+            var eyeMat = new THREE.MeshBasicMaterial({ color: 0xc0392b });
+            var eL = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), eyeMat);
+            eL.position.set(-0.3, 5.3, 0.75);
+            g.add(eL);
+            var eR = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), eyeMat);
+            eR.position.set(0.3, 5.3, 0.75);
+            g.add(eR);
+            g.visible = false;
+            return g;
+        }
+
+        hallAnimLeftGroup = new THREE.Group();
         hallAnimLeftGroup.position.set(-12, 0, 0);
         hallAnimLeftGroup.rotation.y = Math.PI / 2;
         scene.add(hallAnimLeftGroup);
 
-        hallAnimRightGroup = makeGroup(hallAnimRightMat);
-        // mirror: x=+12, face -X toward the office
+        hallAnimRightGroup = new THREE.Group();
         hallAnimRightGroup.position.set(12, 0, 0);
         hallAnimRightGroup.rotation.y = -Math.PI / 2;
         scene.add(hallAnimRightGroup);
+
+        // Store builders for later use when setting animatronic
+        hallAnimLeftGroup._animatronic = null;
+        hallAnimRightGroup._animatronic = null;
+        hallAnimLeftGroup._bonnie = makeBonnie;
+        hallAnimLeftGroup._freddy = makeFreddy;
+        hallAnimLeftGroup._chica = makeChica;
+        hallAnimLeftGroup._foxy = makeFoxy;
+        hallAnimRightGroup._bonnie = makeBonnie;
+        hallAnimRightGroup._freddy = makeFreddy;
+        hallAnimRightGroup._chica = makeChica;
+        hallAnimRightGroup._foxy = makeFoxy;
     }
 
     // Spring-physics step for a single door panel.
@@ -1580,7 +1686,6 @@ import * as THREE from 'three';
 
         try {
             renderer.render(scene, camera);
-            drawDoorAnimatronics();
         } catch (e) {
             console.error('[office3d animate] render error:', e);
         }
@@ -1671,173 +1776,45 @@ import * as THREE from 'three';
     }
 
     function updateHallVis(side) {
-        // Keep 3D models invisible — use canvas drawing instead
-        if (side === 'left' && hallAnimLeftGroup) hallAnimLeftGroup.visible = false;
-        if (side === 'right' && hallAnimRightGroup) hallAnimRightGroup.visible = false;
+        var group = (side === 'left') ? hallAnimLeftGroup : hallAnimRightGroup;
+        var anim = (side === 'left') ? hallAnimLeftAnim : hallAnimRightAnim;
+
+        if (!group) return;
+
+        // Clear existing children
+        while (group.children.length > 0) {
+            group.remove(group.children[0]);
+        }
+
+        // If no animatronic or lights off, hide group
+        if (!anim || (side === 'left' && !hallLeftLightOn) || (side === 'right' && !hallRightLightOn)) {
+            group.visible = false;
+            return;
+        }
+
+        // Create appropriate 3D model based on animatronic name
+        var name = anim.name.toLowerCase();
+        var model = null;
+
+        if (name === 'bonnie' && group._bonnie) {
+            model = group._bonnie();
+        } else if (name === 'freddy' && group._freddy) {
+            model = group._freddy();
+        } else if (name === 'chica' && group._chica) {
+            model = group._chica();
+        } else if (name === 'foxy' && group._foxy) {
+            model = group._foxy();
+        }
+
+        if (model) {
+            group.add(model);
+            group.visible = true;
+        } else {
+            group.visible = false;
+        }
     }
 
     function setMouse(normX) { mouseNorm = normX; }
-
-    function initDoorOverlay() {
-        var container = document.getElementById('officeScene');
-        if (!container) return;
-
-        doorOverlayCanvas = document.createElement('canvas');
-        doorOverlayCanvas.style.position = 'absolute';
-        doorOverlayCanvas.style.top = '0';
-        doorOverlayCanvas.style.left = '0';
-        doorOverlayCanvas.style.zIndex = '100';
-        doorOverlayCanvas.style.pointerEvents = 'none';
-        doorOverlayCanvas.style.display = 'block';
-        container.appendChild(doorOverlayCanvas);
-
-        doorOverlayCtx = doorOverlayCanvas.getContext('2d', { alpha: true });
-        onResize();
-    }
-
-    function drawDoorAnimatronics() {
-        if (!doorOverlayCanvas || !doorOverlayCtx) return;
-
-        doorOverlayCtx.clearRect(0, 0, doorOverlayCanvas.width, doorOverlayCanvas.height);
-
-        // Draw left door animatronic
-        if (hallAnimLeftAnim && hallLeftLightOn && hallLeftPresent) {
-            drawDoorAnim(hallAnimLeftAnim, doorOverlayCanvas.width * 0.15, doorOverlayCanvas.height * 0.5);
-        }
-
-        // Draw right door animatronic
-        if (hallAnimRightAnim && hallRightLightOn && hallRightPresent) {
-            drawDoorAnim(hallAnimRightAnim, doorOverlayCanvas.width * 0.85, doorOverlayCanvas.height * 0.5);
-        }
-    }
-
-    function drawDoorAnim(anim, cx, cy) {
-        var c = doorOverlayCtx;
-        var name = anim.name.toLowerCase();
-        var hw = 40;
-        var h2 = hw * 2.0;
-
-        // Shadow
-        c.fillStyle = 'rgba(0,0,0,0.3)';
-        c.beginPath();
-        c.ellipse(cx, cy + h2 * 0.5, hw * 1.1, hw * 0.2, 0, 0, Math.PI * 2);
-        c.fill();
-
-        if (name === 'bonnie') {
-            var bx = cx,
-                by = cy - hw * 0.3,
-                bh = h2;
-            // Body
-            c.fillStyle = '#4a2880';
-            c.fillRect(bx - bh * 0.22, by, bh * 0.44, bh * 0.55);
-            // Head
-            c.fillStyle = '#5c3494';
-            c.beginPath();
-            c.arc(bx, by - bh * 0.08, bh * 0.24, 0, Math.PI * 2);
-            c.fill();
-            // Ears
-            c.fillStyle = '#5c3494';
-            c.fillRect(bx - bh * 0.22, by - bh * 0.48, bh * 0.1, bh * 0.38);
-            c.fillRect(bx + bh * 0.12, by - bh * 0.48, bh * 0.1, bh * 0.38);
-            c.fillStyle = '#c070e0';
-            c.fillRect(bx - bh * 0.17, by - bh * 0.44, bh * 0.04, bh * 0.3);
-            c.fillRect(bx + bh * 0.14, by - bh * 0.44, bh * 0.04, bh * 0.3);
-            // Eyes
-            c.fillStyle = '#aa00cc';
-            c.beginPath();
-            c.arc(bx - bh * 0.09, by - bh * 0.12, bh * 0.04, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(bx + bh * 0.09, by - bh * 0.12, bh * 0.04, 0, Math.PI * 2);
-            c.fill();
-
-        } else if (name === 'freddy') {
-            var fx = cx,
-                fy = cy - hw * 0.3,
-                fh = h2;
-            // Body
-            c.fillStyle = '#7a501e';
-            c.fillRect(fx - fh * 0.24, fy - fh * 0.06, fh * 0.48, fh * 0.57);
-            // Head
-            c.fillStyle = '#8b5c28';
-            c.beginPath();
-            c.arc(fx, fy - fh * 0.14, fh * 0.26, 0, Math.PI * 2);
-            c.fill();
-            // Ears
-            c.beginPath();
-            c.arc(fx - fh * 0.24, fy - fh * 0.34, fh * 0.1, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(fx + fh * 0.24, fy - fh * 0.34, fh * 0.1, 0, Math.PI * 2);
-            c.fill();
-            // Top hat
-            c.fillStyle = '#111018';
-            c.fillRect(fx - fh * 0.18, fy - fh * 0.48, fh * 0.36, fh * 0.26);
-            c.fillRect(fx - fh * 0.24, fy - fh * 0.23, fh * 0.48, fh * 0.06);
-            c.fillStyle = '#8b0000';
-            c.fillRect(fx - fh * 0.18, fy - fh * 0.28, fh * 0.36, fh * 0.05);
-            // Eyes
-            c.fillStyle = '#200c00';
-            c.beginPath();
-            c.arc(fx - fh * 0.1, fy - fh * 0.18, fh * 0.05, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(fx + fh * 0.1, fy - fh * 0.18, fh * 0.05, 0, Math.PI * 2);
-            c.fill();
-
-        } else if (name === 'chica') {
-            var chx = cx,
-                chy = cy - hw * 0.3,
-                chh = h2;
-            // Body
-            c.fillStyle = '#d4a800';
-            c.fillRect(chx - chh * 0.22, chy, chh * 0.44, chh * 0.55);
-            // Head
-            c.fillStyle = '#e8bc18';
-            c.beginPath();
-            c.arc(chx, chy - chh * 0.1, chh * 0.24, 0, Math.PI * 2);
-            c.fill();
-            // Beak
-            c.fillStyle = '#e07000';
-            c.beginPath();
-            c.moveTo(chx - chh * 0.1, chy - chh * 0.08);
-            c.lineTo(chx + chh * 0.1, chy - chh * 0.08);
-            c.lineTo(chx, chy + chh * 0.04);
-            c.closePath();
-            c.fill();
-            // Eyes
-            c.fillStyle = '#201000';
-            c.beginPath();
-            c.arc(chx - chh * 0.09, chy - chh * 0.15, chh * 0.04, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(chx + chh * 0.09, chy - chh * 0.15, chh * 0.04, 0, Math.PI * 2);
-            c.fill();
-        } else if (name === 'foxy') {
-            var fxz = cx,
-                fyz = cy - hw * 0.3,
-                fzh = h2;
-            // Body
-            c.fillStyle = '#e74c3c';
-            c.fillRect(fxz - fzh * 0.22, fyz, fzh * 0.44, fzh * 0.55);
-            // Head
-            c.fillStyle = '#ef6352';
-            c.beginPath();
-            c.arc(fxz, fyz - fzh * 0.1, fzh * 0.24, 0, Math.PI * 2);
-            c.fill();
-            // Snout
-            c.fillStyle = '#e74c3c';
-            c.fillRect(fxz + fzh * 0.08, fyz - fzh * 0.06, fzh * 0.1, fzh * 0.08);
-            // Eyes
-            c.fillStyle = '#c0392b';
-            c.beginPath();
-            c.arc(fxz - fzh * 0.09, fyz - fzh * 0.15, fzh * 0.04, 0, Math.PI * 2);
-            c.fill();
-            c.beginPath();
-            c.arc(fxz + fzh * 0.09, fyz - fzh * 0.15, fzh * 0.04, 0, Math.PI * 2);
-            c.fill();
-        }
-    }
 
     function show() {
         var c = document.getElementById('officeScene');
@@ -1878,10 +1855,6 @@ import * as THREE from 'three';
             camera.aspect = newAspect;
             camera.updateProjectionMatrix();
             renderer.setSize(w, h);
-            if (doorOverlayCanvas) {
-                doorOverlayCanvas.width = w;
-                doorOverlayCanvas.height = h;
-            }
             console.log('[office3d resize] resized to ' + w + 'x' + h + ' (aspect ' + newAspect.toFixed(2) + ')');
         }
     }
@@ -1919,111 +1892,255 @@ import * as THREE from 'three';
         ctx.clearRect(0, 0, W, H);
 
         // Holder shadow
-        ctx.fillStyle = 'rgba(0,0,0,0.38)';
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
         _roundRect(ctx, 8, 10, W - 16, H - 20, 16);
         ctx.fill();
 
-        // Main black glossy holder
+        // Main black glossy holder - improved gradient
         var gMain = ctx.createLinearGradient(0, 0, 0, H);
-        gMain.addColorStop(0, '#171717');
-        gMain.addColorStop(0.55, '#070707');
-        gMain.addColorStop(1, '#030303');
+        gMain.addColorStop(0, '#1a1a1a');
+        gMain.addColorStop(0.2, '#0f0f0f');
+        gMain.addColorStop(0.5, '#050505');
+        gMain.addColorStop(0.8, '#0a0a0a');
+        gMain.addColorStop(1, '#020202');
         ctx.fillStyle = gMain;
         _roundRect(ctx, 12, 14, W - 24, H - 28, 14);
         ctx.fill();
 
-        // Inner recess
-        ctx.fillStyle = '#040404';
+        // Metallic left edge highlight
+        var edgeLight = ctx.createLinearGradient(12, 14, 18, 14);
+        edgeLight.addColorStop(0, 'rgba(255,255,255,0.18)');
+        edgeLight.addColorStop(1, 'rgba(255,255,255,0)');
+        ctx.fillStyle = edgeLight;
+        ctx.fillRect(12, 14, 6, H - 28);
+
+        // Metallic right edge shadow
+        var edgeShadow = ctx.createLinearGradient(W - 18, 14, W - 12, 14);
+        edgeShadow.addColorStop(0, 'rgba(0,0,0,0)');
+        edgeShadow.addColorStop(1, 'rgba(0,0,0,0.55)');
+        ctx.fillStyle = edgeShadow;
+        ctx.fillRect(W - 18, 14, 6, H - 28);
+
+        // Inner recess - darker shadow
+        ctx.fillStyle = '#020202';
         _roundRect(ctx, 24, 30, W - 48, H - 60, 10);
         ctx.fill();
 
-        // Holder edge lighting
-        ctx.fillStyle = 'rgba(255,255,255,0.12)';
-        ctx.fillRect(24, 30, 3, H - 60);
-        ctx.fillStyle = 'rgba(0,0,0,0.45)';
-        ctx.fillRect(W - 27, 30, 3, H - 60);
-        ctx.fillStyle = 'rgba(255,255,255,0.06)';
-        ctx.fillRect(24, 30, W - 48, 2);
+        // Inner recess top edge - subtle light
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillRect(24, 30, W - 48, 1);
 
-        // Soft center sheen
-        var gSheen = ctx.createLinearGradient(0, 0, W, 0);
+        // Holder edge lighting - top
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(24, 30, 4, 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.08)';
+        ctx.fillRect(28, 30, W - 52, 2);
+
+        // Holder edge lighting - left side
+        ctx.fillStyle = 'rgba(255,255,255,0.14)';
+        ctx.fillRect(24, 30, 2, H - 60);
+
+        // Holder edge shadow - right side
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(W - 26, 30, 2, H - 60);
+
+        // Soft center sheen with better placement
+        var gSheen = ctx.createLinearGradient(0, 40, W, 80);
         gSheen.addColorStop(0, 'rgba(255,255,255,0)');
-        gSheen.addColorStop(0.5, 'rgba(255,255,255,0.04)');
+        gSheen.addColorStop(0.5, 'rgba(255,255,255,0.05)');
         gSheen.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = gSheen;
         _roundRect(ctx, 30, 36, W - 60, H - 72, 8);
         ctx.fill();
 
-        var btnSize = Math.round(W * 0.44);
+        // Subtle bottom reflection
+        var gBottom = ctx.createLinearGradient(0, H - 40, 0, H - 30);
+        gBottom.addColorStop(0, 'rgba(255,255,255,0)');
+        gBottom.addColorStop(1, 'rgba(255,255,255,0.03)');
+        ctx.fillStyle = gBottom;
+        _roundRect(ctx, 30, H - 40, W - 60, 10, 8);
+        ctx.fill();
+
+        var btnSize = Math.round(W * 0.27);
         var bx = Math.round((W - btnSize) / 2);
-        var doorY = 58;
-        var lightY = 260;
+        var doorY = 50;
+        var lightY = 280;
 
         function drawSquareButton(y, on, isDoor) {
+            var cornerRadius = 8;
+            
+            // Main button gradient (more subtle colors for a less flat appearance)
             var bg = ctx.createLinearGradient(0, y, 0, y + btnSize);
             if (isDoor) {
-                bg.addColorStop(0, on ? '#ff4a4a' : '#c52626');
-                bg.addColorStop(0.62, on ? '#d12020' : '#961515');
-                bg.addColorStop(1, on ? '#9f1313' : '#630d0d');
+                // Red button gradient with more depth
+                bg.addColorStop(0, on ? '#ff5555' : '#c02020');
+                bg.addColorStop(0.35, on ? '#dd2020' : '#a01010');
+                bg.addColorStop(0.65, on ? '#b01010' : '#801010');
+                bg.addColorStop(1, on ? '#8a0a0a' : '#550505');
             } else {
-                bg.addColorStop(0, on ? '#fff6d6' : '#efefef');
-                bg.addColorStop(0.62, on ? '#f0e7be' : '#cfcfcf');
-                bg.addColorStop(1, on ? '#d6cca1' : '#9f9f9f');
+                // White/cream button with subtle warmth
+                bg.addColorStop(0, on ? '#fffcf0' : '#f5f5f5');
+                bg.addColorStop(0.35, on ? '#f5efd5' : '#e8e8e8');
+                bg.addColorStop(0.65, on ? '#e5d9b5' : '#d5d5d5');
+                bg.addColorStop(1, on ? '#c8b896' : '#a0a0a0');
             }
 
-            // Button body
+            // Draw button body with rounded corners
             ctx.fillStyle = bg;
+            _roundRect(ctx, bx, y, btnSize, btnSize, cornerRadius);
+            ctx.fill();
+
+            // Button depth shadow (bottom/right side)
+            var shadowGrad = ctx.createLinearGradient(0, y + btnSize * 0.5, 0, y + btnSize);
+            shadowGrad.addColorStop(0, 'rgba(0,0,0,0)');
+            shadowGrad.addColorStop(1, on ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.45)');
+            ctx.fillStyle = shadowGrad;
+            _roundRect(ctx, bx, y, btnSize, btnSize, cornerRadius);
+            ctx.fill();
+
+            // Right side shadow for 3D depth
+            var rightShadow = ctx.createLinearGradient(bx + btnSize * 0.6, y, bx + btnSize, y);
+            rightShadow.addColorStop(0, 'rgba(0,0,0,0)');
+            rightShadow.addColorStop(1, on ? 'rgba(0,0,0,0.25)' : 'rgba(0,0,0,0.35)');
+            ctx.fillStyle = rightShadow;
+            _roundRect(ctx, bx, y, btnSize, btnSize, cornerRadius);
+            ctx.fill();
+
+            // Top highlight for glossy appearance
+            var highlightGrad = ctx.createLinearGradient(0, y, 0, y + btnSize * 0.4);
+            if (isDoor) {
+                highlightGrad.addColorStop(0, on ? 'rgba(255,200,200,0.4)' : 'rgba(255,100,100,0.2)');
+                highlightGrad.addColorStop(1, 'rgba(255,255,255,0)');
+            } else {
+                highlightGrad.addColorStop(0, on ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.35)');
+                highlightGrad.addColorStop(1, 'rgba(255,255,255,0)');
+            }
+            ctx.fillStyle = highlightGrad;
+            _roundRect(ctx, bx + 2, y + 2, btnSize - 4, btnSize * 0.35, cornerRadius - 1);
+            ctx.fill();
+
+            // Center shine reflection (glossy plastic effect)
+            var shineRadial = ctx.createRadialGradient(
+                bx + btnSize * 0.5,
+                y + btnSize * 0.35,
+                0,
+                bx + btnSize * 0.5,
+                y + btnSize * 0.35,
+                btnSize * 0.25
+            );
+            if (isDoor) {
+                shineRadial.addColorStop(0, on ? 'rgba(255,220,220,0.35)' : 'rgba(255,150,150,0.15)');
+                shineRadial.addColorStop(1, 'rgba(255,255,255,0)');
+            } else {
+                shineRadial.addColorStop(0, on ? 'rgba(255,255,255,0.45)' : 'rgba(255,255,255,0.25)');
+                shineRadial.addColorStop(1, 'rgba(255,255,255,0)');
+            }
+            ctx.fillStyle = shineRadial;
             ctx.fillRect(bx, y, btnSize, btnSize);
 
-            // Bevel + border
-            ctx.fillStyle = 'rgba(255,255,255,0.40)';
-            ctx.fillRect(bx, y, btnSize, 3);
-            ctx.fillRect(bx, y, 3, btnSize);
-            ctx.fillStyle = 'rgba(0,0,0,0.45)';
-            ctx.fillRect(bx, y + btnSize - 3, btnSize, 3);
-            ctx.fillRect(bx + btnSize - 3, y, 3, btnSize);
-            ctx.strokeStyle = '#131313';
-            ctx.lineWidth = 4;
-            ctx.strokeRect(bx - 1.5, y - 1.5, btnSize + 3, btnSize + 3);
+            // Bottom inset shadow for depth when not pressed
+            if (!on) {
+                var insetShadow = ctx.createLinearGradient(0, y + btnSize * 0.6, 0, y + btnSize);
+                insetShadow.addColorStop(0, 'rgba(0,0,0,0)');
+                insetShadow.addColorStop(0.7, 'rgba(0,0,0,0.2)');
+                insetShadow.addColorStop(1, 'rgba(0,0,0,0.4)');
+                ctx.fillStyle = insetShadow;
+                _roundRect(ctx, bx + 3, y + 3, btnSize - 6, btnSize - 6, cornerRadius - 2);
+                ctx.fill();
+            }
 
-            // Active glow
+            // Border with bevel effect
+            // Outer border (dark)
+            ctx.strokeStyle = '#0a0a0a';
+            ctx.lineWidth = 3;
+            _roundRect(ctx, bx - 1.5, y - 1.5, btnSize + 3, btnSize + 3, cornerRadius + 1);
+            ctx.stroke();
+
+            // Inner highlight bevel (top/left)
+            ctx.strokeStyle = on ? 'rgba(255,255,255,0.3)' : 'rgba(255,255,255,0.25)';
+            ctx.lineWidth = 2;
+            _roundRect(ctx, bx + 1, y + 1, btnSize - 2, btnSize - 2, cornerRadius - 1);
+            ctx.stroke();
+
+            // Active glow with enhanced effect
             if (on) {
-                var glow = ctx.createRadialGradient(
+                // Soft outer glow
+                var glowOuter = ctx.createRadialGradient(
+                    bx + btnSize / 2,
+                    y + btnSize / 2,
+                    btnSize * 0.3,
+                    bx + btnSize / 2,
+                    y + btnSize / 2,
+                    btnSize * 1.1
+                );
+                if (isDoor) {
+                    glowOuter.addColorStop(0, 'rgba(255,80,80,0.15)');
+                    glowOuter.addColorStop(1, 'rgba(255,80,80,0)');
+                } else {
+                    glowOuter.addColorStop(0, 'rgba(255,245,185,0.15)');
+                    glowOuter.addColorStop(1, 'rgba(255,245,185,0)');
+                }
+                ctx.fillStyle = glowOuter;
+                ctx.fillRect(bx - btnSize * 0.2, y - btnSize * 0.2, btnSize * 1.4, btnSize * 1.4);
+
+                // Brighter inner glow
+                var glowInner = ctx.createRadialGradient(
                     bx + btnSize / 2,
                     y + btnSize / 2,
                     0,
                     bx + btnSize / 2,
                     y + btnSize / 2,
-                    btnSize * 0.9
+                    btnSize * 0.5
                 );
                 if (isDoor) {
-                    glow.addColorStop(0, 'rgba(255,80,80,0.32)');
-                    glow.addColorStop(1, 'rgba(255,80,80,0)');
+                    glowInner.addColorStop(0, 'rgba(255,100,100,0.25)');
+                    glowInner.addColorStop(1, 'rgba(255,80,80,0)');
                 } else {
-                    glow.addColorStop(0, 'rgba(255,245,185,0.34)');
-                    glow.addColorStop(1, 'rgba(255,245,185,0)');
+                    glowInner.addColorStop(0, 'rgba(255,255,200,0.28)');
+                    glowInner.addColorStop(1, 'rgba(255,245,185,0)');
                 }
-                ctx.fillStyle = glow;
-                ctx.fillRect(bx - btnSize * 0.25, y - btnSize * 0.25, btnSize * 1.5, btnSize * 1.5);
+                ctx.fillStyle = glowInner;
+                ctx.fillRect(bx - btnSize * 0.1, y - btnSize * 0.1, btnSize * 1.2, btnSize * 1.2);
             }
         }
 
         drawSquareButton(doorY, doorOn, true);
         drawSquareButton(lightY, lightOn, false);
 
-        // Labels
-        ctx.fillStyle = '#f3f3f3';
+        // Labels with improved styling
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.font = 'bold 72px Arial Black, Arial, sans-serif';
-        ctx.fillText('DOOR', W / 2, 238);
-        ctx.fillText('LIGHT', W / 2, 446);
+        
+        // Text shadow/outline for 3D depth effect
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+        ctx.lineWidth = 3;
+        ctx.strokeText('DOOR', W / 2, 156);
+        ctx.fillText('DOOR', W / 2, 156);
+        
+        // Text highlight for depth
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fillText('DOOR', W / 2, 154);
+        
+        // Main text color
+        ctx.fillStyle = '#f8f8f8';
+        ctx.fillText('DOOR', W / 2, 155);
 
-        // Slight text shadow for retro look
-        ctx.strokeStyle = 'rgba(0,0,0,0.55)';
-        ctx.lineWidth = 2;
-        ctx.strokeText('DOOR', W / 2, 238);
-        ctx.strokeText('LIGHT', W / 2, 446);
+        // Light label with same styling
+        ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+        ctx.lineWidth = 3;
+        ctx.strokeText('LIGHT', W / 2, 381);
+        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+        ctx.fillText('LIGHT', W / 2, 381);
+        
+        // Text highlight for depth
+        ctx.fillStyle = 'rgba(255,255,255,0.35)';
+        ctx.fillText('LIGHT', W / 2, 379);
+        
+        // Main text color
+        ctx.fillStyle = '#f8f8f8';
+        ctx.fillText('LIGHT', W / 2, 380);
 
         panel.tex.needsUpdate = true;
     }
