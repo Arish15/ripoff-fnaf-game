@@ -5,8 +5,13 @@
  * existing <audio> elements. All existing .play() calls continue to work as-is.
  */
 
-(function() {
-    'use strict';
+// sounds.js has been split into audio/synthesiser.js and audio/loader.js
+// This file is kept for backward compatibility. All sound globals are still available.
+// For new code, use window.build*Sound, window.initSounds, etc.
+// (Spec 05-audio-system)
+//
+// No-op: all logic moved to audio/loader.js and audio/synthesiser.js
+
 
     // ── WAV encoder ──────────────────────────────────────────
 
