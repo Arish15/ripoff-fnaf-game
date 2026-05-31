@@ -98,10 +98,12 @@ function toggleLight(side) {
     // Check for window scare (animatronic at door)
     if (side === 'left' && turnedOn) _checkWindowScare('left');
     if (side === 'right' && turnedOn) _checkWindowScare('right');
-    var lightAudio = document.getElementById('lightAudio');
-    if (lightAudio) {
-        lightAudio.currentTime = 0;
-        lightAudio.play().catch(function() {});
+    if (turnedOn) {
+        var lightAudio = document.getElementById('lightAudio');
+        if (lightAudio) {
+            lightAudio.currentTime = 0;
+            lightAudio.play().catch(function() {});
+        }
     }
 }
 
