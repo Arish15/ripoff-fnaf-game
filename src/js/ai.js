@@ -117,19 +117,9 @@ function tickFoxy(a) {
                         }
                     }
                     if (a.path[a.pos] === 'doorW') {
-                        a.pos = 0;
-                        a.preventionTimer = 50 + Math.floor(Math.random() * 1001);
-                        a.ignoreTicks = 0;
-                        if (!game.doorLeft) triggerGameOver('FOXY');
-                        else {
-                            game.power = Math.max(0, game.power - 12);
-                            // Foxy punch: banging on the closed door
-                            var foxyPunch = document.getElementById('foxyRunAudio');
-                            if (foxyPunch) {
-                                foxyPunch.currentTime = 0;
-                                foxyPunch.play().catch(function() {});
-                            }
-                        }
+                        // Foxy just arrived at the door — start door linger (10 ticks ≈ 1 s)
+                        // so the player has a brief window to react before the kill
+                        if (!a.foxyDoorTimer) a.foxyDoorTimer = 10;
                     }
                 }
             }
@@ -138,6 +128,23 @@ function tickFoxy(a) {
 
     a.wasWatchingCam1c = watchingCam1c;
     a.wasMonitorOpen = monitorOpen;
+
+    // Foxy door linger — count down after arriving at doorW before triggering kill/punch
+    if (a.path[a.pos] === 'doorW' && a.foxyDoorTimer > 0) {
+        a.foxyDoorTimer--;
+        if (a.foxyDoorTimer === 0) {
+            a.pos = 0;
+            a.preventionTimer = 50 + Math.floor(Math.random() * 1001);
+            a.ignoreTicks = 0;
+            if (!game.doorLeft) {
+                triggerGameOver('FOXY');
+            } else {
+                game.power = Math.max(0, game.power - 12);
+                var foxyPunch = document.getElementById('foxyRunAudio');
+                if (foxyPunch) { foxyPunch.currentTime = 0; foxyPunch.play().catch(function() {}); }
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -288,6 +295,20 @@ var _prevLeftHallAnim = null,
     _prevRightHallAnim = null;
 var _prevLeftDoorAnim = null,
     _prevRightDoorAnim = null;
+
+// Called by startGame to guarantee clean hall state between rounds
+function resetHallState() {
+    _prevLeftHallAnim = null;
+    _prevRightHallAnim = null;
+    _prevLeftDoorAnim = null;
+    _prevRightDoorAnim = null;
+    _leftScaredPlayed = false;
+    _rightScaredPlayed = false;
+    if (window.office3d) {
+        window.office3d.setHallLeft(null);
+        window.office3d.setHallRight(null);
+    }
+}
 
 function updateHallAnimatronics() {
     if (!window.office3d) return;

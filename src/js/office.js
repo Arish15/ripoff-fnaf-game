@@ -34,6 +34,7 @@ function _resetWindowScare(side) {
 
 function _syncLightHum(anyLightOn) {
     var lightHum = document.getElementById('lightHumAudio');
+    var lightOne = document.getElementById('lightAudio');
     if (!lightHum) return;
 
     if (anyLightOn) {
@@ -44,6 +45,8 @@ function _syncLightHum(anyLightOn) {
     } else {
         if (!lightHum.paused) lightHum.pause();
         lightHum.currentTime = 0;
+        // Stop the one-shot click immediately too — don't let it play through
+        if (lightOne && !lightOne.paused) { lightOne.pause(); lightOne.currentTime = 0; }
     }
 }
 

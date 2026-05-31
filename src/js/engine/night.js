@@ -6,6 +6,7 @@ function startGame(night) {
     if (!devModeActive && unlockedNights.indexOf(night) < 0) return;
     _resetGameState(night);
     _resetAnimatronics();
+    if (typeof resetHallState === 'function') resetHallState();
     _resetMonitorUI();
     _bootstrapOffice3D();
     _showNightIntro(night);
@@ -73,6 +74,7 @@ function _resetAnimatronics() {
         a.preventionTimer = 0;
         a.wasWatchingCam1c = false;
         a.wasMonitorOpen = false;
+        a.foxyDoorTimer = 0;
     });
 }
 
