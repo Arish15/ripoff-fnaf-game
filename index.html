@@ -59,14 +59,14 @@
         <source src="src/assets/foxy_sprint.mp3" type="audio/mpeg">
     </audio>
     <!--
-      Both lightAudio and lightHumAudio use the same sound file (fnaf-light-sound.mp3).
-      This is intentional: lightAudio is for the one-shot click, lightHumAudio is for the looping hum.
-      Do not deduplicate or merge these elements — they serve different audio behaviors.
+      lightAudio: one-shot click when toggling the light (short MP3).
+      lightHumAudio: continuous loop while light is on (extended OGG hum).
     -->
     <audio id="lightAudio">
         <source src="src/assets/fnaf-light-sound.mp3" type="audio/mpeg">
     </audio>
     <audio id="lightHumAudio" loop>
+        <source src="src/assets/BallastHumMedium2.ogg" type="audio/ogg">
         <source src="src/assets/fnaf-light-sound.mp3" type="audio/mpeg">
     </audio>
     <audio id="goldenFreddyScareAudio">
