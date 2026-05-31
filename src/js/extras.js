@@ -278,12 +278,10 @@ function showPhoneGuy(night) {
                 _pgTypewriter = null;
                 textEl.textContent = '';
             }).catch(function(err) {
-                // NotSupportedError = no valid source file on disk; anything else = autoplay block etc.
-                if (err.name === 'NotSupportedError' || err.name === 'NotAllowedError') {
-                    _useTTSFallback(night);
-                } else {
-                    _useTTSFallback(night);
-                }
+                // AbortError = play was deliberately interrupted (hidePhoneGuy paused it) — ignore
+                if (err.name === 'AbortError') return;
+                // NotSupportedError = no valid source on disk; NotAllowedError = autoplay blocked
+                _useTTSFallback(night);
             });
         }
         _pgAudio = audioEl;
@@ -336,6 +334,8 @@ function hidePhoneGuy() {
         try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
         _pgUtterance = null;
     }
+    // Clear any pending voice-load callback so a stale TTS can't fire for a previous night
+    try { if (window.speechSynthesis) window.speechSynthesis.onvoiceschanged = null; } catch (e) {}
 
     _stopPhoneStatic();
 
