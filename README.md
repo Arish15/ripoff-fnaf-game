@@ -12,36 +12,36 @@ node server.js              # starts http://localhost:8000
 python -m http.server 8000  # Python alternative
 ```
 
-Open **http://localhost:8000** in your browser. Hard-refresh (Ctrl+Shift+R) after any code change — `Cache-Control: no-cache` is set on all responses.
+Open **http://localhost:8000** in your browser. Hard-refresh (Ctrl+Shift+R) after any code change ï¿½ `Cache-Control: no-cache` is set on all responses.
 
 ---
 
 ## ?? Features
 
 ### Rendering
-- **3D Office** (Three.js r152) — First-person view with smooth head-turn camera, fog, and dynamic lighting
-- **FNAF1-accurate atmosphere** — Warm tan-beige walls, tight dark fog, CELEBRATE party banner with streamers and children's drawings
-- **Procedural Door Textures** — Gunmetal blast doors with rivets, hazard stripes, panel insets, and scratches; generated as canvas textures at runtime
-- **Spring-Physics Door Animations** — Doors animate downward on close (subtle bounce overshoot) and retract upward on open
-- **Hall Animatronics** — Real-time coloured silhouettes in the left/right hallways via `setHallLeft` / `setHallRight`
-- **Camera Monitor System** — 2D canvas overlay with 11 distinct camera feeds matching FNAF1 building layout
+- **3D Office** (Three.js r152)  First-person view with smooth head-turn camera, fog, and dynamic lighting
+- **FNAF1-accurate atmosphere**  Warm tan-beige walls, tight dark fog, CELEBRATE party banner with streamers and children's drawings
+- **Procedural Door Textures**  Gunmetal blast doors with rivets, hazard stripes, panel insets, and scratches; generated as canvas textures at runtime
+- **Spring-Physics Door Animations**  Doors animate downward on close (subtle bounce overshoot) and retract upward on open
+- **Hall Animatronics**  Real-time coloured silhouettes in the left/right hallways via `setHallLeft` / `setHallRight`
+- **Camera Monitor System** ï¿½ 2D canvas overlay with 11 distinct camera feeds matching FNAF1 building layout
 
 ### Gameplay
 - **6 Story Nights** with escalating AI + a **Custom Night** (Night 7) with per-animatronic sliders
-- **Power Management** — Lights, doors, and camera monitor each drain power; reaches 0% ? power outage
-- **Power Outage Sequence** — Instant blackout via `#powerDarkOverlay`, then Freddy jumpscare triggers after ~1 second
-- **Per-character Jumpscares** — Unique animated asset per animatronic, timed to the animation's exact duration (plays once only)
-- **Door Linger System** — Animatronics wait at the doorway for random cycles before forcing entry; door blocks entry and sends them back
-- **Foxy Mechanic** — Checking Cam 1C too often or too rarely triggers a hallway sprint
-- **Golden Freddy Easter Egg** — Enter 1/9/8/7 on Custom Night sliders for an instant jumpscare
-- **Night Progression** — Survive to 6:00 AM, unlock the next night; star system tracks 3-star completion
-- **Window Scare** — Animatronic arriving at a lit hallway door triggers a brief jump effect
-- **Hallucination Overlay** — Random visual hallucination flicker on higher-difficulty nights
-- **Phone Guy Messages** — Full canonical voice-over scripts per night (typewriter text display)
-- **Audio System** — Ambient tension audio, door/light SFX, garble sounds on animatronic movement, jumpscare audio, night completion jingle
+- **Power Management** ï¿½ Lights, doors, and camera monitor each drain power; reaches 0% ? power outage
+- **Power Outage Sequence** ï¿½ Instant blackout via `#powerDarkOverlay`, then Freddy jumpscare triggers after ~1 second
+- **Per-character Jumpscares** ï¿½ Unique animated asset per animatronic, timed to the animation's exact duration (plays once only)
+- **Door Linger System** ï¿½ Animatronics wait at the doorway for random cycles before forcing entry; door blocks entry and sends them back
+- **Foxy Mechanic** ï¿½ Checking Cam 1C too often or too rarely triggers a hallway sprint
+- **Golden Freddy Easter Egg** ï¿½ Enter 1/9/8/7 on Custom Night sliders for an instant jumpscare
+- **Night Progression** ï¿½ Survive to 6:00 AM, unlock the next night; star system tracks 3-star completion
+- **Window Scare** ï¿½ Animatronic arriving at a lit hallway door triggers a brief jump effect
+- **Hallucination Overlay** ï¿½ Random visual hallucination flicker on higher-difficulty nights
+- **Phone Guy Messages** ï¿½ Full canonical voice-over scripts per night (typewriter text display)
+- **Audio System** ï¿½ Ambient tension audio, door/light SFX, garble sounds on animatronic movement, jumpscare audio, night completion jingle
 
 ### Custom Night
-- Per-animatronic AI sliders (0–20)
+- Per-animatronic AI sliders (0ï¿½20)
 - Preset buttons: Cupcake Challenge, Foxy Foxy, New & Improved, Night of Misfits, Golden Freddy
 - 20/20/20/20 completion awards third star and saves to `localStorage`
 
@@ -51,25 +51,25 @@ Open **http://localhost:8000** in your browser. Hard-refresh (Ctrl+Shift+R) afte
 
 ```
 fnaf/
-+-- index.html              # Main entry point — all HTML, inline button onclick wiring
++-- index.html              # Main entry point ï¿½ all HTML, inline button onclick wiring
 +-- server.js               # Node.js static file server (no Express)
 +-- src/
-¦   +-- js/
-¦   ¦   +-- office3d.js     # Three.js 3D office rendering + door physics + hall animatronics
-¦   ¦   +-- game.js         # Main game loop, power, HUD, triggerGameOver, startGame
-¦   ¦   +-- cameras.js      # 11-camera feed rendering (2D canvas)
-¦   ¦   +-- ai.js           # Animatronic AI: tickFreddy, tickFoxy, tickOther, checkCollisions
-¦   ¦   +-- state.js        # Shared game state, animatronic definitions, NIGHT_AI table
-¦   ¦   +-- assets.js       # Asset preloader (png ? jpg ? jpeg ? svg fallback)
-¦   ¦   +-- extras.js       # Phone Guy, Custom Night, Stars, Hallucinations, Freddy Laugh
-¦   ¦   +-- three.min.js    # Three.js r152 (bundled locally — newer releases removed this file)
-¦   ¦   +-- office.js       # Legacy 2D office renderer (disabled; kept for compatibility)
-¦   +-- css/
-¦   ¦   +-- styles.css      # Game HUD, camera grid, jumpscare, power outage, night screens
-¦   ¦   +-- office.css      # Office-specific overlays (Golden Freddy, hallucination, etc.)
-¦   +-- html/
-¦   ¦   +-- header.html     # Unused template fragment
-¦   +-- assets/             # Audio + image files (drop-in, game fails silently if missing)
+ï¿½   +-- js/
+ï¿½   ï¿½   +-- office3d.js     # Three.js 3D office rendering + door physics + hall animatronics
+ï¿½   ï¿½   +-- game.js         # Main game loop, power, HUD, triggerGameOver, startGame
+ï¿½   ï¿½   +-- cameras.js      # 11-camera feed rendering (2D canvas)
+ï¿½   ï¿½   +-- ai.js           # Animatronic AI: tickFreddy, tickFoxy, tickOther, checkCollisions
+ï¿½   ï¿½   +-- state.js        # Shared game state, animatronic definitions, NIGHT_AI table
+ï¿½   ï¿½   +-- assets.js       # Asset preloader (png ? jpg ? jpeg ? svg fallback)
+ï¿½   ï¿½   +-- extras.js       # Phone Guy, Custom Night, Stars, Hallucinations, Freddy Laugh
+ï¿½   ï¿½   +-- three.min.js    # Three.js r152 (bundled locally ï¿½ newer releases removed this file)
+ï¿½   ï¿½   +-- office.js       # Legacy 2D office renderer (disabled; kept for compatibility)
+ï¿½   +-- css/
+ï¿½   ï¿½   +-- styles.css      # Game HUD, camera grid, jumpscare, power outage, night screens
+ï¿½   ï¿½   +-- office.css      # Office-specific overlays (Golden Freddy, hallucination, etc.)
+ï¿½   +-- html/
+ï¿½   ï¿½   +-- header.html     # Unused template fragment
+ï¿½   +-- assets/             # Audio + image files (drop-in, game fails silently if missing)
 +-- README.md
 +-- GEMINI.md               # Architecture reference for AI assistants
 ```
@@ -86,7 +86,7 @@ fnaf/
 
 ### Jumpscares
 
-Each jumpscare asset plays **once** — animated WebPs have their ANIM loop count set to 1, and the CSS shake iteration count matches the animation duration so the shake ends when the image finishes.
+Each jumpscare asset plays **once** ï¿½ animated WebPs have their ANIM loop count set to 1, and the CSS shake iteration count matches the animation duration so the shake ends when the image finishes.
 
 | Character | Asset | Scare duration |
 |-----------|-------|---------------|
@@ -99,14 +99,14 @@ Each jumpscare asset plays **once** — animated WebPs have their ANIM loop count 
 
 ### Power Outage
 1. Power hits 0% ? doors/lights off, monitor forced closed, `#powerDarkOverlay` fades in instantly
-2. 0.8–1.3 s of total darkness
+2. 0.8ï¿½1.3 s of total darkness
 3. Freddy power-outage jumpscare triggers; game over screen follows
 
 ### Door Textures (Procedural Canvas)
 - Dark gunmetal base with per-pixel noise grain
 - 4 recessed panels with inset shadows and bevel shading
 - Horizontal separator ridges with centre grooves and specular highlights
-- 16 rivets (4 columns × 3 rows) with radial gradients and specular glints
+- 16 rivets (4 columns ï¿½ 3 rows) with radial gradients and specular glints
 - Scratch marks for wear
 - Yellow/black diagonal hazard stripe at the bottom
 - Paired greyscale bump map for directional-light depth
@@ -118,17 +118,17 @@ Each jumpscare asset plays **once** — animated WebPs have their ANIM loop count 
 
 ### Camera Map
 - SVG floor plan (`src/assets/camera_map.svg`) matches the FNAF1 building topology
-- 11 invisible HTML overlay buttons — `border` shows on hover/active
+- 11 invisible HTML overlay buttons ï¿½ `border` shows on hover/active
 - Active camera highlighted green with glow
 - YOU marker shows office location
 
 ---
 
-## ?? Architecture — Two Rendering Layers
+## ?? Architecture ï¿½ Two Rendering Layers
 
 | Layer | File | Renders |
 |-------|------|---------|
-| **3D Office (WebGL)** | `office3d.js` | First-person POV — walls, desk, doors, hall lights, animatronic silhouettes |
+| **3D Office (WebGL)** | `office3d.js` | First-person POV ï¿½ walls, desk, doors, hall lights, animatronic silhouettes |
 | **2D Camera Monitor** | `cameras.js` | 11 security camera feeds drawn to `<canvas id="cameraCanvas">` |
 
 `#officeArea` (z-index 60) is full-screen and contains the Three.js canvas. It is shown when `monitorOpen === false` and hidden when the monitor is raised.
@@ -136,7 +136,7 @@ Each jumpscare asset plays **once** — animated WebPs have their ANIM loop count 
 ### `window.office3d` API
 ```javascript
 window.office3d.init()                 // Call once at DOMContentLoaded (or startGame)
-window.office3d.setMouse(normX)        // 0..1 — drives camera Y-rotation (±35°)
+window.office3d.setMouse(normX)        // 0..1 ï¿½ drives camera Y-rotation (ï¿½35ï¿½)
 window.office3d.setDoorLeft(closed)    // true = close left door
 window.office3d.setDoorRight(closed)   // true = close right door
 window.office3d.setLightLeft(on)       // Toggle left hall light visibility
@@ -148,13 +148,13 @@ window.office3d.resize()               // Call on window resize
 ```
 
 ### Game Loop
-`setInterval(tickGame, 100)` — 10 ticks/second. Each tick:
+`setInterval(tickGame, 100)` ï¿½ 10 ticks/second. Each tick:
 1. Advance `game.time`, drain power
 2. Check power outage condition
 3. Check Golden Freddy timer
 4. `tickAnimatronics(ai)` ? `tickFreddy`, `tickFoxy`, `tickOther` per animatronic
-5. `checkCollisions()` — any animatronic at `'office'` ? `triggerGameOver`
-6. `updateHallAnimatronics()` — sync hall silhouette meshes
+5. `checkCollisions()` ï¿½ any animatronic at `'office'` ? `triggerGameOver`
+6. `updateHallAnimatronics()` ï¿½ sync hall silhouette meshes
 7. HUD update; check 6:00 AM win condition
 
 ### Game Over Safety
@@ -164,7 +164,7 @@ window.office3d.resize()               // Call on window resize
 
 ## ?? Audio Assets
 
-Drop files into `src/assets/` — `.play().catch()` ensures missing files fail silently.
+Drop files into `src/assets/` ï¿½ `.play().catch()` ensures missing files fail silently.
 
 | Element ID | Expected File | Triggered By |
 |-----------|--------------|-------------|
@@ -189,13 +189,13 @@ Drop files into `src/assets/` — `.play().catch()` ensures missing files fail sil
 ## ?? Controls
 
 **Office View:**
-- **Mouse drag left/right** — Turn head (camera pans ±35°)
-- **Left/right wall buttons** — Toggle door and light per side
-- **Monitor button (bottom center)** — Raise/lower security camera map
+- **Mouse drag left/right** ï¿½ Turn head (camera pans ï¿½35ï¿½)
+- **Left/right wall buttons** ï¿½ Toggle door and light per side
+- **Monitor button (bottom center)** ï¿½ Raise/lower security camera map
 
 **Camera Map (monitor raised):**
-- **Click any camera label** — Switch to that feed
-- **YOU marker** — Current office position (non-interactive)
+- **Click any camera label** ï¿½ Switch to that feed
+- **YOU marker** ï¿½ Current office position (non-interactive)
 
 ---
 
@@ -225,11 +225,11 @@ Drop files into `src/assets/` — `.play().catch()` ensures missing files fail sil
 ## ?? Troubleshooting
 
 **Graphics not showing / blank screen:**
-- Hard-refresh (Ctrl+Shift+R) — cache is the most common cause
+- Hard-refresh (Ctrl+Shift+R) ï¿½ cache is the most common cause
 - F12 ? Console for JS errors; Network tab to confirm `three.min.js` loaded
 
 **Three.js error:**
-- `src/js/three.min.js` must exist — it is r152, bundled locally
+- `src/js/three.min.js` must exist ï¿½ it is r152, bundled locally
 - Do not replace with a CDN URL without verifying the file path exists for that release
 
 **Audio not playing:**
@@ -241,7 +241,7 @@ Drop files into `src/assets/` — `.play().catch()` ensures missing files fail sil
 - If you replace an asset, patch the loop count via Node: `buf.writeUInt16LE(1, animChunkOffset + 12)`
 
 **Game over fires twice:**
-- `triggerGameOver` is guarded by `gameOverTriggered` in `state.js` — do not remove this flag
+- `triggerGameOver` is guarded by `gameOverTriggered` in `state.js` ï¿½ do not remove this flag
 
 **Door animations look wrong:**
 - Check constants at top of `office3d.js`: `DOOR_SPRING_K`, `DOOR_DAMPING`, `DOOR_OPEN_Y` / `DOOR_CLOSED_Y`
@@ -250,7 +250,7 @@ Drop files into `src/assets/` — `.play().catch()` ensures missing files fail sil
 
 ## ?? Notes
 
-- **Three.js r152 is local** — newer releases removed `three.min.js` from npm; do not switch to a CDN without verifying the URL.
-- **No external CDNs** — fully self-contained; only `node server.js` needed.
-- **AI ticks roughly every 3–5 seconds** per animatronic to match original FNAF1 timing.
-- **Progress saved to `localStorage`** — unlocked nights and star achievements persist across sessions.
+- **Three.js r152 is local** ï¿½ newer releases removed `three.min.js` from npm; do not switch to a CDN without verifying the URL.
+- **No external CDNs** ï¿½ fully self-contained; only `node server.js` needed.
+- **AI ticks roughly every 3ï¿½5 seconds** per animatronic to match original FNAF1 timing.
+- **Progress saved to `localStorage`** ï¿½ unlocked nights and star achievements persist across sessions.
