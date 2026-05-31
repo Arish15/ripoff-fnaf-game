@@ -577,6 +577,7 @@ document.addEventListener('DOMContentLoaded', function() {
     startCameraLoop();
     updateNightButtons();
     initExtras();
+    initDevTools(); // now sets up dev-mode keyboard handler
 
     var officeArea = document.getElementById('officeArea');
     if (officeArea) {
@@ -613,39 +614,6 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('resize', function() {
         sizeCanvas();
         if (monitorOpen) drawCamera();
-    });
-    document.addEventListener('keydown', function(e) {
-        // Dev mode: Press V 5 times (outside gameplay) to unlock night selector
-        if ((e.key === 'v' || e.key === 'V') && !game.running) {
-            devModePresses++;
-            if (devModeTimeout) clearTimeout(devModeTimeout);
-            
-            if (devModePresses === 5) {
-                devModeUnlocked = true;
-                devModePresses = 0;
-                showDevNightSelector();
-            } else {
-                // Reset counter if more than 1 second passes between presses
-                devModeTimeout = setTimeout(function() {
-                    devModePresses = 0;
-                }, 1000);
-            }
-            return;
-        }
-        
-        if (e.key === 'Escape' && game.running) returnToStart();
-        // Space: toggle monitor
-        if (e.key === ' ' && game.running) {
-            e.preventDefault();
-            toggleMonitor();
-        }
-        // D/F: toggle left/right door
-        if ((e.key === 'd' || e.key === 'D') && game.running && !monitorOpen) toggleDoor('left');
-        if ((e.key === 'f' || e.key === 'F') && game.running && !monitorOpen) toggleDoor('right');
-        // C: toggle left light
-        if ((e.key === 'c' || e.key === 'C') && game.running && !monitorOpen) toggleLight('left');
-        // V (during gameplay): toggle right light
-        if ((e.key === 'v' || e.key === 'V') && game.running && !monitorOpen) toggleLight('right');
     });
 });
 
