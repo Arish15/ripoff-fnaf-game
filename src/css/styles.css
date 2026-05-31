@@ -1,3 +1,20 @@
+/* ═══════════════════════════════════════════
+   1. CSS CUSTOM PROPERTIES (design tokens)
+   ═══════════════════════════════════════════ */
+:root {
+    --bg-dark: var(--bg-dark);
+    --bg-mid: var(--bg-mid);
+    --bg-panel: var(--bg-panel);
+    --bg-btn: var(--bg-btn);
+    --text-primary: var(--text-primary);
+    --text-dim: var(--text-dim);
+    --accent-red: var(--accent-red);
+    --accent-green: var(--accent-green);
+    --power-critical: var(--power-critical);
+    --overlay-dark: var(--overlay-dark);
+}
+
+/* ═══ 1. RESET & BASE ═══ */
 /* ============ GLOBAL STYLES ============ */
 
 * {
@@ -16,6 +33,7 @@ body {
 }
 
 
+/* ═══ 4. START SCREEN ═══ */
 /* ============ START SCREEN ============ */
 
 #startScreen {
@@ -79,7 +97,7 @@ body {
 
 #screenName {
     font-size: 14px;
-    color: #888;
+    color: var(--text-dim);
     letter-spacing: 3px;
     text-transform: uppercase;
     margin-bottom: 60px;
@@ -100,7 +118,7 @@ body {
     padding: 20px;
     background: linear-gradient(180deg, #2a0a0a 0%, #1a0000 100%);
     border: 3px solid #776666;
-    color: #cccccc;
+    color: var(--text-primary);
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
@@ -112,7 +130,7 @@ body {
 }
 
 .nightBtn:hover {
-    border-color: #888;
+    border-color: var(--text-dim);
     background: linear-gradient(135deg, #3a1010 0%, #2a0000 100%);
     box-shadow: 0 0 30px rgba(100, 0, 0, 0.6);
 }
@@ -120,17 +138,18 @@ body {
 .nightBtn.locked {
     opacity: 0.4;
     cursor: not-allowed;
-    border-color: #444;
+    border-color: var(--bg-btn);
     background: linear-gradient(135deg, #1a0000 0%, #0a0000 100%);
 }
 
 .nightBtn.locked:hover {
-    border-color: #444;
+    border-color: var(--bg-btn);
     background: linear-gradient(135deg, #1a0000 0%, #0a0000 100%);
     box-shadow: none;
 }
 
 
+/* ═══ 3. LAYOUT ═══ */
 /* ============ GAME CONTAINER ============ */
 
 #gameContainer {
@@ -190,7 +209,7 @@ body {
     width: 100%;
     height: 100%;
     background: transparent;
-    border: 8px solid #1a1a1a;
+    border: 8px solid var(--bg-dark);
     border-radius: 2px;
     box-shadow: inset 0 2px 8px rgba(255, 255, 255, 0.05), 0 10px 30px rgba(0, 0, 0, 0.8), 0 0 50px rgba(0, 150, 200, 0.15);
     display: flex;
@@ -233,6 +252,7 @@ body {
 }
 
 
+/* ═══ 6. HUD ═══ */
 /* ============ TIME & POWER DISPLAY ============ */
 
 #timeDisplay {
@@ -315,7 +335,7 @@ body {
     width: 14px;
     height: 14px;
     background: #111;
-    border: 1px solid #444;
+    border: 1px solid var(--bg-btn);
     border-radius: 1px;
 }
 
@@ -348,6 +368,7 @@ body {
 }
 
 
+/* ═══ 8. OFFICE CONTROLS ═══ */
 /* ============ CAMERA CONTROLS ============ */
 
 #cameraToggleBtn {
@@ -357,8 +378,8 @@ body {
     bottom: 0;
     width: auto;
     height: 54px;
-    background: #222 linear-gradient(90deg, #222 0%, #333 100%);
-    border: 2px solid #888;
+    background: var(--bg-btn) linear-gradient(90deg, var(--bg-btn) 0%, var(--bg-panel) 100%);
+    border: 2px solid var(--text-dim);
     box-shadow: 0 2px 12px #000a, 0 0 0 2px #111 inset;
     display: flex;
     align-items: center;
@@ -369,7 +390,7 @@ body {
 }
 
 #cameraToggleBtn:active {
-    background: #333;
+    background: var(--bg-panel);
     border-color: #aaa;
 }
 
@@ -391,7 +412,7 @@ body {
 
 #cameraToggleBtn:hover {
     opacity: 1;
-    border-color: #888;
+    border-color: var(--text-dim);
     color: #000;
     transform: scaleY(1.03);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.15);
@@ -417,7 +438,7 @@ body {
 #cameraToggleBtn.disabled {
     opacity: 0.3;
     pointer-events: none;
-    border-color: #444;
+    border-color: var(--bg-btn);
 }
 
 #cameraGrid {
@@ -484,7 +505,7 @@ body {
     letter-spacing: 0.6px;
     text-transform: uppercase;
     border: 1.5px solid #dddddd;
-    background: rgba(0, 0, 0, 0.85);
+    background: var(--overlay-dark);
     box-shadow: 0 0 8px rgba(255, 255, 255, 0.3);
     z-index: 120;
     pointer-events: none;
@@ -502,6 +523,7 @@ body {
 }
 
 
+/* ═══ 9. OVERLAYS ═══ */
 /* ============ CONTROL PANEL ============ */
 
 #controlPanel {
@@ -511,7 +533,7 @@ body {
     align-items: center;
     padding: 15px 0;
     background: rgba(0, 0, 0, 0.7);
-    border-top: 3px solid #444;
+    border-top: 3px solid var(--bg-btn);
 }
 
 .controlGroup {
@@ -536,6 +558,7 @@ body {
 }
 
 
+/* ═══ 10. GAME OVER / NIGHT COMPLETE ═══ */
 /* ============ GAME OVER SCREEN ============ */
 
 #gameOverScreen {
@@ -698,6 +721,7 @@ body {
 }
 
 
+/* ═══ 9. OVERLAYS ═══ */
 /* ============ NIGHT INTRO OVERLAY ============ */
 
 #nightIntro {
@@ -832,6 +856,7 @@ body {
 }
 
 
+/* ═══ 11. PHONE GUY ═══ */
 /* ============ AUDIO ============ */
 
 audio {
@@ -839,6 +864,7 @@ audio {
 }
 
 
+/* ═══ 12. NEWSPAPER ENDING ═══ */
 /* ============ NEWSPAPER ENDING SCREEN ============ */
 
 #newspaperScreen {
@@ -924,6 +950,7 @@ audio {
 }
 
 
+/* ═══ 5. CUSTOM NIGHT ═══ */
 /* ============ CUSTOM NIGHT SETUP ============ */
 
 .customNightBtn {
@@ -939,7 +966,7 @@ audio {
     justify-self: center;
     background: linear-gradient(180deg, #3a0000 0%, #1a0000 100%);
     border-color: #880000;
-    color: #ff4444;
+    color: var(--power-critical);
     text-shadow: 0 0 8px #ff0000, 0 0 20px #aa0000;
     box-shadow: 0 0 14px rgba(255, 0, 0, 0.35);
     letter-spacing: 3px;
@@ -987,7 +1014,7 @@ audio {
 
 .custom-night-subtitle {
     font-size: 14px;
-    color: #888;
+    color: var(--text-dim);
     letter-spacing: 2px;
     margin-bottom: 30px;
 }
@@ -1020,7 +1047,7 @@ audio {
     -webkit-appearance: none;
     appearance: none;
     height: 8px;
-    background: #333;
+    background: var(--bg-panel);
     border-radius: 4px;
     outline: none;
 }
@@ -1253,6 +1280,7 @@ audio {
 }
 
 
+/* ═══ 9. OVERLAYS ═══ */
 /* ============ IT'S ME HALLUCINATION ============ */
 
 .hallucination-overlay {
@@ -1308,6 +1336,7 @@ audio {
 }
 
 
+/* ═══ 13. ANIMATIONS ═══ */
 /* ============ RESPONSIVE — scale UI to screen size ============ */
 
 
