@@ -1896,7 +1896,7 @@ import * as THREE from 'three';
         _roundRect(ctx, 8, 10, W - 16, H - 20, 16);
         ctx.fill();
 
-        // Main black glossy holder - improved gradient
+        // Main black glossy holder
         var gMain = ctx.createLinearGradient(0, 0, 0, H);
         gMain.addColorStop(0, '#1a1a1a');
         gMain.addColorStop(0.2, '#0f0f0f');
@@ -1921,12 +1921,12 @@ import * as THREE from 'three';
         ctx.fillStyle = edgeShadow;
         ctx.fillRect(W - 18, 14, 6, H - 28);
 
-        // Inner recess - darker shadow
+        // Inner recess - full height, no bottom padding
         ctx.fillStyle = '#020202';
-        _roundRect(ctx, 24, 30, W - 48, H - 60, 10);
+        _roundRect(ctx, 24, 30, W - 48, H - 44, 10);
         ctx.fill();
 
-        // Inner recess top edge - subtle light
+        // Inner recess top edge
         ctx.fillStyle = 'rgba(255,255,255,0.08)';
         ctx.fillRect(24, 30, W - 48, 1);
 
@@ -1938,36 +1938,21 @@ import * as THREE from 'three';
 
         // Holder edge lighting - left side
         ctx.fillStyle = 'rgba(255,255,255,0.14)';
-        ctx.fillRect(24, 30, 2, H - 60);
+        ctx.fillRect(24, 30, 2, H - 44);
 
         // Holder edge shadow - right side
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(W - 26, 30, 2, H - 60);
+        ctx.fillRect(W - 26, 30, 2, H - 44);
 
-        // Soft center sheen with better placement
-        var gSheen = ctx.createLinearGradient(0, 40, W, 80);
-        gSheen.addColorStop(0, 'rgba(255,255,255,0)');
-        gSheen.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-        gSheen.addColorStop(1, 'rgba(255,255,255,0)');
-        ctx.fillStyle = gSheen;
-        _roundRect(ctx, 30, 36, W - 60, H - 72, 8);
-        ctx.fill();
-
-        // Subtle bottom reflection
-        var gBottom = ctx.createLinearGradient(0, H - 40, 0, H - 30);
-        gBottom.addColorStop(0, 'rgba(255,255,255,0)');
-        gBottom.addColorStop(1, 'rgba(255,255,255,0.03)');
-        ctx.fillStyle = gBottom;
-        _roundRect(ctx, 30, H - 40, W - 60, 10, 8);
-        ctx.fill();
-
-        var btnSize = Math.round(W * 0.27);
-        var bx = Math.round((W - btnSize) / 2);
-        var doorY = 50;
-        var lightY = 280;
+        // BUTTON LAYOUT: Maximize button size, minimal gaps
+        var btnSize = Math.round((W - 48) * 0.95);  // 95% of inner width
+        var bx = Math.round((W - btnSize) / 2);      // Center
+        var gapBetweenButtons = 14;                  // Gap for text labels (in 3D)
+        var doorY = 30;                              // Start at top
+        var lightY = doorY + btnSize + gapBetweenButtons; // Door + gap + light
 
         function drawSquareButton(y, on, isDoor) {
-            var cornerRadius = 8;
+            var cornerRadius = 6;
             
             // Main button gradient (more subtle colors for a less flat appearance)
             var bg = ctx.createLinearGradient(0, y, 0, y + btnSize);
@@ -2106,41 +2091,9 @@ import * as THREE from 'three';
 
         drawSquareButton(doorY, doorOn, true);
         drawSquareButton(lightY, lightOn, false);
-
-        // Labels with improved styling
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.font = 'bold 72px Arial Black, Arial, sans-serif';
         
-        // Text shadow/outline for 3D depth effect
-        ctx.fillStyle = 'rgba(0,0,0,0.65)';
-        ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-        ctx.lineWidth = 3;
-        ctx.strokeText('DOOR', W / 2, 156);
-        ctx.fillText('DOOR', W / 2, 156);
-        
-        // Text highlight for depth
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.fillText('DOOR', W / 2, 154);
-        
-        // Main text color
-        ctx.fillStyle = '#f8f8f8';
-        ctx.fillText('DOOR', W / 2, 155);
-
-        // Light label with same styling
-        ctx.strokeStyle = 'rgba(0,0,0,0.8)';
-        ctx.lineWidth = 3;
-        ctx.strokeText('LIGHT', W / 2, 381);
-        ctx.fillStyle = 'rgba(0,0,0,0.65)';
-        ctx.fillText('LIGHT', W / 2, 381);
-        
-        // Text highlight for depth
-        ctx.fillStyle = 'rgba(255,255,255,0.35)';
-        ctx.fillText('LIGHT', W / 2, 379);
-        
-        // Main text color
-        ctx.fillStyle = '#f8f8f8';
-        ctx.fillText('LIGHT', W / 2, 380);
+        drawSquareButton(doorY, doorOn, true);
+        drawSquareButton(lightY, lightOn, false);
 
         panel.tex.needsUpdate = true;
     }
@@ -2154,15 +2107,16 @@ import * as THREE from 'three';
     function buildWallButtons() {
         // FNAF1-style holder: one vertical panel per side with DOOR (red, top)
         // and LIGHT (white, bottom). Separate transparent hitboxes handle clicks.
-        var PANEL_W = 2.55,
-            PANEL_H = 4.9;
-        var HIT_W = 1.08,
-            HIT_H = 1.08;
-        var TW = 256,
-            TH = 512;
+        // COMPACT panel proportions to match FNAF 1 - small, intimate control panel
+        var PANEL_W = 0.8,
+            PANEL_H = 1.6;
+        var HIT_W = 0.48,
+            HIT_H = 0.48;
+        var TW = 120,
+            TH = 240;
         var sides = [
-            { side: 'left', x: -10.61, y: 3.65, z: 2.3, ry: Math.PI / 2, nx: 0.03 },
-            { side: 'right', x: 10.61, y: 3.65, z: 2.3, ry: -Math.PI / 2, nx: -0.03 }
+            { side: 'left', x: -10.61, y: 3.65, z: 3.5, ry: Math.PI / 2, nx: 0.03 },
+            { side: 'right', x: 10.61, y: 3.65, z: 3.5, ry: -Math.PI / 2, nx: -0.03 }
         ];
 
         wallBtns = {};
@@ -2195,19 +2149,56 @@ import * as THREE from 'three';
             var lightId = s.side === 'left' ? 'lightLeft' : 'lightRight';
 
             var doorHit = new THREE.Mesh(hitGeo, hitMatDoor);
-            doorHit.position.set(s.x + s.nx, s.y + 1.10, s.z);
+            doorHit.position.set(s.x + s.nx, s.y + 0.25, s.z);
             doorHit.rotation.y = s.ry;
             doorHit.userData.btnId = doorId;
             scene.add(doorHit);
 
             var lightHit = new THREE.Mesh(hitGeo, hitMatLight);
-            lightHit.position.set(s.x + s.nx, s.y - 0.82, s.z);
+            lightHit.position.set(s.x + s.nx, s.y - 0.25, s.z);
             lightHit.rotation.y = s.ry;
             lightHit.userData.btnId = lightId;
             scene.add(lightHit);
 
             wallBtns[doorId] = { mesh: doorHit, side: s.side, kind: 'door', active: false };
             wallBtns[lightId] = { mesh: lightHit, side: s.side, kind: 'light', active: false };
+            
+            // Add 3D text labels in the gaps
+            // "DOOR" label in top gap (above door button)
+            var canvas_door_text = document.createElement('canvas');
+            canvas_door_text.width = 64;
+            canvas_door_text.height = 16;
+            var ctx_door = canvas_door_text.getContext('2d');
+            ctx_door.fillStyle = '#888888';
+            ctx_door.font = 'bold 12px Arial';
+            ctx_door.textAlign = 'center';
+            ctx_door.textBaseline = 'middle';
+            ctx_door.fillText('DOOR', 32, 8);
+            var tex_door = new THREE.CanvasTexture(canvas_door_text);
+            var mat_door_text = new THREE.MeshBasicMaterial({ map: tex_door, transparent: true });
+            var geo_door_text = new THREE.PlaneGeometry(0.32, 0.08);
+            var mesh_door_text = new THREE.Mesh(geo_door_text, mat_door_text);
+            mesh_door_text.position.set(s.x + s.nx * 0.05, s.y + 0.38, s.z + 0.01);
+            mesh_door_text.rotation.y = s.ry;
+            scene.add(mesh_door_text);
+            
+            // "LIGHT" label in middle gap (between door and light buttons)
+            var canvas_light_text = document.createElement('canvas');
+            canvas_light_text.width = 64;
+            canvas_light_text.height = 16;
+            var ctx_light = canvas_light_text.getContext('2d');
+            ctx_light.fillStyle = '#888888';
+            ctx_light.font = 'bold 12px Arial';
+            ctx_light.textAlign = 'center';
+            ctx_light.textBaseline = 'middle';
+            ctx_light.fillText('LIGHT', 32, 8);
+            var tex_light = new THREE.CanvasTexture(canvas_light_text);
+            var mat_light_text = new THREE.MeshBasicMaterial({ map: tex_light, transparent: true });
+            var geo_light_text = new THREE.PlaneGeometry(0.36, 0.08);
+            var mesh_light_text = new THREE.Mesh(geo_light_text, mat_light_text);
+            mesh_light_text.position.set(s.x + s.nx * 0.05, s.y - 0.08, s.z + 0.01);
+            mesh_light_text.rotation.y = s.ry;
+            scene.add(mesh_light_text);
         });
 
         _refreshBtnPanel('left');

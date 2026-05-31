@@ -36,19 +36,22 @@ function _playGarble() {
 function tickAnimatronics(ai) {
     // Apply in-night AI increments on top of base values
     // Custom Night (7): no increments — use slider values directly
+    // Death Mode: all animatronics at max AI (20)
     var isCustom = (game.currentNight === 7);
+    var deathMode = game.deathMode;
+    
     var effectiveAi = {
         // Night 4 Freddy is randomized 1 or 2 per wiki; pick once when night starts
-        freddy: isCustom ? (ai.freddy || 0) :
+        freddy: deathMode ? 20 : (isCustom ? (ai.freddy || 0) :
             ((game.currentNight === 4 && !animatronics.freddy._n4roll) ?
                 (animatronics.freddy._n4roll = (Math.random() < 0.5 ? 1 : 2)) :
-                (game.currentNight === 4 ? animatronics.freddy._n4roll : (ai.freddy || 0))),
-        bonnie: isCustom ? (ai.bonnie || 0) : Math.min(20, (ai.bonnie || 0) +
-            (game.hour >= 2 ? 1 : 0) + (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0)),
-        chica: isCustom ? (ai.chica || 0) : Math.min(20, (ai.chica || 0) +
-            (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0)),
-        foxy: isCustom ? (ai.foxy || 0) : Math.min(20, (ai.foxy || 0) +
-            (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0))
+                (game.currentNight === 4 ? animatronics.freddy._n4roll : (ai.freddy || 0)))),
+        bonnie: deathMode ? 20 : (isCustom ? (ai.bonnie || 0) : Math.min(20, (ai.bonnie || 0) +
+            (game.hour >= 2 ? 1 : 0) + (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0))),
+        chica: deathMode ? 20 : (isCustom ? (ai.chica || 0) : Math.min(20, (ai.chica || 0) +
+            (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0))),
+        foxy: deathMode ? 20 : (isCustom ? (ai.foxy || 0) : Math.min(20, (ai.foxy || 0) +
+            (game.hour >= 3 ? 1 : 0) + (game.hour >= 4 ? 1 : 0)))
     };
 
     Object.keys(animatronics).forEach(function(key) {
@@ -304,7 +307,12 @@ function updateHallAnimatronics() {
 
 function checkCollisions() {
     Object.values(animatronics).forEach(function(a) {
-        if (a.path && a.path[a.pos] === 'office') {
+        var isNowAtOffice = a.path && a.path[a.pos] === 'office';
+        var wasAtOffice = a._prevPosOffice;
+        a._prevPosOffice = isNowAtOffice;
+        
+        // Only trigger if animatronic just entered office (transition from not-office → office)
+        if (isNowAtOffice && !wasAtOffice) {
             triggerGameOver(a.name.toUpperCase() + ' GOT YOU');
         }
     });

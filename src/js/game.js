@@ -3,6 +3,12 @@
  * Handles: game loop, power drain, HUD updates, UI state, game-over triggers
  */
 
+// Dev mode: press V 5 times to unlock night selector
+var devModePresses = 0;
+var devModeTimeout = null;
+var devModeUnlocked = false;
+var devModeActive = false;
+
 /**
  * Main game tick — runs every 100ms (10 times per second)
  * Handles: time progression, power drain, AI ticks, collision checks, HUD updates
@@ -142,7 +148,8 @@ function tickGame() {
  * Called by: HTML onclick (startGame button), nextNight()
  */
 function startGame(night) {
-    if (unlockedNights.indexOf(night) < 0) return;
+    // Dev mode bypasses unlock restrictions
+    if (!devModeActive && unlockedNights.indexOf(night) < 0) return;
 
     game.running = true;
     gameOverTriggered = false;
@@ -187,6 +194,7 @@ function startGame(night) {
         a.doorOpenGrace = 0;
         a.prevDoorRight = false;
         a.prevDoorBlocked = false;
+        a._prevPosOffice = false;
         if (a.timer !== undefined) a.timer = 0;
         // Reset Foxy-specific fields
         a.ignoreTicks = 0;
@@ -237,13 +245,23 @@ function startGame(night) {
     }
 
     var nd = document.getElementById('nightDisplay');
-    if (nd) nd.textContent = night === 7 ? 'CUSTOM NIGHT' : 'NIGHT ' + night;
+    if (nd) {
+        if (game.deathMode) {
+            nd.textContent = 'DEATH MODE';
+        } else {
+            nd.textContent = night === 7 ? 'CUSTOM NIGHT' : 'NIGHT ' + night;
+        }
+    }
 
     // Night intro overlay — "Night X" title card with brief delay
     var intro = document.getElementById('nightIntro');
     var introText = document.getElementById('nightIntroText');
     if (intro && introText) {
-        introText.textContent = night === 7 ? 'Custom Night' : 'Night ' + night;
+        if (game.deathMode) {
+            introText.textContent = 'DEATH MODE';
+        } else {
+            introText.textContent = night === 7 ? 'Custom Night' : 'Night ' + night;
+        }
         intro.classList.add('show');
         setTimeout(function() {
             intro.classList.remove('show');
@@ -469,6 +487,8 @@ function stopAllAudio() {
 function returnToStart() {
     stopAllAudio();
     game.running = false;
+    game.deathMode = false;
+    devModeActive = false;
     gameOverTriggered = false;
     if (gameOverTimeout) {
         clearTimeout(gameOverTimeout);
@@ -594,6 +614,24 @@ document.addEventListener('DOMContentLoaded', function() {
         if (monitorOpen) drawCamera();
     });
     document.addEventListener('keydown', function(e) {
+        // Dev mode: Press V 5 times (outside gameplay) to unlock night selector
+        if ((e.key === 'v' || e.key === 'V') && !game.running) {
+            devModePresses++;
+            if (devModeTimeout) clearTimeout(devModeTimeout);
+            
+            if (devModePresses === 5) {
+                devModeUnlocked = true;
+                devModePresses = 0;
+                showDevNightSelector();
+            } else {
+                // Reset counter if more than 1 second passes between presses
+                devModeTimeout = setTimeout(function() {
+                    devModePresses = 0;
+                }, 1000);
+            }
+            return;
+        }
+        
         if (e.key === 'Escape' && game.running) returnToStart();
         // Space: toggle monitor
         if (e.key === ' ' && game.running) {
@@ -603,11 +641,111 @@ document.addEventListener('DOMContentLoaded', function() {
         // D/F: toggle left/right door
         if ((e.key === 'd' || e.key === 'D') && game.running && !monitorOpen) toggleDoor('left');
         if ((e.key === 'f' || e.key === 'F') && game.running && !monitorOpen) toggleDoor('right');
-        // C/V or Shift+D/Shift+F: toggle left/right light
+        // C: toggle left light
         if ((e.key === 'c' || e.key === 'C') && game.running && !monitorOpen) toggleLight('left');
+        // V (during gameplay): toggle right light
         if ((e.key === 'v' || e.key === 'V') && game.running && !monitorOpen) toggleLight('right');
     });
 });
+
+// Dev mode night selector
+function showDevNightSelector() {
+    var existing = document.getElementById('devNightSelector');
+    if (existing) existing.remove();
+    
+    var modal = document.createElement('div');
+    modal.id = 'devNightSelector';
+    modal.style.cssText = 'position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 10000; font-family: Arial, sans-serif;';
+    
+    var box = document.createElement('div');
+    box.style.cssText = 'background: #222; padding: 40px; border: 3px solid #00ff00; border-radius: 10px; text-align: center; color: #00ff00; max-width: 800px;';
+    
+    var title = document.createElement('h2');
+    title.textContent = 'DEV MODE - Select Mode';
+    title.style.cssText = 'margin: 0 0 30px 0; font-size: 28px; text-shadow: 0 0 10px #00ff00;';
+    box.appendChild(title);
+    
+    var nightTitle = document.createElement('h3');
+    nightTitle.textContent = 'Story Nights';
+    nightTitle.style.cssText = 'margin: 20px 0 15px 0; font-size: 18px; color: #00ff00;';
+    box.appendChild(nightTitle);
+    
+    var buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = 'display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 30px;';
+    
+    for (var i = 1; i <= 6; i++) {
+        var btn = document.createElement('button');
+        btn.textContent = 'Night ' + i;
+        btn.style.cssText = 'padding: 15px 20px; background: #111; color: #00ff00; border: 2px solid #00ff00; font-size: 16px; cursor: pointer; border-radius: 5px; font-weight: bold; transition: all 0.2s;';
+        btn.onmouseover = function() { this.style.background = '#00ff00'; this.style.color = '#000'; };
+        btn.onmouseout = function() { this.style.background = '#111'; this.style.color = '#00ff00'; };
+        btn.onclick = (function(night) {
+            return function() {
+                modal.remove();
+                devModeActive = true;
+                game.currentNight = night;
+                startGame(night);
+            };
+        })(i);
+        buttonContainer.appendChild(btn);
+    }
+    box.appendChild(buttonContainer);
+    
+    var customTitle = document.createElement('h3');
+    customTitle.textContent = 'Custom Modes';
+    customTitle.style.cssText = 'margin: 20px 0 15px 0; font-size: 18px; color: #00ff00;';
+    box.appendChild(customTitle);
+    
+    var customContainer = document.createElement('div');
+    customContainer.style.cssText = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 30px;';
+    
+    // Custom Night button
+    var customBtn = document.createElement('button');
+    customBtn.textContent = 'Custom Night';
+    customBtn.style.cssText = 'padding: 15px 20px; background: #111; color: #00ff00; border: 2px solid #00ff00; font-size: 16px; cursor: pointer; border-radius: 5px; font-weight: bold; transition: all 0.2s;';
+    customBtn.onmouseover = function() { this.style.background = '#00ff00'; this.style.color = '#000'; };
+    customBtn.onmouseout = function() { this.style.background = '#111'; this.style.color = '#00ff00'; };
+    customBtn.onclick = function() {
+        modal.remove();
+        devModeActive = true;
+        game.currentNight = 7;
+        startGame(7);
+    };
+    customContainer.appendChild(customBtn);
+    
+    // Death Mode button (all AI at max)
+    var deathBtn = document.createElement('button');
+    deathBtn.textContent = 'DEATH MODE';
+    deathBtn.style.cssText = 'padding: 15px 20px; background: #ff0000; color: #ffff00; border: 2px solid #ff0000; font-size: 16px; cursor: pointer; border-radius: 5px; font-weight: bold; transition: all 0.2s; text-shadow: 0 0 10px #ff0000;';
+    deathBtn.onmouseover = function() { this.style.background = '#ffff00'; this.style.color = '#ff0000'; };
+    deathBtn.onmouseout = function() { this.style.background = '#ff0000'; this.style.color = '#ffff00'; };
+    deathBtn.onclick = function() {
+        modal.remove();
+        devModeActive = true;
+        game.currentNight = 7;
+        game.deathMode = true;
+        startGame(7);
+    };
+    customContainer.appendChild(deathBtn);
+    box.appendChild(customContainer);
+    
+    var closeText = document.createElement('p');
+    closeText.textContent = 'Click to start or press Escape to close';
+    closeText.style.cssText = 'margin: 0; font-size: 14px; color: #00aa00;';
+    box.appendChild(closeText);
+    
+    modal.appendChild(box);
+    document.body.appendChild(modal);
+    
+    // Close on Escape
+    var closeHandler = function(e) {
+        if (e.key === 'Escape') {
+            modal.remove();
+            document.removeEventListener('keydown', closeHandler);
+        }
+    };
+    document.addEventListener('keydown', closeHandler);
+}
 
 /**
  * ── JUMPSCARE ASSET SETUP ──

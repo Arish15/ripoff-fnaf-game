@@ -20,6 +20,7 @@
 var game = {
     running: false,
     currentNight: 1,
+    deathMode: false,
     time: 0,
     hour: 0,
     minute: 0,
