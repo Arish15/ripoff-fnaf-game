@@ -2,22 +2,33 @@
  * FNAF Game — Office Interactions & HUD
  */
 
-// ── Window scare: plays when animatronic visible at door with light on ──
+// ── Window scare: plays once when animatronic first appears AT the door with light on ──
+// Flags reset only when the animatronic leaves the door position entirely.
+var _leftScaredPlayed = false, _rightScaredPlayed = false;
+
 function _checkWindowScare(side) {
     if (!window.office3d) return;
-    var animAtDoor = false;
+    // Only trigger at the actual door positions, not further down the hall
+    var atDoor = false;
     Object.values(animatronics).forEach(function(a) {
         var pos = a.path[a.pos];
-        if (side === 'left' && (pos === 'doorW' || pos === 'hallW_corner' || pos === 'hallW')) animAtDoor = true;
-        if (side === 'right' && (pos === 'doorE' || pos === 'hallE_corner' || pos === 'hallE')) animAtDoor = true;
+        if (side === 'left'  && pos === 'doorW') atDoor = true;
+        if (side === 'right' && pos === 'doorE') atDoor = true;
     });
-    if (animAtDoor) {
-        var ws = document.getElementById('windowScareAudio');
-        if (ws) {
-            ws.currentTime = 0;
-            ws.play().catch(function() {});
-        }
-    }
+    if (!atDoor) return;
+    // Don't replay while same animatronic is still at the door
+    if (side === 'left'  && _leftScaredPlayed)  return;
+    if (side === 'right' && _rightScaredPlayed) return;
+    if (side === 'left')  _leftScaredPlayed  = true;
+    else                  _rightScaredPlayed = true;
+    var ws = document.getElementById('windowScareAudio');
+    if (ws) { ws.currentTime = 0; ws.play().catch(function() {}); }
+}
+
+// Called by updateHallAnimatronics when the animatronic leaves the door — rearms the scare.
+function _resetWindowScare(side) {
+    if (side === 'left')  _leftScaredPlayed  = false;
+    else                  _rightScaredPlayed = false;
 }
 
 

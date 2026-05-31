@@ -286,22 +286,34 @@ function tickOther(key, a) {
 
 var _prevLeftHallAnim = null,
     _prevRightHallAnim = null;
+var _prevLeftDoorAnim = null,
+    _prevRightDoorAnim = null;
 
 function updateHallAnimatronics() {
     if (!window.office3d) return;
-    var leftAnim = null,
-        rightAnim = null;
+    var leftAnim = null, rightAnim = null;
+    var leftDoorAnim = null, rightDoorAnim = null;
     Object.values(animatronics).forEach(function(a) {
         var pos = a.path[a.pos];
         if (pos === 'doorW' || pos === 'hallW_corner' || pos === 'hallW') leftAnim = a;
         if (pos === 'doorE' || pos === 'hallE_corner' || pos === 'hallE') rightAnim = a;
+        if (pos === 'doorW') leftDoorAnim = a;
+        if (pos === 'doorE') rightDoorAnim = a;
     });
-    // Window scare: animatronic just arrived at the door while light is already on
-    if (leftAnim !== _prevLeftHallAnim && leftAnim && game.lightLeft) _checkWindowScare('left');
+
+    // Reset scare flag when animatronic leaves the door (allows replay on next visit)
+    if (_prevLeftDoorAnim  && !leftDoorAnim)  _resetWindowScare('left');
+    if (_prevRightDoorAnim && !rightDoorAnim) _resetWindowScare('right');
+    _prevLeftDoorAnim  = leftDoorAnim;
+    _prevRightDoorAnim = rightDoorAnim;
+
+    // Window scare: animatronic just arrived somewhere in the hall while light is on
+    if (leftAnim  !== _prevLeftHallAnim  && leftAnim  && game.lightLeft)  _checkWindowScare('left');
     if (rightAnim !== _prevRightHallAnim && rightAnim && game.lightRight) _checkWindowScare('right');
-    _prevLeftHallAnim = leftAnim;
+    _prevLeftHallAnim  = leftAnim;
     _prevRightHallAnim = rightAnim;
-    window.office3d.setHallLeft(leftAnim || null);
+
+    window.office3d.setHallLeft(leftAnim   || null);
     window.office3d.setHallRight(rightAnim || null);
 }
 
