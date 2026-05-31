@@ -1505,7 +1505,6 @@ import * as THREE from 'three';
             var eR = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), eyeMat);
             eR.position.set(0.35, 5.3, 0.8);
             g.add(eR);
-            g.visible = false;
             return g;
         }
 
@@ -1545,7 +1544,6 @@ import * as THREE from 'three';
             var eR = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 8), eyeMat);
             eR.position.set(0.3, 5.4, 0.8);
             g.add(eR);
-            g.visible = false;
             return g;
         }
 
@@ -1574,7 +1572,6 @@ import * as THREE from 'three';
             var eR = new THREE.Mesh(new THREE.SphereGeometry(0.22, 8, 8), eyeMat);
             eR.position.set(0.3, 5.4, 0.75);
             g.add(eR);
-            g.visible = false;
             return g;
         }
 
@@ -1602,7 +1599,6 @@ import * as THREE from 'three';
             var eR = new THREE.Mesh(new THREE.SphereGeometry(0.25, 8, 8), eyeMat);
             eR.position.set(0.3, 5.3, 0.75);
             g.add(eR);
-            g.visible = false;
             return g;
         }
 
