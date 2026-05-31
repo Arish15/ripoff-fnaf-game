@@ -2,6 +2,13 @@
  * FNAF Game — Main Controller
  */
 
+// ── Power drain rates per active system (per tick at 100ms) ──
+var DRAIN_BASE    = 0.01;  // always on
+var DRAIN_LIGHT   = 0.01;  // per hall light
+var DRAIN_DOOR    = 0.018; // per closed door
+var DRAIN_MONITOR = 0.013; // camera monitor
+
+/** Main game tick — runs every 100ms via setInterval. */
 function tickGame() {
     if (!game.running) return;
 
@@ -12,12 +19,12 @@ function tickGame() {
     game.hour = Math.floor(hrs);
     game.minute = (hrs % 1) * 60;
 
-    var drain = 0.01;
-    if (game.lightLeft) drain += 0.01;
-    if (game.lightRight) drain += 0.01;
-    if (game.doorLeft) drain += 0.018;
-    if (game.doorRight) drain += 0.018;
-    if (monitorOpen) drain += 0.013;
+    var drain = DRAIN_BASE;
+    if (game.lightLeft)  drain += DRAIN_LIGHT;
+    if (game.lightRight) drain += DRAIN_LIGHT;
+    if (game.doorLeft)   drain += DRAIN_DOOR;
+    if (game.doorRight)  drain += DRAIN_DOOR;
+    if (monitorOpen)     drain += DRAIN_MONITOR;
     game.power = Math.max(0, game.power - drain);
 
     // Ambient audio tension: volume increases as power decreases
@@ -120,6 +127,10 @@ function tickGame() {
     if (game.hour >= 6 || game.time >= 540) endNight();
 }
 
+/**
+ * Starts a night. Resets all game/animatronic state and begins the game loop.
+ * @param {number} night - Night number (1–7). Night 7 = Custom Night.
+ */
 function startGame(night) {
     if (unlockedNights.indexOf(night) < 0) return;
 
@@ -246,6 +257,7 @@ function startGame(night) {
     updateHUD();
 }
 
+/** Called at 6AM — stops game loop, unlocks next night, shows completion screen. */
 function endNight() {
     game.running = false;
     if (gameLoop) {
@@ -293,6 +305,11 @@ function nextNight() {
     else startGame(game.currentNight + 1);
 }
 
+/**
+ * Fires the jump-scare sequence for the given animatronic.
+ * Guards against double-fire with `gameOverTriggered`.
+ * @param {string} msg - Animatronic identifier string (e.g. 'BONNIE', 'FREDDY_POWER', 'GOLDEN FREDDY').
+ */
 function triggerGameOver(msg) {
     if (!game.running || gameOverTriggered) return;
     gameOverTriggered = true;
@@ -373,6 +390,7 @@ function triggerGameOver(msg) {
     }, scareDuration);
 }
 
+/** Stops the game and returns to the start screen. Cleans up all overlays and audio. */
 function returnToStart() {
     game.running = false;
     gameOverTriggered = false;

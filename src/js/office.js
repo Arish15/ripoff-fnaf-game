@@ -20,6 +20,10 @@ function _checkWindowScare(side) {
     }
 }
 
+/**
+ * Toggles the door on the given side open/closed and plays door SFX.
+ * @param {'left'|'right'} side
+ */
 function toggleDoor(side) {
     if (!game.running || game.powerOutage) return;
     if (side === 'left') {
@@ -36,6 +40,10 @@ function toggleDoor(side) {
     }
 }
 
+/**
+ * Toggles the hall light on the given side and triggers window-scare check.
+ * @param {'left'|'right'} side
+ */
 function toggleLight(side) {
     if (!game.running || game.powerOutage) return;
     if (side === 'left') {

@@ -2,6 +2,82 @@
  * FNAF Game — State & Constants
  */
 
+// ─────────────────────────────────────────────
+//  TYPE DEFINITIONS  (JSDoc — no build step needed)
+//  Gives VS Code / Copilot full type inference on all JS files.
+// ─────────────────────────────────────────────
+
+/**
+ * @typedef {{
+ *   running: boolean,
+ *   currentNight: number,
+ *   time: number,
+ *   hour: number,
+ *   minute: number,
+ *   power: number,
+ *   doorLeft: boolean,
+ *   doorRight: boolean,
+ *   lightLeft: boolean,
+ *   lightRight: boolean,
+ *   currentCam: string,
+ *   lastCam: string,
+ *   powerOutage: boolean,
+ *   powerOutageTime: number,
+ *   powerOutageDelay: number,
+ *   freddyJingleStarted: boolean
+ * }} GameState
+ */
+
+/**
+ * All per-animatronic runtime state.
+ * Optional fields are only set at runtime — declared here so Copilot
+ * knows they exist and won't flag them as unknown properties.
+ * @typedef {{
+ *   name: string,
+ *   color: string,
+ *   pos: number,
+ *   path: string[],
+ *   ai: number,
+ *   moveTick: number,
+ *   _n4roll?: number,
+ *   cornerTicks?: number,
+ *   doorEntryTimer?: number,
+ *   doorLinger?: number,
+ *   lingerCount?: number,
+ *   doorOpenGrace?: number,
+ *   prevDoorRight?: boolean,
+ *   prevDoorBlocked?: boolean,
+ *   timer?: number,
+ *   ignoreTicks?: number,
+ *   preventionTimer?: number,
+ *   wasWatchingCam1c?: boolean,
+ *   wasMonitorOpen?: boolean
+ * }} Animatronic
+ */
+
+/**
+ * Per-animatronic AI values for a given night (0–20 difficulty scale).
+ * @typedef {{ freddy: number, bonnie: number, chica: number, foxy: number }} AiValues
+ */
+
+/**
+ * @typedef {{
+ *   init: function(): void,
+ *   show: function(): void,
+ *   hide: function(): void,
+ *   resize: function(): void,
+ *   setMouse: function(number): void,
+ *   setDoorLeft: function(boolean): void,
+ *   setDoorRight: function(boolean): void,
+ *   setLightLeft: function(boolean): void,
+ *   setLightRight: function(boolean): void,
+ *   setHallLeft: function(?string): void,
+ *   setHallRight: function(?string): void,
+ *   getRotation: function(): number
+ * }} Office3dApi
+ */
+
+/** @type {GameState} */
 var game = {
     running: false,
     currentNight: 1,
@@ -20,6 +96,7 @@ var game = {
 
 // Base AI values at midnight — sourced from decompiled FNAF1 game code (wiki Night 7 page)
 // In-night increments are applied in ai.js: Bonnie +1 at 2/3/4AM, Chica+Foxy +1 at 3/4AM, Freddy fixed
+/** @type {Record<number, AiValues>} */
 var NIGHT_AI = {
     1: { freddy: 0, bonnie: 1, chica: 1, foxy: 2 },
     2: { freddy: 0, bonnie: 3, chica: 2, foxy: 3 },
@@ -30,6 +107,7 @@ var NIGHT_AI = {
     7: { freddy: 0, bonnie: 0, chica: 0, foxy: 0 } // Custom Night — overridden by sliders
 };
 
+/** @type {Record<string, Animatronic>} */
 var animatronics = {
     freddy: {
         name: 'Freddy',
@@ -78,11 +156,12 @@ var mouseNormX = 0.5;
 var lastAiTick = 0;
 var cameraRafId = null;
 var office3dInited = false;
-var goldenFreddyActive = false; // Golden Freddy easter egg state
-var goldenFreddyTimer = 0; // ticks until jumpscare if not dismissed
-var customNightAI = { freddy: 0, bonnie: 0, chica: 0, foxy: 0 }; // Custom Night sliders
-var hallucinationCooldown = 0; // ticks until next hallucination can fire
-var phoneGuyTimer = 0; // ticks until phone guy message disappears
+var goldenFreddyActive = false;
+var goldenFreddyTimer = 0;
+/** @type {AiValues} */
+var customNightAI = { freddy: 0, bonnie: 0, chica: 0, foxy: 0 };
+var hallucinationCooldown = 0;
+var phoneGuyTimer = 0;
 
 // ─────────────────────────────────────────────
 //  PROGRESS PERSISTENCE
@@ -136,3 +215,6 @@ function saveProgress() {
 
 window.gameState = game;
 window.animatronics = animatronics;
+
+/** @type {Office3dApi} */
+var office3d = window.office3d;

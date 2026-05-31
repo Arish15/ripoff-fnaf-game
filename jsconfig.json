@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "strict": false,
+    "target": "ES6",
+    "lib": ["ES6", "DOM"],
+    "noEmit": true
+  },
+  "include": ["src/js/**/*.js", "*.js"],
+  "exclude": ["src/js/three.min.js", "node_modules"]
+}

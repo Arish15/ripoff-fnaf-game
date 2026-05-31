@@ -22,6 +22,11 @@ function _playGarble() {
     }
 }
 
+/**
+ * Advances all animatronic AI for one game tick.
+ * Computes effective AI values including in-night increments.
+ * @param {AiValues} ai - Base AI values from NIGHT_AI for the current night.
+ */
 function tickAnimatronics(ai) {
     // Apply in-night AI increments on top of base values
     // Custom Night (7): no increments — use slider values directly
