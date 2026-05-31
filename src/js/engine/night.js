@@ -74,7 +74,6 @@ function _resetAnimatronics() {
         a.preventionTimer = 0;
         a.wasWatchingCam1c = false;
         a.wasMonitorOpen = false;
-        a.foxyDoorTimer = 0;
     });
 }
 
