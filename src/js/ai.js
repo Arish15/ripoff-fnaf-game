@@ -110,6 +110,13 @@ function tickFoxy(a) {
                     if (a.pos < a.path.length - 1) a.pos++;
                     // Foxy starts sprinting down the hall
                     if (a.path[a.pos] === 'hallW') {
+                        // Faint distant zip — global cue that Foxy is running (no camera needed)
+                        var foxyIndicator = document.getElementById('foxyRunIndicatorAudio');
+                        if (foxyIndicator) {
+                            foxyIndicator.volume = 0.18;
+                            foxyIndicator.currentTime = 0;
+                            foxyIndicator.play().catch(function() {});
+                        }
                         // Sprint audio only audible if watching West Hall cam
                         if (monitorOpen && game.currentCam === 'hallW') {
                             var foxySprint = document.getElementById('foxySprintAudio');
