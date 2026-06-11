@@ -22,16 +22,22 @@ function _checkWindowScare(side) {
 
 function _syncLightHum(anyLightOn) {
     var lightHum = document.getElementById('lightHumAudio');
-    if (!lightHum) return;
+    var lightAudio = document.getElementById('lightAudio');
 
     if (anyLightOn) {
-        if (lightHum.paused) {
+        if (lightHum && lightHum.paused) {
             lightHum.currentTime = 0;
             lightHum.play().catch(function() {});
         }
     } else {
-        if (!lightHum.paused) lightHum.pause();
-        lightHum.currentTime = 0;
+        if (lightHum) {
+            if (!lightHum.paused) lightHum.pause();
+            lightHum.currentTime = 0;
+        }
+        if (lightAudio) {
+            if (!lightAudio.paused) lightAudio.pause();
+            lightAudio.currentTime = 0;
+        }
     }
 }
 
@@ -78,13 +84,24 @@ function toggleLight(side) {
         turnedOn = game.lightRight;
     }
     _applyLightState();
+    // Play mechanical switch click
+    var switchAudio = document.getElementById('lightSwitchAudio');
+    if (switchAudio) {
+        switchAudio.currentTime = 0;
+        switchAudio.play().catch(function() {});
+    }
     // Check for window scare (animatronic at door)
     if (side === 'left' && turnedOn) _checkWindowScare('left');
     if (side === 'right' && turnedOn) _checkWindowScare('right');
     var lightAudio = document.getElementById('lightAudio');
     if (lightAudio) {
-        lightAudio.currentTime = 0;
-        lightAudio.play().catch(function() {});
+        if (turnedOn) {
+            lightAudio.currentTime = 0;
+            lightAudio.play().catch(function() {});
+        } else {
+            lightAudio.pause();
+            lightAudio.currentTime = 0;
+        }
     }
 }
 

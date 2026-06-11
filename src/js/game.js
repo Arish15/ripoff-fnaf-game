@@ -386,6 +386,11 @@ function triggerGameOver(msg) {
         lightHumGO.pause();
         lightHumGO.currentTime = 0;
     }
+    var lightAudioGO = document.getElementById('lightAudio');
+    if (lightAudioGO) {
+        lightAudioGO.pause();
+        lightAudioGO.currentTime = 0;
+    }
     var jingleGO = document.getElementById('freddyJingleAudio');
     if (jingleGO) {
         jingleGO.pause();
