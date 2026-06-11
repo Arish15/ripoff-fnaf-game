@@ -14,32 +14,30 @@ const puppeteer = require('puppeteer');
     
     // Navigate to game
     console.log('Navigating to http://localhost:8000...');
-    await page.goto('http://localhost:8000', { waitUntil: 'networkidle2' });
+    await page.goto('http://localhost:8000', { waitUntil: 'domcontentloaded', timeout: 30000 });
     console.log('✓ Page loaded');
     
     // Hard refresh (Ctrl+Shift+R equivalent)
     console.log('Performing hard refresh...');
-    await page.reload({ waitUntil: 'networkidle2' });
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 });
     console.log('✓ Hard refresh complete');
     
     // Click "Start Game" button
-    console.log('Clicking Start Game button...');
-    const startButton = await page.button:contains("Start Game") || await page.evaluate(() => {
+    console.log('Clicking Night 1 button...');
+    const clicked = await page.evaluate(() => {
       const btns = Array.from(document.querySelectorAll('button'));
-      return btns.find(b => b.textContent.includes('Start Game'));
+      const btn = btns.find(b => b.textContent.includes('Night 1') || b.textContent.includes('Start Game') || b.id === 'startBtn');
+      if (btn) {
+        btn.click();
+        return true;
+      }
+      return false;
     });
     
-    if (startButton) {
-      await page.click('button');
-      console.log('✓ Start Game clicked');
+    if (clicked) {
+      console.log('✓ Night 1 clicked');
     } else {
-      console.log('⚠ Start Game button not found, trying click by evaluate');
-      await page.evaluate(() => {
-        const btns = Array.from(document.querySelectorAll('button'));
-        const btn = btns.find(b => b.textContent.includes('Start Game'));
-        if (btn) btn.click();
-      });
-      console.log('✓ Start Game triggered via evaluate');
+      console.log('⚠ Night 1 button not found');
     }
     
     // Wait 5 seconds for animatronics to start moving
@@ -138,7 +136,7 @@ const puppeteer = require('puppeteer');
     if (consoleMessages.length > 0) {
       console.log('YES - Console has messages:');
       consoleMessages.forEach(msg => {
-        console.log(\  [\] \\);
+        console.log('  [' + msg.type + '] ' + msg.text);
       });
     } else {
       console.log('NO - No console errors detected');

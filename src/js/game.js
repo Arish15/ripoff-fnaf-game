@@ -253,6 +253,33 @@ function startGame(night) {
         }
     }
 
+    // Hide Freddy power-out overlay from previous game
+    var fpo = document.getElementById('freddyPowerOut');
+    if (fpo) fpo.classList.remove('show');
+    var gfo = document.getElementById('goldenFreddyOverlay');
+    if (gfo) gfo.classList.remove('show');
+    var jingle = document.getElementById('freddyJingleAudio');
+    if (jingle) {
+        jingle.pause();
+        jingle.currentTime = 0;
+    }
+
+    var startShift = function() {
+        if (gameLoop) clearInterval(gameLoop);
+        gameLoop = setInterval(tickGame, 100);
+
+        // Start ambient audio
+        var ambient = document.getElementById('ambientAudio');
+        if (ambient) {
+            ambient.volume = 0.3;
+            ambient.play().catch(function() {});
+        }
+
+        // Phone Guy message after intro fades
+        showPhoneGuy(night);
+        updateHUD();
+    };
+
     // Night intro overlay — "Night X" title card with brief delay
     var intro = document.getElementById('nightIntro');
     var introText = document.getElementById('nightIntroText');
@@ -265,33 +292,11 @@ function startGame(night) {
         intro.classList.add('show');
         setTimeout(function() {
             intro.classList.remove('show');
-            // Phone Guy message after intro fades
-            showPhoneGuy(night);
+            startShift();
         }, 2200);
+    } else {
+        startShift();
     }
-
-    // Hide Freddy power-out overlay from previous game
-    var fpo = document.getElementById('freddyPowerOut');
-    if (fpo) fpo.classList.remove('show');
-    var gfo = document.getElementById('goldenFreddyOverlay');
-    if (gfo) gfo.classList.remove('show');
-    var jingle = document.getElementById('freddyJingleAudio');
-    if (jingle) {
-        jingle.pause();
-        jingle.currentTime = 0;
-    }
-
-    if (gameLoop) clearInterval(gameLoop);
-    gameLoop = setInterval(tickGame, 100);
-
-    // Start ambient audio
-    var ambient = document.getElementById('ambientAudio');
-    if (ambient) {
-        ambient.volume = 0.3;
-        ambient.play().catch(function() {});
-    }
-
-    updateHUD();
 }
 
 /**
@@ -414,20 +419,16 @@ function triggerGameOver(msg) {
         scareDuration = 2800;
     }
 
-    // CSS fallback for old-style jumpscare display (if jumpScare module unavailable)
+    // CSS jumpscare display
     if (scare) {
         scare.className = '';
-        if (animatronicType === 'freddy') scare.classList.add('scare-freddy');
+        if (msg.indexOf('FREDDY_POWER') >= 0) scare.classList.add('scare-freddy-power');
+        else if (animatronicType === 'freddy') scare.classList.add('scare-freddy');
         else if (animatronicType === 'golden') scare.classList.add('scare-golden');
         else if (animatronicType === 'bonnie') scare.classList.add('scare-bonnie');
         else if (animatronicType === 'chica') scare.classList.add('scare-chica');
         else if (animatronicType === 'foxy') scare.classList.add('scare-foxy');
         scare.classList.add('show');
-    }
-
-    // Trigger procedural animation if available
-    if (window.jumpScare && window.jumpScare.animate) {
-        window.jumpScare.animate(animatronicType, scareDuration);
     }
     var audio;
     if (msg.indexOf('GOLDEN') >= 0) {
