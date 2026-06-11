@@ -554,6 +554,7 @@ body {
     inset: 0;
     display: none;
     z-index: 9999;
+    background: transparent;
 }
 
 #jumpScare.show {
@@ -561,42 +562,51 @@ body {
 }
 
 
-/* Per-animatronic jumpscare — iteration count matches each asset's exact duration */
+/* Per-animatronic jumpscare
+   - Chica + Freddy Power: use pre-processed transparent WebPs (clean removal)
+   - Others: mix-blend-mode:screen on black bg — dark pixels become invisible
+     against the 3D office behind the overlay */
 
 #jumpScare.scare-freddy {
-    /* 30 × 70ms = 2100ms — longer shake, image holds after */
+    /* 30 × 70ms = 2100ms */
     animation: scare-shake 0.07s 30;
-    background: url('../assets/freddy_jumpscare.webp') center/cover no-repeat;
+    background: #000 url('../assets/freddy_jumpscare.webp') center/contain no-repeat;
+    mix-blend-mode: screen;
 }
 
 #jumpScare.scare-freddy-power {
-    /* 20 × 70ms = 1400ms */
+    /* 20 × 70ms = 1400ms — transparent version, no blend needed */
     animation: scare-shake 0.07s 20;
-    background: url('../assets/freddy_jumpscare_power.gif') center/cover no-repeat;
+    background: url('../assets/transparent/freddy_jumpscare_power_transparent.webp') center/contain no-repeat;
+    mix-blend-mode: normal;
 }
 
 #jumpScare.scare-bonnie {
     /* 10 × 70ms = 700ms */
     animation: scare-shake 0.07s 10;
-    background: url('../assets/bonnie_jumpscare.webp') center/cover no-repeat;
+    background: #000 url('../assets/bonnie_jumpscare.webp') center/contain no-repeat;
+    mix-blend-mode: screen;
 }
 
 #jumpScare.scare-chica {
-    /* 14 × 70ms = 980ms */
+    /* 14 × 70ms = 980ms — transparent version, no blend needed */
     animation: scare-shake 0.07s 14;
-    background: url('../assets/chica_jumpscare.webp') center/cover no-repeat;
+    background: url('../assets/transparent/chica_jumpscare_transparent.webp') center/contain no-repeat;
+    mix-blend-mode: normal;
 }
 
 #jumpScare.scare-foxy {
     /* 18 × 70ms = 1260ms */
     animation: scare-shake 0.07s 18;
-    background: url('../assets/foxy_jumpscare.gif') center/cover no-repeat;
+    background: #000 url('../assets/foxy_jumpscare.gif') center/contain no-repeat;
+    mix-blend-mode: screen;
 }
 
 #jumpScare.scare-golden {
-    /* 30 × 70ms = 2100ms — long shake for static image impact */
+    /* 30 × 70ms = 2100ms */
     animation: scare-shake 0.07s 30;
-    background: url('../assets/golden_freddy.webp') center/cover no-repeat;
+    background: #000 url('../assets/golden_freddy.webp') center/contain no-repeat;
+    mix-blend-mode: screen;
 }
 
 @keyframes scare-shake {
