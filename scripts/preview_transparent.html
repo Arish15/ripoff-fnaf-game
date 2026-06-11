@@ -23,10 +23,9 @@
     text-align: center;
     font-size: 0.85rem;
     color: #888;
-    margin-bottom: 30px;
+    margin-bottom: 24px;
   }
 
-  /* Toggle between dark bg and checkered bg */
   .bg-toggle {
     display: flex;
     justify-content: center;
@@ -43,7 +42,8 @@
     font-size: 0.85rem;
     transition: all 0.2s;
   }
-  .bg-toggle button.active, .bg-toggle button:hover {
+  .bg-toggle button.active,
+  .bg-toggle button:hover {
     background: #ff4444;
     border-color: #ff4444;
     color: #fff;
@@ -57,127 +57,166 @@
     margin: 0 auto;
   }
 
-  .card {
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #333;
-    background: var(--card-bg, #1a1a1a);
-    transition: background 0.3s;
-  }
-  .card-inner {
+  .card { border-radius: 12px; overflow: hidden; border: 1px solid #333; }
+
+  .panel {
     min-height: 240px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 12px;
-    background: var(--preview-bg, #1a1a1a);
+    background: #1a1a1a;
     transition: background 0.3s;
   }
-  .card-inner.checkered {
+  .panel.checkered {
+    background-color: #555;
     background-image:
-      linear-gradient(45deg, #444 25%, transparent 25%),
-      linear-gradient(-45deg, #444 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, #444 75%),
-      linear-gradient(-45deg, transparent 75%, #444 75%);
+      linear-gradient(45deg,#777 25%,transparent 25%),
+      linear-gradient(-45deg,#777 25%,transparent 25%),
+      linear-gradient(45deg,transparent 75%,#777 75%),
+      linear-gradient(-45deg,transparent 75%,#777 75%);
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
-    background-color: #333;
-  }
-  .card-inner.office {
-    background-image: url('../src/assets/cam_stage.svg');
-    background-size: cover;
-    background-position: center;
-    background-color: #1a0d08;
   }
 
-  .card img {
+  .img-wrap { display:flex; align-items:center; justify-content:center; width:100%; }
+  .img-wrap.screen { mix-blend-mode: screen; }
+
+  .img-wrap img {
     max-width: 100%;
     max-height: 260px;
     object-fit: contain;
     display: block;
   }
-  .label {
-    padding: 10px 14px;
-    font-size: 0.8rem;
-    color: #aaa;
-    border-top: 1px solid #2a2a2a;
-    background: #181818;
+
+  .label { padding: 10px 14px; border-top: 1px solid #2a2a2a; background: #181818; }
+  .label strong { display: block; color: #eee; font-size: 0.95rem; margin-bottom: 4px; }
+  .badge {
+    display: inline-block; font-size: 0.7rem;
+    padding: 2px 8px; border-radius: 4px; font-weight: 600;
   }
-  .label strong {
-    display: block;
-    color: #eee;
-    font-size: 0.95rem;
-    margin-bottom: 2px;
-  }
+  .badge.transparent { background: #1a4d2e; color: #4ade80; }
+  .badge.screen      { background: #1e2d4d; color: #60a5fa; }
 </style>
 </head>
 <body>
 
-<h1>🎃 Jumpscare Transparency Preview</h1>
-<p class="sub">Check how well the dark background was removed from each jumpscare</p>
+<h1>Jumpscare Preview</h1>
+<p class="sub">Green = transparent WebP &nbsp;|&nbsp; Blue = original + mix-blend-mode: screen &nbsp;|&nbsp; Animations loop automatically</p>
 
 <div class="bg-toggle">
-  <button class="active" onclick="setBg('dark')">Dark BG</button>
-  <button onclick="setBg('checkered')">Checkered (true transparency)</button>
+  <button class="active" onclick="setBg(this,'dark')">Dark BG</button>
+  <button onclick="setBg(this,'checkered')">Checkered (true transparency test)</button>
 </div>
 
-<div class="grid" id="grid">
+<div class="grid">
 
   <div class="card">
-    <div class="card-inner" id="bg-bonnie">
-      <img src="../src/assets/transparent/bonnie_jumpscare_transparent.webp" alt="Bonnie">
+    <div class="panel" data-panel>
+      <div class="img-wrap screen">
+        <img data-src="../src/assets/freddy_jumpscare.webp" data-ms="2100" alt="Freddy">
+      </div>
     </div>
-    <div class="label"><strong>Bonnie</strong>bonnie_jumpscare_transparent.webp</div>
+    <div class="label">
+      <strong>Freddy</strong>
+      <span class="badge screen">mix-blend-mode: screen</span>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-inner" id="bg-chica">
-      <img src="../src/assets/transparent/chica_jumpscare_transparent.webp" alt="Chica">
+    <div class="panel" data-panel>
+      <div class="img-wrap">
+        <img data-src="../src/assets/transparent/freddy_jumpscare_power_transparent.webp" data-ms="1400" alt="Freddy (Power Out)">
+      </div>
     </div>
-    <div class="label"><strong>Chica</strong>chica_jumpscare_transparent.webp</div>
+    <div class="label">
+      <strong>Freddy (Power Out)</strong>
+      <span class="badge transparent">transparent WebP</span>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-inner" id="bg-foxy">
-      <img src="../src/assets/transparent/foxy_jumpscare_transparent.webp" alt="Foxy">
+    <div class="panel" data-panel>
+      <div class="img-wrap screen">
+        <img data-src="../src/assets/bonnie_jumpscare.webp" data-ms="700" alt="Bonnie">
+      </div>
     </div>
-    <div class="label"><strong>Foxy</strong>foxy_jumpscare_transparent.webp</div>
+    <div class="label">
+      <strong>Bonnie</strong>
+      <span class="badge screen">mix-blend-mode: screen</span>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-inner" id="bg-freddy">
-      <img src="../src/assets/transparent/freddy_jumpscare_transparent.webp" alt="Freddy">
+    <div class="panel" data-panel>
+      <div class="img-wrap">
+        <img data-src="../src/assets/transparent/chica_jumpscare_transparent.webp" data-ms="980" alt="Chica">
+      </div>
     </div>
-    <div class="label"><strong>Freddy</strong>freddy_jumpscare_transparent.webp</div>
+    <div class="label">
+      <strong>Chica</strong>
+      <span class="badge transparent">transparent WebP</span>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-inner" id="bg-power">
-      <img src="../src/assets/transparent/freddy_jumpscare_power_transparent.webp" alt="Freddy (Power Out)">
+    <div class="panel" data-panel>
+      <div class="img-wrap screen">
+        <img data-src="../src/assets/foxy_jumpscare.gif" data-ms="1260" alt="Foxy">
+      </div>
     </div>
-    <div class="label"><strong>Freddy (Power Out)</strong>freddy_jumpscare_power_transparent.webp</div>
+    <div class="label">
+      <strong>Foxy</strong>
+      <span class="badge screen">mix-blend-mode: screen</span>
+    </div>
   </div>
 
   <div class="card">
-    <div class="card-inner" id="bg-golden">
-      <img src="../src/assets/transparent/golden_freddy_transparent.webp" alt="Golden Freddy">
+    <div class="panel" data-panel>
+      <div class="img-wrap screen">
+        <img data-src="../src/assets/golden_freddy.webp" data-ms="0" alt="Golden Freddy">
+      </div>
     </div>
-    <div class="label"><strong>Golden Freddy</strong>golden_freddy_transparent.webp</div>
+    <div class="label">
+      <strong>Golden Freddy</strong>
+      <span class="badge screen">mix-blend-mode: screen (static)</span>
+    </div>
   </div>
 
 </div>
 
 <script>
-  const panels = document.querySelectorAll('.card-inner');
+  // ── Load and loop each image individually based on its real duration ──────
+  function startLoop(img) {
+    const src = img.dataset.src;
+    const ms  = parseInt(img.dataset.ms) || 0;
+    if (!ms) { img.src = src; return; }  // static — just show it
+
+    function play() {
+      // Clone trick: forces the browser to reset and replay the animation
+      const next = img.cloneNode(false);
+      next.dataset.src = src;
+      next.dataset.ms  = ms;
+      next.src = src + '?r=' + Math.random();
+      img.replaceWith(next);
+      img = next;
+      setTimeout(play, ms);
+    }
+    img.src = src + '?r=' + Math.random();
+    setTimeout(play, ms);
+  }
+
+  document.querySelectorAll('img[data-src]').forEach(startLoop);
+
+  // ── Background toggle ─────────────────────────────────────────────────────
   const buttons = document.querySelectorAll('.bg-toggle button');
+  const panels  = document.querySelectorAll('[data-panel]');
 
-  function setBg(mode) {
+  function setBg(btn, mode) {
     buttons.forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
-
+    btn.classList.add('active');
     panels.forEach(p => {
-      p.classList.remove('checkered', 'office');
-      if (mode === 'checkered') p.classList.add('checkered');
+      p.className = 'panel' + (mode === 'checkered' ? ' checkered' : '');
     });
   }
 </script>
